@@ -146,6 +146,20 @@
             object-position: center;
         }
 
+        /* Donate image - full width */
+        .donate-image-container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .donate-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         /* Centered sections for variety */
         .section-centered {
             text-align: center;
@@ -171,9 +185,23 @@
             background-color: #fafafa;
             border-radius: 12px;
             margin: 2rem 0;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
+        }
+
+        /* Milestones section - full width */
+        #milestones.section-card {
+            width: 100vw;
+            max-width: 100%;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            border-radius: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        #milestones.section-card .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
         .section-card h2 {
@@ -459,27 +487,18 @@
             </div>
         </section>
 
-        <!-- Section 1: Text left, Image right -->
+        <!-- Section 1: Centered -->
         <% if (user && user.isManager) { %>
-        <section id="participants" class="section-alternate">
+        <section id="participants" class="section-centered">
             <div class="container">
-                <div class="row">
-                    <div class="col-md-6 mb-4 mb-md-0">
-                        <h2>Participants</h2>
-                        <p>
-                            View and manage the young women who participate in Ella Rises workshops, mentoring circles,
-                            and creative experiences. Track their progress and celebrate their achievements.
-                        </p>
-                        <a href="/participants" class="btn btn-outline-dark btn-lg">
-                            Go to Participants
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="image-placeholder">
-                            Image placeholder
-                        </div>
-                    </div>
-                </div>
+                <h2>Participants</h2>
+                <p>
+                    View and manage the young women who participate in Ella Rises workshops, mentoring circles,
+                    and creative experiences. Track their progress and celebrate their achievements.
+                </p>
+                <a href="/participants" class="btn btn-outline-dark btn-lg">
+                    Go to Participants
+                </a>
             </div>
         </section>
         <% } %>
@@ -507,39 +526,26 @@
             </div>
         </section>
 
-        <!-- Section 3: Centered -->
-        <section id="surveys" class="<% if (user && user.isUser) { %>section-alternate<% } else { %>section-centered<% } %>">
+        <!-- Section 3: Alternating layout - always displayed -->
+        <section id="surveys" class="section-alternate">
             <div class="container">
-                <% if (user && user.isUser) { %>
-                    <!-- Alternating layout for users: text left, pink box right -->
-                    <div class="row">
-                        <div class="col-md-6 mb-4 mb-md-0">
-                            <h2>Event Feedback</h2>
-                            <p>
-                                Capture post-event feedback to measure satisfaction, usefulness, and recommendations for every
-                                Ella Rises experience. Use data-driven insights to improve programs and demonstrate impact.
-                            </p>
-                            <a href="/surveys" class="btn btn-outline-dark btn-lg">
-                                Go to Event Feedback
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="image-placeholder" style="min-height: 300px;">
-                                <img src="/images/event_feedback.avif" alt="Event Feedback" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
-                            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <h2>Event Feedback</h2>
+                        <p>
+                            Capture post-event feedback to measure satisfaction, usefulness, and recommendations for every
+                            Ella Rises experience. Use data-driven insights to improve programs and demonstrate impact.
+                        </p>
+                        <a href="/surveys" class="btn btn-outline-dark btn-lg">
+                            Go to Event Feedback
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="image-placeholder" style="min-height: 300px;">
+                            <img src="/images/event_feedback.avif" alt="Event Feedback" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
                         </div>
                     </div>
-                <% } else { %>
-                    <!-- Centered layout for managers and non-logged-in users -->
-                    <h2>Event Feedback</h2>
-                    <p>
-                        Capture post-event feedback to measure satisfaction, usefulness, and recommendations for every
-                        Ella Rises experience. Use data-driven insights to improve programs and demonstrate impact.
-                    </p>
-                    <a href="/surveys" class="btn btn-outline-dark btn-lg">
-                        Go to Event Feedback
-                    </a>
-                <% } %>
+                </div>
             </div>
         </section>
 
@@ -574,6 +580,11 @@
                 </a>
             </div>
         </section>
+
+        <!-- Donate Image - Full Width -->
+        <div class="donate-image-container">
+            <img src="/images/donate_image.avif" alt="Donate to Ella Rises" style="width: 100%; height: auto; display: block;">
+        </div>
 
         <!-- Section 6: Card style -->
         <% if (user && user.isManager) { %>

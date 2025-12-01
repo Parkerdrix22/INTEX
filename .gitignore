@@ -9,10 +9,6 @@ pnpm-debug.log*
 logs
 *.log
 
-# Environment variables
-.env
-.env.local
-.env.*.local
 
 # Build / cache
 dist/
