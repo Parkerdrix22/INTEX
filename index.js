@@ -124,7 +124,7 @@ app.use(express.urlencoded({extended: true}));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard') {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
         //continue with the request path
         return next();
     }
@@ -801,6 +801,11 @@ app.post("/deleteUser/:id", (req, res) => {
         console.log(err);
         res.status(500).json({err});
     })
+});
+
+app.get('/teapot', (req, res) => {
+    res.status(418).render('teapot');
+    
 });
 
 app.listen(port, () => {

@@ -825,7 +825,18 @@
                     </p>
                 </div>
                 
-                <div class="footer-divider"></div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <p><a href="#events">Events</a></p>
+                    <p><a href="#surveys">Event Feedback</a></p>
+                    <p><a href="#donations">Donations</a></p>
+                    <p><a href="/teapot">Teapot</a></p>
+                    <% if (user && user.isManager) { %>
+                    <p><a href="#participants">Participants</a></p>
+                    <p><a href="#milestones">Milestones</a></p>
+                    <p><a href="#dashboard">Dashboard</a></p>
+                    <% } %>
+                </div>
                 
                 <div class="footer-right">
                     <h4>Contact</h4>
