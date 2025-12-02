@@ -245,6 +245,8 @@ app.get("/", async (req, res) => {
     res.render("index", { user: userInfo });
 });
 
+
+
 // Events route
 app.get("/events", async (req, res) => {
     const userInfo = await getUserInfo(req);
@@ -716,13 +718,21 @@ app.post("/rsvp", async (req, res) => {
         }
 
         // Insert registration
-        await knex('registration').insert({
-            registrationcreatedate: new Date(),
-            participantid: participantId,
-            eventoccurrenceid: eventOccurrenceId,
-            registrationstatus: null,
-            registrationattendedflage: null
-        });
+        try {
+            await knex('registration').insert({
+                registrationcreatedate: new Date(),
+                participantid: participantId,
+                eventoccurrenceid: eventOccurrenceId,
+                registrationstatus: null,
+                registrationattendedflag: null
+            });
+        } catch (err) {
+            // If duplicate key error (code 23505), ignore and proceed to success page
+            // This means the user has already RSVP'd for this event occurrence
+            if (err.code !== '23505') {
+                throw err;
+            }
+        }
 
         // Fetch event details for the success page
         const eventDetails = await knex('eventoccurrence')
