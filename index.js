@@ -55,6 +55,12 @@ const upload = multer({ storage });
 // Expose everything in /images (including uploads) as static assets
 app.use("/images", express.static(uploadRoot));
 
+// Parse JSON bodies (as sent by API clients)
+app.use(express.json());
+
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(express.urlencoded({ extended: true }));
+
 // process.env.PORT is when you deploy and 3001 is for test (3000 is often in use)
 const port = process.env.PORT || 3001;
 
@@ -122,11 +128,56 @@ const knex = require("knex")({
 // Tells Express how to read form data sent in the body of a request
 app.use(express.urlencoded({ extended: true }));
 
+// Helper function to get user info with participant data
+async function getUserInfo(req) {
+    if (!req.session.isLoggedIn) {
+        return null;
+    }
+    
+    const userInfo = {
+        username: req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U',
+        participantid: req.session.participantid || null
+    };
+    
+    // If user has a participantid, get participant data
+    if (req.session.participantid) {
+        try {
+            const participant = await knex('participants')
+                .where('participantid', req.session.participantid)
+                .first();
+            
+            if (participant) {
+                userInfo.first_name = participant.participantfirstname || '';
+                userInfo.last_name = participant.participantlastname || '';
+                userInfo.full_name = `${participant.participantfirstname || ''} ${participant.participantlastname || ''}`.trim() || req.session.username;
+            } else {
+                userInfo.first_name = '';
+                userInfo.last_name = '';
+                userInfo.full_name = req.session.username;
+            }
+        } catch (err) {
+            console.error("Error fetching participant data:", err);
+            userInfo.first_name = '';
+            userInfo.last_name = '';
+            userInfo.full_name = req.session.username;
+        }
+    } else {
+        userInfo.first_name = '';
+        userInfo.last_name = '';
+        userInfo.full_name = req.session.username;
+    }
+    
+    return userInfo;
+}
+
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    // Note: /events/add, /events/edit/:id, /events/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
+    // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -153,7 +204,7 @@ app.use((req, res, next) => {
 // Main page route - notice it checks if they have logged in
 app.get("/login", (req, res) => {
     // Always show the login page
-        res.render("login", { error_message: "" });
+    res.render("login", { error_message: "" });
 });
 
 app.get("/test", (req, res) => {
@@ -187,33 +238,16 @@ app.get("/users", (req, res) => {
     }
 });
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
     // Always show the homepage (index.ejs)
     // Pass user info if logged in
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
-
+    const userInfo = await getUserInfo(req);
     res.render("index", { user: userInfo });
 });
 
 // Events route
-app.get("/events", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
+app.get("/events", async (req, res) => {
+    const userInfo = await getUserInfo(req);
 
     // Query to get events with their occurrence details
     // Use DISTINCT ON eventname to get unique event names
@@ -232,22 +266,22 @@ app.get("/events", (req, res) => {
         LEFT JOIN eventoccurrence ON events.eventid = eventoccurrence.eventid
         ORDER BY events.eventname, events.eventid
     `)
-    .then(result => {
-        const events = result.rows || result; // Handle raw query result
-        console.log(`Successfully retrieved ${events.length} events from database`);
-        res.render("events", { 
-            user: userInfo,
-            events: events 
+        .then(result => {
+            const events = result.rows || result; // Handle raw query result
+            console.log(`Successfully retrieved ${events.length} events from database`);
+            res.render("events", {
+                user: userInfo,
+                events: events
+            });
+        })
+        .catch(err => {
+            console.error("Database query error:", err.message);
+            res.render("events", {
+                user: userInfo,
+                events: [],
+                error_message: `Database error: ${err.message}. Please check if the tables exist.`
+            });
         });
-    })
-    .catch(err => {
-        console.error("Database query error:", err.message);
-        res.render("events", { 
-            user: userInfo,
-            events: [],
-            error_message: `Database error: ${err.message}. Please check if the tables exist.`
-        });
-    });
 });
 
 // Events POST route - Add Event (Manager only)
@@ -256,13 +290,13 @@ app.post("/events/add", (req, res) => {
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
     }
-    
+
     const { eventName, eventDescription, eventType, eventRecurrencePattern, eventDefaultCapacity } = req.body;
-    
+
     if (!eventName || !eventDescription || !eventType || !eventRecurrencePattern || !eventDefaultCapacity) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
-    
+
     knex('events')
         .insert({
             eventname: eventName,
@@ -288,14 +322,14 @@ app.post("/events/edit/:id", (req, res) => {
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
     }
-    
+
     const eventId = req.params.id;
     const { eventName, eventDescription, eventType, eventRecurrencePattern, eventDefaultCapacity } = req.body;
-    
+
     if (!eventName || !eventDescription || !eventType || !eventRecurrencePattern || !eventDefaultCapacity) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
-    
+
     knex('events')
         .where('eventid', eventId)
         .update({
@@ -324,9 +358,9 @@ app.post("/events/delete/:id", (req, res) => {
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
     }
-    
+
     const eventId = req.params.id;
-    
+
     // First delete related eventoccurrence records
     knex('eventoccurrence')
         .where('eventid', eventId)
@@ -351,117 +385,277 @@ app.post("/events/delete/:id", (req, res) => {
 });
 
 // Participants route
-app.get("/participants", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
-    res.render("participants", { user: userInfo });
+app.get("/participants", async (req, res) => {
+    const userInfo = await getUserInfo(req);
+
+    // Query to get all participants from database
+    knex.select()
+        .from('participants')
+        .orderBy('participantlastname', 'asc')
+        .then(participants => {
+            console.log(`Successfully retrieved ${participants.length} participants from database`);
+            res.render("participants", {
+                user: userInfo,
+                participants: participants || []
+            });
+        })
+        .catch(err => {
+            console.error("Database query error:", err.message);
+            res.render("participants", {
+                user: userInfo,
+                participants: [],
+                error_message: `Database error: ${err.message}. Please check if the 'participants' table exists.`
+            });
+        });
+});
+
+// Participants POST route - Add Participant (Manager only)
+app.post("/participants/add", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const {
+        participantEmail,
+        participantFirstName,
+        participantLastName,
+        participantDOB,
+        participantRole,
+        participantPhone,
+        participantCity,
+        participantState,
+        participantZip,
+        participantSchoolOrEmployer,
+        participantFieldOfInterest
+    } = req.body;
+
+    if (!participantEmail || !participantFirstName || !participantLastName) {
+        return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
+    }
+
+    knex('participants')
+        .insert({
+            participantemail: participantEmail,
+            participantfirstname: participantFirstName,
+            participantlastname: participantLastName,
+            participantdob: participantDOB || null,
+            participantrole: participantRole || null,
+            participantphone: participantPhone || null,
+            participantcity: participantCity || null,
+            participantstate: participantState || null,
+            participantzip: participantZip || null,
+            participantschooloremployer: participantSchoolOrEmployer || null,
+            participantfieldofinterest: participantFieldOfInterest || null
+        })
+        .returning('participantid')
+        .then(result => {
+            console.log(`Participant added successfully with ID: ${result[0].participantid}`);
+            res.json({ success: true, participantId: result[0].participantid, message: 'Participant added successfully' });
+        })
+        .catch(err => {
+            console.error("Error adding participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
+});
+
+// Participants POST route - Edit Participant (Manager only)
+app.post("/participants/edit/:id", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const participantId = req.params.id;
+    const {
+        participantEmail,
+        participantFirstName,
+        participantLastName,
+        participantDOB,
+        participantRole,
+        participantPhone,
+        participantCity,
+        participantState,
+        participantZip,
+        participantSchoolOrEmployer,
+        participantFieldOfInterest
+    } = req.body;
+
+    if (!participantEmail || !participantFirstName || !participantLastName) {
+        return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
+    }
+
+    knex('participants')
+        .where('participantid', participantId)
+        .update({
+            participantemail: participantEmail,
+            participantfirstname: participantFirstName,
+            participantlastname: participantLastName,
+            participantdob: participantDOB || null,
+            participantrole: participantRole || null,
+            participantphone: participantPhone || null,
+            participantcity: participantCity || null,
+            participantstate: participantState || null,
+            participantzip: participantZip || null,
+            participantschooloremployer: participantSchoolOrEmployer || null,
+            participantfieldofinterest: participantFieldOfInterest || null
+        })
+        .then(result => {
+            if (result === 0) {
+                return res.status(404).json({ error: 'Participant not found' });
+            }
+            console.log(`Participant ${participantId} updated successfully`);
+            res.json({ success: true, message: 'Participant updated successfully' });
+        })
+        .catch(err => {
+            console.error("Error updating participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
+});
+
+// Participants POST route - Delete Participant (Manager only)
+app.post("/participants/delete/:id", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const participantId = req.params.id;
+
+    knex('participants')
+        .where('participantid', participantId)
+        .del()
+        .then(result => {
+            if (result === 0) {
+                return res.status(404).json({ error: 'Participant not found' });
+            }
+            console.log(`Participant ${participantId} deleted successfully`);
+            res.json({ success: true, message: 'Participant deleted successfully' });
+        })
+        .catch(err => {
+            console.error("Error deleting participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
 });
 
 // Milestones route
-app.get("/milestones", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
+app.get("/milestones", async (req, res) => {
+    const userInfo = await getUserInfo(req);
     res.render("milestones", { user: userInfo });
 });
 
 // Dashboard route
-app.get("/dashboard", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
+app.get("/dashboard", async (req, res) => {
+    const userInfo = await getUserInfo(req);
     res.render("dashboard", { user: userInfo });
 });
 
 // Personal Milestones route
-app.get("/personal-milestones", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
-    const participantEmail = req.query.email || '';
-    const participantName = req.query.name || '';
+app.get("/personal-milestones", async (req, res) => {
+    const userInfo = await getUserInfo(req);
+
+    const participantId = req.query.participantId;
+    let participant = null;
+    let milestones = [];
+
+    try {
+        if (participantId) {
+            participant = await knex("participants").where("participantid", participantId).first();
+        } else if (req.query.email) {
+            participant = await knex("participants").where("participantemail", req.query.email).first();
+        }
+
+        if (participant) {
+            milestones = await knex("milestones")
+                .where("participantid", participant.participantid)
+                .orderBy("milestonedate", "desc")
+                .select("milestonetitle", "milestonedate");
+        }
+    } catch (err) {
+        console.error("Error fetching participant/milestones:", err);
+    }
+
     res.render("personal-milestones", {
         user: userInfo,
-        participantEmail: participantEmail,
-        participantName: participantName
+        participant: participant ? {
+            id: participant.participantid,
+            name: `${participant.participantfirstname} ${participant.participantlastname}`,
+            email: participant.participantemail
+        } : null,
+        milestonesJson: JSON.stringify(milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        }))),
+        milestones: milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        })),
+        participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : (req.query.name || 'Participant'),
+        participantEmail: participant ? participant.participantemail : (req.query.email || '')
     });
 });
 
 // My Journey route (for logged-in users viewing their own milestones)
-app.get("/my-journey", (req, res) => {
+app.get("/my-journey", async (req, res) => {
     if (!req.session.isLoggedIn) {
         return res.redirect("/login");
     }
-    const userInfo = {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    };
-    // Use the logged-in user's email and name
-    const participantEmail = req.session.username || '';
-    const participantName = userInfo.full_name;
+    const userInfo = await getUserInfo(req);
+
+    let participant = null;
+    let milestones = [];
+
+    try {
+        // Try to find participant by participantid from session first, then by email
+        if (req.session.participantid) {
+            participant = await knex("participants").where("participantid", req.session.participantid).first();
+        }
+        
+        if (!participant) {
+            // Fallback to email lookup
+            participant = await knex("participants").where("participantemail", req.session.username).first();
+        }
+
+        if (participant) {
+            milestones = await knex("milestones")
+                .where("participantid", participant.participantid)
+                .orderBy("milestonedate", "desc")
+                .select("milestonetitle", "milestonedate");
+        }
+    } catch (err) {
+        console.error("Error fetching my journey:", err);
+    }
+
     res.render("personal-milestones", {
         user: userInfo,
-        participantEmail: participantEmail,
-        participantName: participantName
+        participant: participant ? {
+            id: participant.participantid,
+            name: `${participant.participantfirstname} ${participant.participantlastname}`,
+            email: participant.participantemail
+        } : null,
+        milestonesJson: JSON.stringify(milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        }))),
+        milestones: milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        })),
+        participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : userInfo.full_name,
+        participantEmail: participant ? participant.participantemail : req.session.username
     });
 });
 
 // RSVP route
-app.get("/rsvp", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
+app.get("/rsvp", async (req, res) => {
+    const userInfo = await getUserInfo(req);
     res.render("rsvp", { user: userInfo });
 });
 
 // Survey route - GET (singular)
-app.get("/survey", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
-    
+app.get("/survey", async (req, res) => {
+    const userInfo = await getUserInfo(req);
+
     // Query to get events with DISTINCT ON eventname (similar to events page)
     knex.raw(`
         SELECT DISTINCT ON (events.eventname)
@@ -474,58 +668,50 @@ app.get("/survey", (req, res) => {
         LEFT JOIN eventoccurrence ON events.eventid = eventoccurrence.eventid
         ORDER BY events.eventname, events.eventid
     `)
-    .then(result => {
-        const events = result.rows || result;
-        
-        // Get all occurrences for all events to populate dropdown
-        return knex.select(
-            'eventoccurrence.eventoccurrenceid',
-            'eventoccurrence.eventid',
-            'eventoccurrence.eventdatetimestart'
-        )
-        .from('eventoccurrence')
-        .orderBy('eventoccurrence.eventdatetimestart', 'asc')
-        .then(occurrences => {
-            // Group occurrences by eventid
-            const occurrencesByEvent = {};
-            occurrences.forEach(occ => {
-                if (!occurrencesByEvent[occ.eventid]) {
-                    occurrencesByEvent[occ.eventid] = [];
-                }
-                occurrencesByEvent[occ.eventid].push(occ);
-            });
-            
-            console.log(`Successfully retrieved ${events.length} events and ${occurrences.length} occurrences for survey from database`);
-            res.render("survey", { 
+        .then(result => {
+            const events = result.rows || result;
+
+            // Get all occurrences for all events to populate dropdown
+            return knex.select(
+                'eventoccurrence.eventoccurrenceid',
+                'eventoccurrence.eventid',
+                'eventoccurrence.eventdatetimestart'
+            )
+                .from('eventoccurrence')
+                .orderBy('eventoccurrence.eventdatetimestart', 'asc')
+                .then(occurrences => {
+                    // Group occurrences by eventid
+                    const occurrencesByEvent = {};
+                    occurrences.forEach(occ => {
+                        if (!occurrencesByEvent[occ.eventid]) {
+                            occurrencesByEvent[occ.eventid] = [];
+                        }
+                        occurrencesByEvent[occ.eventid].push(occ);
+                    });
+
+                    console.log(`Successfully retrieved ${events.length} events and ${occurrences.length} occurrences for survey from database`);
+                    res.render("survey", {
+                        user: userInfo,
+                        events: events,
+                        occurrencesByEvent: occurrencesByEvent
+                    });
+                });
+        })
+        .catch(err => {
+            console.error("Database query error:", err.message);
+            res.render("survey", {
                 user: userInfo,
-                events: events,
-                occurrencesByEvent: occurrencesByEvent
+                events: [],
+                occurrencesByEvent: {},
+                error_message: `Database error: ${err.message}. Please check if the tables exist.`
             });
         });
-    })
-    .catch(err => {
-        console.error("Database query error:", err.message);
-        res.render("survey", { 
-            user: userInfo,
-            events: [],
-            occurrencesByEvent: {},
-            error_message: `Database error: ${err.message}. Please check if the tables exist.`
-        });
-    });
 });
 
 // Survey route - GET (plural - for consistency)
-app.get("/surveys", (req, res) => {
-    const userInfo = req.session.isLoggedIn ? {
-        username: req.session.username,
-        first_name: req.session.first_name,
-        last_name: req.session.last_name,
-        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
-        isUser: req.session.level === 'U'
-    } : null;
-    
+app.get("/surveys", async (req, res) => {
+    const userInfo = await getUserInfo(req);
+
     // Query to get events with DISTINCT ON eventname (similar to events page)
     knex.raw(`
         SELECT DISTINCT ON (events.eventname)
@@ -538,51 +724,51 @@ app.get("/surveys", (req, res) => {
         LEFT JOIN eventoccurrence ON events.eventid = eventoccurrence.eventid
         ORDER BY events.eventname, events.eventid
     `)
-    .then(result => {
-        const events = result.rows || result;
-        
-        // Get all occurrences for all events to populate dropdown
-        return knex.select(
-            'eventoccurrence.eventoccurrenceid',
-            'eventoccurrence.eventid',
-            'eventoccurrence.eventdatetimestart'
-        )
-        .from('eventoccurrence')
-        .orderBy('eventoccurrence.eventdatetimestart', 'asc')
-        .then(occurrences => {
-            // Group occurrences by eventid
-            const occurrencesByEvent = {};
-            occurrences.forEach(occ => {
-                if (!occurrencesByEvent[occ.eventid]) {
-                    occurrencesByEvent[occ.eventid] = [];
-                }
-                occurrencesByEvent[occ.eventid].push(occ);
-            });
-            
-            console.log(`Successfully retrieved ${events.length} events and ${occurrences.length} occurrences for survey from database`);
-            res.render("survey", { 
+        .then(result => {
+            const events = result.rows || result;
+
+            // Get all occurrences for all events to populate dropdown
+            return knex.select(
+                'eventoccurrence.eventoccurrenceid',
+                'eventoccurrence.eventid',
+                'eventoccurrence.eventdatetimestart'
+            )
+                .from('eventoccurrence')
+                .orderBy('eventoccurrence.eventdatetimestart', 'asc')
+                .then(occurrences => {
+                    // Group occurrences by eventid
+                    const occurrencesByEvent = {};
+                    occurrences.forEach(occ => {
+                        if (!occurrencesByEvent[occ.eventid]) {
+                            occurrencesByEvent[occ.eventid] = [];
+                        }
+                        occurrencesByEvent[occ.eventid].push(occ);
+                    });
+
+                    console.log(`Successfully retrieved ${events.length} events and ${occurrences.length} occurrences for survey from database`);
+                    res.render("survey", {
+                        user: userInfo,
+                        events: events,
+                        occurrencesByEvent: occurrencesByEvent
+                    });
+                });
+        })
+        .catch(err => {
+            console.error("Database query error:", err.message);
+            res.render("survey", {
                 user: userInfo,
-                events: events,
-                occurrencesByEvent: occurrencesByEvent
+                events: [],
+                occurrencesByEvent: {},
+                error_message: `Database error: ${err.message}. Please check if the tables exist.`
             });
         });
-    })
-    .catch(err => {
-        console.error("Database query error:", err.message);
-        res.render("survey", { 
-            user: userInfo,
-            events: [],
-            occurrencesByEvent: {},
-            error_message: `Database error: ${err.message}. Please check if the tables exist.`
-        });
-    });
 });
 
 // Survey route - POST (save survey responses to database)
 app.post("/survey", (req, res) => {
     const { eventName, eventId, email, eventoccurrenceid, satisfactionScore, usefulnessScore, instructorScore, recommendationScore, comments } = req.body;
-    
-    // Get or create participant ID from email
+
+            // Get or create participant ID from email
     knex.select('participantid')
         .from('participants')
         .where('participantemail', email)
@@ -592,14 +778,38 @@ app.post("/survey", (req, res) => {
                 return participant.participantid;
     } else {
                 // Create new participant if doesn't exist
-                return knex('participants')
-                    .insert({
-                        participantemail: email,
-                        participantfirstname: req.session.first_name || '',
-                        participantlastname: req.session.last_name || ''
-                    })
-                    .returning('participantid')
-                    .then(ids => ids[0].participantid);
+                // Try to get name from user's participant record if available
+                let firstName = '';
+                let lastName = '';
+                
+                if (req.session.participantid) {
+                    return knex('participants')
+                        .where('participantid', req.session.participantid)
+                        .first()
+                        .then(userParticipant => {
+                            if (userParticipant) {
+                                firstName = userParticipant.participantfirstname || '';
+                                lastName = userParticipant.participantlastname || '';
+                            }
+                            return knex('participants')
+                                .insert({
+                                    participantemail: email,
+                                    participantfirstname: firstName,
+                                    participantlastname: lastName
+                                })
+                                .returning('participantid')
+                                .then(ids => ids[0].participantid);
+                        });
+                } else {
+                    return knex('participants')
+                        .insert({
+                            participantemail: email,
+                            participantfirstname: '',
+                            participantlastname: ''
+                        })
+                        .returning('participantid')
+                        .then(ids => ids[0].participantid);
+                }
             }
         })
         .then(participantId => {
@@ -623,7 +833,7 @@ app.post("/survey", (req, res) => {
             if (!eventOccurrenceId) {
                 throw new Error('Event occurrence ID not found');
             }
-            
+
             // Calculate OverallScore as average of rating scores
             const scores = [
                 parseFloat(satisfactionScore),
@@ -631,11 +841,11 @@ app.post("/survey", (req, res) => {
                 parseFloat(instructorScore),
                 parseFloat(recommendationScore)
             ].filter(score => !isNaN(score));
-            
-            const overallScore = scores.length > 0 
+
+            const overallScore = scores.length > 0
                 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)
                 : null;
-            
+
             // Calculate NPSBucket based on RecommendationScore
             const recScore = parseFloat(recommendationScore);
             let npsBucket = 'Detractor';
@@ -644,7 +854,7 @@ app.post("/survey", (req, res) => {
             } else if (recScore === 4) {
                 npsBucket = 'Passive';
             }
-            
+
             // Format date as YYYY-MM-DD HH:MM:SS
             const now = new Date();
             const year = now.getFullYear();
@@ -654,7 +864,7 @@ app.post("/survey", (req, res) => {
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-            
+
             // Insert survey responses - one row per question
             const surveyResponses = [
                 { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'SatisfactionScore', surveyanswer: satisfactionScore },
@@ -666,7 +876,7 @@ app.post("/survey", (req, res) => {
                 { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'Comments', surveyanswer: comments || '' },
                 { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'SubmissionDate', surveyanswer: formattedDate }
             ];
-            
+
             return knex('surveyresponses').insert(surveyResponses);
         })
         .then(() => {
@@ -691,7 +901,7 @@ app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
 
-    knex.select("username", "password", "level", "first_name", "last_name")
+    knex.select("username", "password", "level", "participantid")
         .from('users')
         .where("username", sName)
         .andWhere("password", sPassword)
@@ -701,8 +911,7 @@ app.post("/login", (req, res) => {
                 req.session.isLoggedIn = true;
                 req.session.username = sName;
                 req.session.level = users[0].level; // Store the user's level (M or U)
-                req.session.first_name = users[0].first_name;
-                req.session.last_name = users[0].last_name;
+                req.session.participantid = users[0].participantid || null;
                 res.redirect("/");
             } else {
                 // No matching user found
@@ -747,41 +956,51 @@ app.post("/signup", (req, res) => {
                 return res.render("login", { error_message: "Username already exists. Please choose another." });
             }
 
-            // Create new user with level 'U' (User)
-            const newUser = {
-                username,
-                password,
-                first_name,
-                last_name,
-                level: 'U'
-            };
-
-            console.log("Attempting to insert user:", newUser);
-
-            // Insert the new user
-            knex("users")
-                .insert(newUser)
-                .then(() => {
-                    console.log("User created successfully:", username);
-                    // Automatically sign them in and redirect to homepage
-                    req.session.isLoggedIn = true;
-                    req.session.username = username;
-                    req.session.level = 'U';
-                    req.session.first_name = first_name;
-                    req.session.last_name = last_name;
-                    res.redirect("/");
+            // First create participant record
+            return knex("participants")
+                .insert({
+                    participantemail: username,
+                    participantfirstname: first_name,
+                    participantlastname: last_name
                 })
-                .catch((dbErr) => {
-                    console.error("Error creating user:", dbErr);
-                    console.error("Error details:", dbErr.message);
-                    res.render("login", { error_message: `Unable to create account: ${dbErr.message}` });
+                .returning('participantid')
+                .then(participantIds => {
+                    const participantid = participantIds[0].participantid;
+                    
+                    // Create new user with level 'U' (User) and link to participant
+                    const newUser = {
+                        username,
+                        password,
+                        participantid: participantid,
+                        level: 'U'
+                    };
+
+                    console.log("Attempting to insert user:", newUser);
+
+                    // Insert the new user
+                    return knex("users")
+                        .insert(newUser)
+                        .then(() => {
+                            console.log("User created successfully:", username);
+                            // Automatically sign them in and redirect to homepage
+                            req.session.isLoggedIn = true;
+                            req.session.username = username;
+                            req.session.level = 'U';
+                            req.session.participantid = participantid;
+                            res.redirect("/");
+                        });
                 });
+        })
+        .catch((dbErr) => {
+            console.error("Error creating user:", dbErr);
+            console.error("Error details:", dbErr.message);
+            res.render("login", { error_message: `Unable to create account: ${dbErr.message}` });
         })
         .catch((err) => {
             console.error("Error checking username:", err);
             console.error("Error details:", err.message);
             res.render("login", { error_message: `An error occurred: ${err.message}` });
-        });   
+        });
 });
 
 // Logout route
@@ -1135,6 +1354,75 @@ app.post("/deleteUser/:id", (req, res) => {
 app.get('/teapot', (req, res) => {
     res.status(418).render('teapot');
 
+});
+
+
+// API Routes for Milestones Feature
+
+// Search participants
+app.get("/api/participants", (req, res) => {
+    const search = req.query.search || "";
+    knex("participants")
+        .where("participantfirstname", "ilike", `%${search}%`)
+        .orWhere("participantlastname", "ilike", `%${search}%`)
+        .orWhere("participantemail", "ilike", `%${search}%`)
+        .select("participantid", "participantfirstname", "participantlastname", "participantemail")
+        .limit(10)
+        .then(participants => {
+            const mappedParticipants = participants.map(p => ({
+                id: p.participantid,
+                name: `${p.participantfirstname} ${p.participantlastname}`,
+                email: p.participantemail
+            }));
+            res.json(mappedParticipants);
+        })
+        .catch(err => {
+            console.error("Error searching participants:", err);
+            res.status(500).json({ error: "Database error" });
+        });
+});
+
+// Get milestones for a participant
+app.get("/api/participants/:id/milestones", (req, res) => {
+    const participantId = req.params.id;
+    knex("milestones")
+        .where("participantid", participantId)
+        .select("milestonetitle", "milestonedate")
+        .orderBy("milestonedate", "desc")
+        .then(milestones => {
+            const mappedMilestones = milestones.map(m => ({
+                milestone_name: m.milestonetitle,
+                date_achieved: m.milestonedate
+            }));
+            res.json(mappedMilestones);
+        })
+        .catch(err => {
+            console.error("Error fetching milestones:", err);
+            res.status(500).json({ error: "Database error" });
+        });
+});
+
+// Assign milestone
+app.post("/api/milestones", (req, res) => {
+    const { participant_id, milestone_name } = req.body;
+
+    if (!participant_id || !milestone_name) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    knex("milestones")
+        .insert({
+            participantid: participant_id,
+            milestonetitle: milestone_name,
+            milestonedate: new Date()
+        })
+        .then(() => {
+            res.json({ success: true });
+        })
+        .catch(err => {
+            console.error("Error assigning milestone:", err);
+            res.status(500).json({ error: "Database error" });
+        });
 });
 
 app.listen(port, () => {
