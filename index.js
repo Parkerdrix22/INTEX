@@ -719,7 +719,7 @@ app.post("/rsvp", async (req, res) => {
         await knex('registration').insert({
             registrationcreatedate: new Date(),
             participantid: participantId,
-            eventoccurenceid: eventOccurrenceId,
+            eventoccurrenceid: eventOccurrenceId,
             registrationstatus: null,
             registrationattendedflage: null
         });
