@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,12 @@
         }
 
         /* DM Serif Display for all titles and headers */
-        h1, h2, h3, h4, h5, h6,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
         .navbar-brand {
             font-family: 'DM Serif Display', serif;
         }
@@ -40,7 +46,7 @@
             max-width: 1600px;
             width: 100%;
         }
-        
+
         body .container {
             max-width: 1400px;
         }
@@ -649,6 +655,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Light pink navbar with links -->
     <nav class="navbar navbar-expand-md navbar-light">
@@ -657,56 +664,52 @@
                 <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                 <span>Ella Rises</span>
             </a>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navContent"
-                aria-controls="navContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+                aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/participants">Participants</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/events">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/survey">Event Feedback</a>
-                    </li>
-                    <% if (user && user.isUser) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
-                    </li>
-                    <% } %>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/milestones">Milestones</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
-                    </li>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
-                    </li>
-                    <% } %>
-                    <% if (!user) { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/login">Sign In</a>
-                    </li>
-                    <% } else { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/logout">Logout</a>
-                    </li>
-                    <% } %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/participants">Participants</a>
+                        </li>
+                        <% } %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/events">Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/survey">Event Feedback</a>
+                            </li>
+                            <% if (user && user.isUser) { %>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                                </li>
+                                <% } %>
+                                    <% if (user && user.isManager) { %>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="/milestones">Milestones</a>
+                                        </li>
+                                        <% } %>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="https://givebutter.com/EllaRises"
+                                                    target="_blank">Donations</a>
+                                            </li>
+                                            <% if (user && user.isManager) { %>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="/">Dashboard</a>
+                                                </li>
+                                                <% } %>
+                                                    <% if (!user) { %>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link sign-in-link" href="/login">Sign In</a>
+                                                        </li>
+                                                        <% } else { %>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link sign-in-link"
+                                                                    href="/logout">Logout</a>
+                                                            </li>
+                                                            <% } %>
                 </ul>
             </div>
         </div>
@@ -715,7 +718,8 @@
     <!-- Events Header -->
     <div class="events-header">
         <h1>EVENTS</h1>
-        <p>Join us for inspiring workshops, creative experiences, and leadership opportunities that empower the rising generation of women in STEAM fields.</p>
+        <p>Join us for inspiring workshops, creative experiences, and leadership opportunities that empower the rising
+            generation of women in STEAM fields.</p>
     </div>
 
     <!-- Events Filters -->
@@ -759,216 +763,252 @@
 
     <!-- Manager Controls -->
     <% if (user && user.isManager) { %>
-    <div class="manager-controls">
-        <button class="manager-btn manager-btn-add" onclick="openAddEventModal()">
-            + Add Event
-        </button>
-    </div>
-    <% } %>
+        <div class="manager-controls">
+            <button class="manager-btn manager-btn-add" onclick="openAddEventModal()">
+                + Add Event
+            </button>
+        </div>
+        <% } %>
 
-    <!-- Events Grid -->
-    <div class="events-container">
-        <div class="events-grid">
-            <% if (events && events.length > 0) { %>
-                <% events.forEach((event, index) => { %>
-                    <% 
-                    // Format the date
-                    let formattedDate = '';
-                    let dateClass = 'upcoming';
-                    if (event.eventdatetimestart) {
-                        const eventDate = new Date(event.eventdatetimestart);
-                        formattedDate = eventDate.toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        // Determine if event is upcoming or past
-                        const now = new Date();
-                        if (eventDate < now) {
-                            dateClass = 'past';
-                        }
-                    }
-                    %>
-                    <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>" data-type="workshop" data-category="steam" data-date="<%= dateClass %>">
-                        <% if (user && user.isManager) { %>
-                        <button class="event-card-edit-btn" onclick="openEditEventModal(<%= event.eventid || index + 1 %>)" title="Edit Event">✎</button>
-                        <button class="event-card-delete-btn" onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= event.eventname ? event.eventname.replace(/'/g, "\\'") : '' %>')" title="Delete Event">×</button>
-                        <% } %>
-                        <a href="/rsvp" class="event-card">
-                            <div class="event-image">Image placeholder</div>
-                            <div class="event-content">
-                                <div class="event-name"><%= event.eventname || 'Untitled Event' %></div>
-                                <div class="event-description">
-                                    <% if (formattedDate) { %>
-                                    <span class="event-date"><%= formattedDate %></span>
-                                    <% } %>
-                                    <% if (event.eventlocation) { %>
-                                    <span class="event-location" style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍 <%= event.eventlocation %></span>
-                                    <% } %>
-                                    <span class="event-description-text"><%= event.eventdescription || 'No description available.' %></span>
+            <!-- Events Grid -->
+            <div class="events-container">
+                <div class="events-grid">
+                    <% if (events && events.length> 0) { %>
+                        <% events.forEach((event, index)=> { %>
+                            <%
+                                // Format the date
+                                let formattedDate = '';
+                                let dateClass = 'upcoming';
+                                if (event.eventdatetimestart) {
+                                    const eventDate = new Date(event.eventdatetimestart);
+                                    formattedDate = eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                                    
+                                    // Determine if event is upcoming or past
+                                    const now = new Date();
+                                    if (eventDate < now) {
+                                        dateClass = 'past';
+                                    }
+                                }
+                                
+                                // Escape single quotes for JS strings
+                                const escapedName = event.eventname ? event.eventname.replace(/'/g, "\\'") : '';
+                            %>
+                                <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>"
+                                    data-type="workshop" data-category="steam" data-date="<%= dateClass %>">
+                                    <% if (user && user.isManager) { %>
+                                        <button class="event-card-edit-btn"
+                                            onclick="openEditEventModal('<%= event.eventid || index + 1 %>')"
+                                            title="Edit Event">✎</button>
+                                        <button class="event-card-delete-btn"
+                                            onclick="confirmDeleteEvent('<%= event.eventid || index + 1 %>', '<%= escapedName %>')"
+                                            title="Delete Event">×</button>
+                                        <% } %>
+                                            <a href="/rsvp" class="event-card">
+                                                <div class="event-image">
+                                                    <% if (event.eventimage) { %>
+                                                        <img src="<%= event.eventimage %>" alt="<%= event.eventname %>"
+                                                            style="width: 100%; height: 100%; object-fit: cover;">
+                                                        <% } else { %>
+                                                            Image placeholder
+                                                            <% } %>
+                                                </div>
+                                                <div class="event-content">
+                                                    <div class="event-name">
+                                                        <%= event.eventname || 'Untitled Event' %>
+                                                    </div>
+                                                    <div class="event-description">
+                                                        <% if (formattedDate) { %>
+                                                            <span class="event-date">
+                                                                <%= formattedDate %>
+                                                            </span>
+                                                            <% } %>
+                                                                <% if (event.eventlocation) { %>
+                                                                    <span class="event-location"
+                                                                        style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍
+                                                                        <%= event.eventlocation %>
+                                                                    </span>
+                                                                    <% } %>
+                                                                        <span class="event-description-text">
+                                                                            <%= event.eventdescription
+                                                                                || 'No description available.' %>
+                                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                </div>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="no-events-message"
+                                            style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                                            <p>No events available at this time. Check back soon!</p>
+                                            <% if (error_message) { %>
+                                                <p style="color: #d32f2f; margin-top: 1rem;">
+                                                    <%= error_message %>
+                                                </p>
+                                                <% } %>
+                                        </div>
+                                        <% } %>
+                </div>
+            </div>
+
+            <!-- Event Modal -->
+            <% if (user && user.isManager) { %>
+                <div class="modal fade event-modal" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="eventModalTitle">Add New Event</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="eventForm" onsubmit="handleEventSubmit(event)">
+                                    <div class="mb-3">
+                                        <label for="eventName" class="form-label">Event Name</label>
+                                        <input type="text" class="form-control" id="eventName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="eventDate" class="form-label">Event Date</label>
+                                        <input type="text" class="form-control" id="eventDate"
+                                            placeholder="e.g., March 15, 2025" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="modalEventType" class="form-label">Event Type</label>
+                                        <select class="form-select" id="modalEventType" required>
+                                            <option value="workshop">Workshop</option>
+                                            <option value="mentoring">Mentoring</option>
+                                            <option value="creative">Creative Experience</option>
+                                            <option value="leadership">Leadership</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="modalEventCategory" class="form-label">Category</label>
+                                        <select class="form-select" id="modalEventCategory" required>
+                                            <option value="steam">STEAM</option>
+                                            <option value="arts">Arts</option>
+                                            <option value="technology">Technology</option>
+                                            <option value="engineering">Engineering</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="eventDescription" class="form-label">Description</label>
+                                        <textarea class="form-control" id="eventDescription" rows="4"
+                                            required></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Event</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
+
+                    <!-- Footer -->
+                    <footer>
+                        <div class="footer-content">
+                            <div class="footer-main">
+                                <div class="footer-left">
+                                    <div class="footer-logo">
+                                        <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
+                                        <span>Ella Rises</span>
+                                    </div>
+                                    <p>
+                                        Empowering the rising generation of women to pursue higher education
+                                        and embrace their heritage through STEAM programs, mentoring, and
+                                        leadership opportunities.
+                                    </p>
+                                </div>
+
+                                <div class="footer-divider"></div>
+
+                                <div class="footer-right">
+                                    <h4>Contact</h4>
+                                    <p>Visit us at:</p>
+                                    <p><a href="https://www.ellarises.org/" target="_blank">www.ellarises.org</a></p>
+                                    <div class="social-links">
+                                        <a href="https://www.instagram.com/ellarises/" target="_blank"
+                                            class="social-link">
+                                            <svg class="social-icon" viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                            </svg>
+                                            <span>Instagram</span>
+                                        </a>
+                                        <a href="https://www.facebook.com/EllaRises" target="_blank"
+                                            class="social-link">
+                                            <svg class="social-icon" viewBox="0 0 24 24"
+                                                xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                            </svg>
+                                            <span>Facebook</span>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
-                    </div>
-                <% }); %>
-            <% } else { %>
-                <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
-                    <p>No events available at this time. Check back soon!</p>
-                    <% if (error_message) { %>
-                    <p style="color: #d32f2f; margin-top: 1rem;"><%= error_message %></p>
-                    <% } %>
-                </div>
-            <% } %>
-        </div>
-    </div>
 
-    <!-- Event Modal -->
-    <% if (user && user.isManager) { %>
-    <div class="modal fade event-modal" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalTitle">Add New Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="eventForm" onsubmit="handleEventSubmit(event)">
-                        <div class="mb-3">
-                            <label for="eventName" class="form-label">Event Name</label>
-                            <input type="text" class="form-control" id="eventName" required>
+                            <div class="footer-bottom">
+                                <p>&copy; 2025 Ella Rises. All rights reserved.</p>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="eventDate" class="form-label">Event Date</label>
-                            <input type="text" class="form-control" id="eventDate" placeholder="e.g., March 15, 2025" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="modalEventType" class="form-label">Event Type</label>
-                            <select class="form-select" id="modalEventType" required>
-                                <option value="workshop">Workshop</option>
-                                <option value="mentoring">Mentoring</option>
-                                <option value="creative">Creative Experience</option>
-                                <option value="leadership">Leadership</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="modalEventCategory" class="form-label">Category</label>
-                            <select class="form-select" id="modalEventCategory" required>
-                                <option value="steam">STEAM</option>
-                                <option value="arts">Arts</option>
-                                <option value="technology">Technology</option>
-                                <option value="engineering">Engineering</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="eventDescription" rows="4" required></textarea>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Event</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <% } %>
+                    </footer>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-main">
-                <div class="footer-left">
-                    <div class="footer-logo">
-                        <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
-                        <span>Ella Rises</span>
-                    </div>
-                    <p>
-                        Empowering the rising generation of women to pursue higher education 
-                        and embrace their heritage through STEAM programs, mentoring, and 
-                        leadership opportunities.
-                    </p>
-                </div>
-                
-                <div class="footer-divider"></div>
-                
-                <div class="footer-right">
-                    <h4>Contact</h4>
-                    <p>Visit us at:</p>
-                    <p><a href="https://www.ellarises.org/" target="_blank">www.ellarises.org</a></p>
-                    <div class="social-links">
-                        <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
-                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
-                            <span>Instagram</span>
-                        </a>
-                        <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
-                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            <span>Facebook</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2025 Ella Rises. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+                    <!-- Bootstrap JS -->
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                    <!-- Set manager status (server-side variable) -->
+                    <script>
+                        var isManager = "<%= (user && user.isManager) ? 'true' : 'false' %>" === 'true';
+                    </script>
 
-    <!-- Set manager status (server-side variable) -->
-    <script>
-        var isManager = <%= (user && user.isManager) ? 'true' : 'false' %>;
-    </script>
+                    <!-- Filter Functionality -->
+                    <script>
 
-    <!-- Filter Functionality -->
-    <script>
+                        // Load persisted events data from localStorage
+                        function loadPersistedEvents() {
+                            const eventsData = localStorage.getItem('eventsData');
+                            if (eventsData) {
+                                return JSON.parse(eventsData);
+                            }
+                            return null;
+                        }
 
-        // Load persisted events data from localStorage
-        function loadPersistedEvents() {
-            const eventsData = localStorage.getItem('eventsData');
-            if (eventsData) {
-                return JSON.parse(eventsData);
-            }
-            return null;
-        }
+                        function savePersistedEvents(events) {
+                            localStorage.setItem('eventsData', JSON.stringify(events));
+                        }
 
-        function savePersistedEvents(events) {
-            localStorage.setItem('eventsData', JSON.stringify(events));
-        }
+                        function getEventDataFromDOM() {
+                            const events = [];
+                            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
+                                const eventId = wrapper.getAttribute('data-event-id');
+                                const eventName = wrapper.querySelector('.event-name')?.textContent || '';
+                                const eventDate = wrapper.querySelector('.event-date')?.textContent || '';
+                                const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
+                                const eventType = wrapper.getAttribute('data-type') || '';
+                                const eventCategory = wrapper.getAttribute('data-category') || '';
 
-        function getEventDataFromDOM() {
-            const events = [];
-            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
-                const eventId = wrapper.getAttribute('data-event-id');
-                const eventName = wrapper.querySelector('.event-name')?.textContent || '';
-                const eventDate = wrapper.querySelector('.event-date')?.textContent || '';
-                const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
-                const eventType = wrapper.getAttribute('data-type') || '';
-                const eventCategory = wrapper.getAttribute('data-category') || '';
-                
-                events.push({
-                    id: eventId,
-                    name: eventName,
-                    date: eventDate,
-                    description: eventDescription,
-                    type: eventType,
-                    category: eventCategory
-                });
-            });
-            return events;
-        }
+                                events.push({
+                                    id: eventId,
+                                    name: eventName,
+                                    date: eventDate,
+                                    description: eventDescription,
+                                    type: eventType,
+                                    category: eventCategory
+                                });
+                            });
+                            return events;
+                        }
 
-        function createEventCardHTML(event, eventId) {
-            const escapedName = event.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            if (isManager) {
-                return `
+                        function createEventCardHTML(event, eventId) {
+                            const escapedName = event.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            if (isManager) {
+                                return `
                     <button class="event-card-edit-btn" onclick="openEditEventModal(${eventId})" title="Edit Event">✎</button>
                     <button class="event-card-delete-btn" onclick="confirmDeleteEvent(${eventId}, '${escapedName}')" title="Delete Event">×</button>
                     <a href="/rsvp" class="event-card">
@@ -982,8 +1022,8 @@
                         </div>
                     </a>
                 `;
-            } else {
-                return `
+                            } else {
+                                return `
                     <a href="/rsvp" class="event-card">
                         <div class="event-image">Image placeholder</div>
                         <div class="event-content">
@@ -995,213 +1035,213 @@
                         </div>
                     </a>
                 `;
-            }
-        }
+                            }
+                        }
 
-        function applyPersistedEvents() {
-            const persistedEvents = loadPersistedEvents();
-            if (!persistedEvents) return;
+                        function applyPersistedEvents() {
+                            const persistedEvents = loadPersistedEvents();
+                            if (!persistedEvents) return;
 
-            const eventsGrid = document.querySelector('.events-grid');
-            if (!eventsGrid) return;
+                            const eventsGrid = document.querySelector('.events-grid');
+                            if (!eventsGrid) return;
 
-            // Remove all existing events
-            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
-                wrapper.remove();
-            });
+                            // Remove all existing events
+                            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
+                                wrapper.remove();
+                            });
 
-            // Rebuild events from persisted data
-            persistedEvents.forEach(event => {
-                const eventId = event.id;
-                const wrapper = document.createElement('div');
-                wrapper.className = 'event-card-wrapper';
-                wrapper.setAttribute('data-event-id', eventId);
-                wrapper.setAttribute('data-type', event.type);
-                wrapper.setAttribute('data-category', event.category);
-                wrapper.setAttribute('data-date', 'upcoming');
-                wrapper.innerHTML = createEventCardHTML(event, eventId);
-                eventsGrid.appendChild(wrapper);
-            });
-        }
+                            // Rebuild events from persisted data
+                            persistedEvents.forEach(event => {
+                                const eventId = event.id;
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'event-card-wrapper';
+                                wrapper.setAttribute('data-event-id', eventId);
+                                wrapper.setAttribute('data-type', event.type);
+                                wrapper.setAttribute('data-category', event.category);
+                                wrapper.setAttribute('data-date', 'upcoming');
+                                wrapper.innerHTML = createEventCardHTML(event, eventId);
+                                eventsGrid.appendChild(wrapper);
+                            });
+                        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Don't load persisted events - use database events instead
-            // Only use localStorage for manager edits (add/edit/delete) if needed
-            // Clear old localStorage data to prevent conflicts
-            localStorage.removeItem('eventsData');
+                        document.addEventListener('DOMContentLoaded', function () {
+                            // Don't load persisted events - use database events instead
+                            // Only use localStorage for manager edits (add/edit/delete) if needed
+                            // Clear old localStorage data to prevent conflicts
+                            localStorage.removeItem('eventsData');
 
-            const eventTypeFilter = document.getElementById('event-type');
-            const eventDateFilter = document.getElementById('event-date');
-            const eventCategoryFilter = document.getElementById('event-category');
-            const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
+                            const eventTypeFilter = document.getElementById('event-type');
+                            const eventDateFilter = document.getElementById('event-date');
+                            const eventCategoryFilter = document.getElementById('event-category');
+                            const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
 
-            function filterEvents() {
-                const typeValue = eventTypeFilter.value;
-                const dateValue = eventDateFilter.value;
-                const categoryValue = eventCategoryFilter.value;
+                            function filterEvents() {
+                                const typeValue = eventTypeFilter.value;
+                                const dateValue = eventDateFilter.value;
+                                const categoryValue = eventCategoryFilter.value;
 
-                eventCardWrappers.forEach(wrapper => {
-                    const cardType = wrapper.getAttribute('data-type');
-                    const cardDate = wrapper.getAttribute('data-date');
-                    const cardCategory = wrapper.getAttribute('data-category');
+                                eventCardWrappers.forEach(wrapper => {
+                                    const cardType = wrapper.getAttribute('data-type');
+                                    const cardDate = wrapper.getAttribute('data-date');
+                                    const cardCategory = wrapper.getAttribute('data-category');
 
-                    let showCard = true;
+                                    let showCard = true;
 
-                    // Filter by type
-                    if (typeValue !== 'all' && cardType !== typeValue) {
-                        showCard = false;
-                    }
+                                    // Filter by type
+                                    if (typeValue !== 'all' && cardType !== typeValue) {
+                                        showCard = false;
+                                    }
 
-                    // Filter by date
-                    if (dateValue !== 'all' && cardDate !== dateValue) {
-                        showCard = false;
-                    }
+                                    // Filter by date
+                                    if (dateValue !== 'all' && cardDate !== dateValue) {
+                                        showCard = false;
+                                    }
 
-                    // Filter by category
-                    if (categoryValue !== 'all' && cardCategory !== categoryValue) {
-                        showCard = false;
-                    }
+                                    // Filter by category
+                                    if (categoryValue !== 'all' && cardCategory !== categoryValue) {
+                                        showCard = false;
+                                    }
 
-                    // Show or hide card
-                    if (showCard) {
-                        wrapper.style.display = 'block';
-                    } else {
-                        wrapper.style.display = 'none';
-                    }
-                });
-            }
+                                    // Show or hide card
+                                    if (showCard) {
+                                        wrapper.style.display = 'block';
+                                    } else {
+                                        wrapper.style.display = 'none';
+                                    }
+                                });
+                            }
 
-            // Add event listeners
-            eventTypeFilter.addEventListener('change', filterEvents);
-            eventDateFilter.addEventListener('change', filterEvents);
-            eventCategoryFilter.addEventListener('change', filterEvents);
+                            // Add event listeners
+                            eventTypeFilter.addEventListener('change', filterEvents);
+                            eventDateFilter.addEventListener('change', filterEvents);
+                            eventCategoryFilter.addEventListener('change', filterEvents);
 
-            // Clear filters function
-            window.clearFilters = function() {
-                eventTypeFilter.value = 'all';
-                eventDateFilter.value = 'all';
-                eventCategoryFilter.value = 'all';
-                filterEvents();
-            };
-        });
+                            // Clear filters function
+                            window.clearFilters = function () {
+                                eventTypeFilter.value = 'all';
+                                eventDateFilter.value = 'all';
+                                eventCategoryFilter.value = 'all';
+                                filterEvents();
+                            };
+                        });
 
-        // Manager Functions
-        function openAddEventModal() {
-            document.getElementById('eventModalTitle').textContent = 'Add New Event';
-            document.getElementById('eventForm').reset();
-            document.getElementById('eventForm').setAttribute('data-mode', 'add');
-            document.getElementById('eventForm').removeAttribute('data-event-id');
-            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-            modal.show();
-        }
+                        // Manager Functions
+                        function openAddEventModal() {
+                            document.getElementById('eventModalTitle').textContent = 'Add New Event';
+                            document.getElementById('eventForm').reset();
+                            document.getElementById('eventForm').setAttribute('data-mode', 'add');
+                            document.getElementById('eventForm').removeAttribute('data-event-id');
+                            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                            modal.show();
+                        }
 
-        function openEditEventModal(eventId) {
-            // Get event data from the card
-            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-            if (!wrapper) return;
+                        function openEditEventModal(eventId) {
+                            // Get event data from the card
+                            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+                            if (!wrapper) return;
 
-            const eventName = wrapper.querySelector('.event-name').textContent;
-            const eventDate = wrapper.querySelector('.event-date').textContent;
-            const eventDescription = wrapper.querySelector('.event-description-text').textContent;
-            const eventType = wrapper.getAttribute('data-type');
-            const eventCategory = wrapper.getAttribute('data-category');
+                            const eventName = wrapper.querySelector('.event-name').textContent;
+                            const eventDate = wrapper.querySelector('.event-date').textContent;
+                            const eventDescription = wrapper.querySelector('.event-description-text').textContent;
+                            const eventType = wrapper.getAttribute('data-type');
+                            const eventCategory = wrapper.getAttribute('data-category');
 
-            // Populate form
-            document.getElementById('eventModalTitle').textContent = 'Edit Event';
-            document.getElementById('eventName').value = eventName;
-            document.getElementById('eventDate').value = eventDate;
-            document.getElementById('eventDescription').value = eventDescription;
-            document.getElementById('modalEventType').value = eventType;
-            document.getElementById('modalEventCategory').value = eventCategory;
-            
-            document.getElementById('eventForm').setAttribute('data-mode', 'edit');
-            document.getElementById('eventForm').setAttribute('data-event-id', eventId);
-            
-            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-            modal.show();
-        }
+                            // Populate form
+                            document.getElementById('eventModalTitle').textContent = 'Edit Event';
+                            document.getElementById('eventName').value = eventName;
+                            document.getElementById('eventDate').value = eventDate;
+                            document.getElementById('eventDescription').value = eventDescription;
+                            document.getElementById('modalEventType').value = eventType;
+                            document.getElementById('modalEventCategory').value = eventCategory;
 
-        function confirmDeleteEvent(eventId, eventName) {
-            if (confirm(`Are you sure you want to delete "${eventName}"?\n\nThis action cannot be undone.`)) {
-                deleteEvent(eventId);
-            }
-        }
+                            document.getElementById('eventForm').setAttribute('data-mode', 'edit');
+                            document.getElementById('eventForm').setAttribute('data-event-id', eventId);
 
-        function deleteEvent(eventId) {
-            // Remove the event card from the DOM
-            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-            if (wrapper) {
-                wrapper.style.transition = 'opacity 0.3s';
-                wrapper.style.opacity = '0';
-                setTimeout(() => {
-                    wrapper.remove();
-                    // Update persisted events
-                    const events = getEventDataFromDOM();
-                    savePersistedEvents(events);
-                    alert('Event deleted successfully! This change will be visible to all users.');
-                }, 300);
-            }
-        }
+                            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                            modal.show();
+                        }
 
-        function handleEventSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const mode = form.getAttribute('data-mode');
-            const eventId = form.getAttribute('data-event-id');
+                        function confirmDeleteEvent(eventId, eventName) {
+                            if (confirm(`Are you sure you want to delete "${eventName}"?\n\nThis action cannot be undone.`)) {
+                                deleteEvent(eventId);
+                            }
+                        }
 
-            const eventName = document.getElementById('eventName').value;
-            const eventDate = document.getElementById('eventDate').value;
-            const eventDescription = document.getElementById('eventDescription').value;
-            const eventType = document.getElementById('modalEventType').value;
-            const eventCategory = document.getElementById('modalEventCategory').value;
+                        function deleteEvent(eventId) {
+                            // Remove the event card from the DOM
+                            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+                            if (wrapper) {
+                                wrapper.style.transition = 'opacity 0.3s';
+                                wrapper.style.opacity = '0';
+                                setTimeout(() => {
+                                    wrapper.remove();
+                                    // Update persisted events
+                                    const events = getEventDataFromDOM();
+                                    savePersistedEvents(events);
+                                    alert('Event deleted successfully! This change will be visible to all users.');
+                                }, 300);
+                            }
+                        }
 
-            if (mode === 'add') {
-                // Add new event
-                const eventsGrid = document.querySelector('.events-grid');
-                const newEventId = Date.now(); // Generate unique ID
-                
-                const newEvent = {
-                    name: eventName,
-                    date: eventDate,
-                    description: eventDescription,
-                    type: eventType,
-                    category: eventCategory
-                };
-                
-                const wrapper = document.createElement('div');
-                wrapper.className = 'event-card-wrapper';
-                wrapper.setAttribute('data-event-id', newEventId);
-                wrapper.setAttribute('data-type', eventType);
-                wrapper.setAttribute('data-category', eventCategory);
-                wrapper.setAttribute('data-date', 'upcoming');
-                wrapper.innerHTML = createEventCardHTML(newEvent, newEventId);
-                eventsGrid.appendChild(wrapper);
-                
-                // Save to localStorage
-                const events = getEventDataFromDOM();
-                savePersistedEvents(events);
-                alert('Event added successfully! This change will be visible to all users.');
-            } else if (mode === 'edit') {
-                // Update existing event
-                const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-                if (wrapper) {
-                    wrapper.querySelector('.event-name').textContent = eventName;
-                    wrapper.querySelector('.event-date').textContent = eventDate;
-                    wrapper.querySelector('.event-description-text').textContent = eventDescription;
-                    wrapper.setAttribute('data-type', eventType);
-                    wrapper.setAttribute('data-category', eventCategory);
-                    
-                    // Save to localStorage
-                    const events = getEventDataFromDOM();
-                    savePersistedEvents(events);
-                    alert('Event updated successfully! This change will be visible to all users.');
-                }
-            }
+                        function handleEventSubmit(event) {
+                            event.preventDefault();
+                            const form = event.target;
+                            const mode = form.getAttribute('data-mode');
+                            const eventId = form.getAttribute('data-event-id');
 
-            const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
-            modal.hide();
-        }
-    </script>
+                            const eventName = document.getElementById('eventName').value;
+                            const eventDate = document.getElementById('eventDate').value;
+                            const eventDescription = document.getElementById('eventDescription').value;
+                            const eventType = document.getElementById('modalEventType').value;
+                            const eventCategory = document.getElementById('modalEventCategory').value;
+
+                            if (mode === 'add') {
+                                // Add new event
+                                const eventsGrid = document.querySelector('.events-grid');
+                                const newEventId = Date.now(); // Generate unique ID
+
+                                const newEvent = {
+                                    name: eventName,
+                                    date: eventDate,
+                                    description: eventDescription,
+                                    type: eventType,
+                                    category: eventCategory
+                                };
+
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'event-card-wrapper';
+                                wrapper.setAttribute('data-event-id', newEventId);
+                                wrapper.setAttribute('data-type', eventType);
+                                wrapper.setAttribute('data-category', eventCategory);
+                                wrapper.setAttribute('data-date', 'upcoming');
+                                wrapper.innerHTML = createEventCardHTML(newEvent, newEventId);
+                                eventsGrid.appendChild(wrapper);
+
+                                // Save to localStorage
+                                const events = getEventDataFromDOM();
+                                savePersistedEvents(events);
+                                alert('Event added successfully! This change will be visible to all users.');
+                            } else if (mode === 'edit') {
+                                // Update existing event
+                                const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+                                if (wrapper) {
+                                    wrapper.querySelector('.event-name').textContent = eventName;
+                                    wrapper.querySelector('.event-date').textContent = eventDate;
+                                    wrapper.querySelector('.event-description-text').textContent = eventDescription;
+                                    wrapper.setAttribute('data-type', eventType);
+                                    wrapper.setAttribute('data-category', eventCategory);
+
+                                    // Save to localStorage
+                                    const events = getEventDataFromDOM();
+                                    savePersistedEvents(events);
+                                    alert('Event updated successfully! This change will be visible to all users.');
+                                }
+                            }
+
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                            modal.hide();
+                        }
+                    </script>
 </body>
-</html>
 
+</html>

@@ -1,0 +1,92 @@
+[
+  {
+    "eventid": 2,
+    "eventname": "Robotics Lab Saturday",
+    "eventdescription": "Build & test robots with mentors.",
+    "eventimage": null
+  },
+  {
+    "eventid": 3,
+    "eventname": "Girls in STEAM Mentoring",
+    "eventdescription": "Group mentoring on pathways into STEAM careers.",
+    "eventimage": null
+  },
+  {
+    "eventid": 4,
+    "eventname": "Monthly Coding Club",
+    "eventdescription": "Guided coding sessions and peer projects.",
+    "eventimage": null
+  },
+  {
+    "eventid": 5,
+    "eventname": "Intro to Painting Class",
+    "eventdescription": "Foundations of painting, color theory, and practice.",
+    "eventimage": null
+  },
+  {
+    "eventid": 6,
+    "eventname": "Data Science Study Group",
+    "eventdescription": "Intro analytics, Python challenges, and mini-projects.",
+    "eventimage": null
+  },
+  {
+    "eventid": 7,
+    "eventname": "Leadership Circle Meetup",
+    "eventdescription": "Mentorship, goal-setting, and soft skills workshops.",
+    "eventimage": null
+  },
+  {
+    "eventid": 8,
+    "eventname": "Web Dev Bootcamp Night",
+    "eventdescription": "HTML/CSS/JS sprints and portfolio building.",
+    "eventimage": null
+  },
+  {
+    "eventid": 9,
+    "eventname": "Ella Rises Annual Leadership Conference",
+    "eventdescription": "Flagship leadership & inspiration conference for girls in STEAM.",
+    "eventimage": null
+  },
+  {
+    "eventid": 10,
+    "eventname": "Monthly Art Studio Workshop",
+    "eventdescription": "Studio time with rotating media and guest artists.",
+    "eventimage": null
+  },
+  {
+    "eventid": 11,
+    "eventname": "STEAM Summit & Expo",
+    "eventdescription": "Hands-on exhibits, talks, and project showcases across STEAM.",
+    "eventimage": null
+  },
+  {
+    "eventid": 12,
+    "eventname": "AI for Beginners Bootcamp",
+    "eventdescription": "Intro to AI concepts and Python-based tools for young learners.",
+    "eventimage": null
+  },
+  {
+    "eventid": 13,
+    "eventname": "Digital Design Workshop",
+    "eventdescription": "Graphic design, UX/UI basics, and creative tech projects.",
+    "eventimage": null
+  },
+  {
+    "eventid": 14,
+    "eventname": "Community STEM Hackathon",
+    "eventdescription": "Collaborative, problem-solving challenges in coding and engineering.",
+    "eventimage": null
+  },
+  {
+    "eventid": 15,
+    "eventname": "Women in Tech & Art Showcase",
+    "eventdescription": "Celebration of female innovation across STEAM industries.",
+    "eventimage": null
+  },
+  {
+    "eventid": 1,
+    "eventname": "Mentor Office Hours",
+    "eventdescription": "One-on-one mentoring & career advising.",
+    "eventimage": "/images/event_1.png"
+  }
+]
