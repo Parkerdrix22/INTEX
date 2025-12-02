@@ -725,30 +725,20 @@
             <div class="filter-group">
                 <label for="event-type">Event Type</label>
                 <select id="event-type" class="event-filter">
-                    <option value="all">All Events</option>
-                    <option value="workshop">Workshops</option>
-                    <option value="mentoring">Mentoring</option>
-                    <option value="creative">Creative Experiences</option>
-                    <option value="leadership">Leadership</option>
+                    <option value="all">All Event Types</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="STEM">STEM</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Annual Conference">Annual Conference</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="event-date">Date</label>
-                <select id="event-date" class="event-filter">
-                    <option value="all">All Dates</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="past">Past Events</option>
-                    <option value="this-month">This Month</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="event-category">Category</label>
-                <select id="event-category" class="event-filter">
-                    <option value="all">All Categories</option>
-                    <option value="steam">STEAM</option>
-                    <option value="arts">Arts</option>
-                    <option value="technology">Technology</option>
-                    <option value="engineering">Engineering</option>
+                <label for="event-recurrence">Recurrence Pattern</label>
+                <select id="event-recurrence" class="event-filter">
+                    <option value="all">All Patterns</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Annual">Annual</option>
                 </select>
             </div>
             <div class="filter-buttons">
@@ -771,25 +761,7 @@
         <div class="events-grid">
             <% if (events && events.length > 0) { %>
                 <% events.forEach((event, index) => { %>
-                    <% 
-                    // Format the date
-                    let formattedDate = '';
-                    let dateClass = 'upcoming';
-                    if (event.eventdatetimestart) {
-                        const eventDate = new Date(event.eventdatetimestart);
-                        formattedDate = eventDate.toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        });
-                        // Determine if event is upcoming or past
-                        const now = new Date();
-                        if (eventDate < now) {
-                            dateClass = 'past';
-                        }
-                    }
-                    %>
-                    <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>" data-type="workshop" data-category="steam" data-date="<%= dateClass %>">
+                    <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>" data-event-type="<%= event.eventtype || '' %>" data-event-recurrence="<%= event.eventrecurrencepattern || '' %>" data-event-capacity="<%= event.eventdefaultcapacity || '' %>">
                         <% if (user && user.isManager) { %>
                         <button class="event-card-edit-btn" onclick="openEditEventModal(<%= event.eventid || index + 1 %>)" title="Edit Event">✎</button>
                         <button class="event-card-delete-btn" onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= event.eventname ? event.eventname.replace(/'/g, "\\'") : '' %>')" title="Delete Event">×</button>
@@ -799,9 +771,6 @@
                             <div class="event-content">
                                 <div class="event-name"><%= event.eventname || 'Untitled Event' %></div>
                                 <div class="event-description">
-                                    <% if (formattedDate) { %>
-                                    <span class="event-date"><%= formattedDate %></span>
-                                    <% } %>
                                     <% if (event.eventlocation) { %>
                                     <span class="event-location" style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍 <%= event.eventlocation %></span>
                                     <% } %>
@@ -838,30 +807,31 @@
                             <input type="text" class="form-control" id="eventName" required>
                         </div>
                         <div class="mb-3">
-                            <label for="eventDate" class="form-label">Event Date</label>
-                            <input type="text" class="form-control" id="eventDate" placeholder="e.g., March 15, 2025" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="modalEventType" class="form-label">Event Type</label>
                             <select class="form-select" id="modalEventType" required>
-                                <option value="workshop">Workshop</option>
-                                <option value="mentoring">Mentoring</option>
-                                <option value="creative">Creative Experience</option>
-                                <option value="leadership">Leadership</option>
+                                <option value="">Select Event Type</option>
+                                <option value="Leadership">Leadership</option>
+                                <option value="STEM">STEM</option>
+                                <option value="Arts">Arts</option>
+                                <option value="Annual Conference">Annual Conference</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="modalEventCategory" class="form-label">Category</label>
-                            <select class="form-select" id="modalEventCategory" required>
-                                <option value="steam">STEAM</option>
-                                <option value="arts">Arts</option>
-                                <option value="technology">Technology</option>
-                                <option value="engineering">Engineering</option>
+                            <label for="modalEventRecurrence" class="form-label">Recurrence Pattern</label>
+                            <select class="form-select" id="modalEventRecurrence" required>
+                                <option value="">Select Recurrence Pattern</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Annual">Annual</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="eventDescription" class="form-label">Description</label>
                             <textarea class="form-control" id="eventDescription" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventDefaultCapacity" class="form-label">Default Capacity</label>
+                            <input type="number" class="form-control" id="eventDefaultCapacity" min="1" placeholder="Enter capacity number" required>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -950,8 +920,8 @@
                 const eventName = wrapper.querySelector('.event-name')?.textContent || '';
                 const eventDate = wrapper.querySelector('.event-date')?.textContent || '';
                 const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
-                const eventType = wrapper.getAttribute('data-type') || '';
-                const eventCategory = wrapper.getAttribute('data-category') || '';
+                const eventType = wrapper.getAttribute('data-event-type') || '';
+                const eventRecurrence = wrapper.getAttribute('data-event-recurrence') || '';
                 
                 events.push({
                     id: eventId,
@@ -959,7 +929,7 @@
                     date: eventDate,
                     description: eventDescription,
                     type: eventType,
-                    category: eventCategory
+                    recurrence: eventRecurrence
                 });
             });
             return events;
@@ -1031,35 +1001,33 @@
             localStorage.removeItem('eventsData');
 
             const eventTypeFilter = document.getElementById('event-type');
-            const eventDateFilter = document.getElementById('event-date');
-            const eventCategoryFilter = document.getElementById('event-category');
+            const eventRecurrenceFilter = document.getElementById('event-recurrence');
             const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
 
             function filterEvents() {
-                const typeValue = eventTypeFilter.value;
-                const dateValue = eventDateFilter.value;
-                const categoryValue = eventCategoryFilter.value;
+                const typeValue = eventTypeFilter.value.trim();
+                const recurrenceValue = eventRecurrenceFilter.value.trim();
 
                 eventCardWrappers.forEach(wrapper => {
-                    const cardType = wrapper.getAttribute('data-type');
-                    const cardDate = wrapper.getAttribute('data-date');
-                    const cardCategory = wrapper.getAttribute('data-category');
+                    const cardType = (wrapper.getAttribute('data-event-type') || '').trim();
+                    const cardRecurrence = (wrapper.getAttribute('data-event-recurrence') || '').trim();
 
                     let showCard = true;
 
-                    // Filter by type
-                    if (typeValue !== 'all' && cardType !== typeValue) {
-                        showCard = false;
+                    // Filter by event type (exact match, case-sensitive)
+                    // Values must be: Leadership, STEM, Arts, Annual Conference
+                    if (typeValue !== 'all') {
+                        if (cardType !== typeValue) {
+                            showCard = false;
+                        }
                     }
 
-                    // Filter by date
-                    if (dateValue !== 'all' && cardDate !== dateValue) {
-                        showCard = false;
-                    }
-
-                    // Filter by category
-                    if (categoryValue !== 'all' && cardCategory !== categoryValue) {
-                        showCard = false;
+                    // Filter by recurrence pattern (exact match, case-sensitive)
+                    // Values must be: Monthly, Weekly, Annual
+                    if (recurrenceValue !== 'all') {
+                        if (cardRecurrence !== recurrenceValue) {
+                            showCard = false;
+                        }
                     }
 
                     // Show or hide card
@@ -1073,14 +1041,12 @@
 
             // Add event listeners
             eventTypeFilter.addEventListener('change', filterEvents);
-            eventDateFilter.addEventListener('change', filterEvents);
-            eventCategoryFilter.addEventListener('change', filterEvents);
+            eventRecurrenceFilter.addEventListener('change', filterEvents);
 
             // Clear filters function
             window.clearFilters = function() {
                 eventTypeFilter.value = 'all';
-                eventDateFilter.value = 'all';
-                eventCategoryFilter.value = 'all';
+                eventRecurrenceFilter.value = 'all';
                 filterEvents();
             };
         });
@@ -1101,18 +1067,21 @@
             if (!wrapper) return;
 
             const eventName = wrapper.querySelector('.event-name').textContent;
-            const eventDate = wrapper.querySelector('.event-date').textContent;
             const eventDescription = wrapper.querySelector('.event-description-text').textContent;
-            const eventType = wrapper.getAttribute('data-type');
-            const eventCategory = wrapper.getAttribute('data-category');
+            const eventType = wrapper.getAttribute('data-event-type');
+            const eventRecurrence = wrapper.getAttribute('data-event-recurrence');
+            const eventCapacity = wrapper.getAttribute('data-event-capacity');
 
             // Populate form
             document.getElementById('eventModalTitle').textContent = 'Edit Event';
             document.getElementById('eventName').value = eventName;
-            document.getElementById('eventDate').value = eventDate;
             document.getElementById('eventDescription').value = eventDescription;
-            document.getElementById('modalEventType').value = eventType;
-            document.getElementById('modalEventCategory').value = eventCategory;
+            document.getElementById('modalEventType').value = eventType || '';
+            document.getElementById('modalEventRecurrence').value = eventRecurrence || '';
+            
+            // Set capacity - handle both string and number values
+            const capacityValue = eventCapacity && eventCapacity.trim() !== '' ? eventCapacity : '';
+            document.getElementById('eventDefaultCapacity').value = capacityValue;
             
             document.getElementById('eventForm').setAttribute('data-mode', 'edit');
             document.getElementById('eventForm').setAttribute('data-event-id', eventId);
@@ -1128,19 +1097,37 @@
         }
 
         function deleteEvent(eventId) {
-            // Remove the event card from the DOM
-            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-            if (wrapper) {
-                wrapper.style.transition = 'opacity 0.3s';
-                wrapper.style.opacity = '0';
-                setTimeout(() => {
-                    wrapper.remove();
-                    // Update persisted events
-                    const events = getEventDataFromDOM();
-                    savePersistedEvents(events);
-                    alert('Event deleted successfully! This change will be visible to all users.');
-                }, 300);
-            }
+            // Delete event from database
+            fetch(`/events/delete/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the event card from the DOM
+                    const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+                    if (wrapper) {
+                        wrapper.style.transition = 'opacity 0.3s';
+                        wrapper.style.opacity = '0';
+                        setTimeout(() => {
+                            wrapper.remove();
+                            alert('Event deleted successfully!');
+                        }, 300);
+                    } else {
+                        alert('Event deleted successfully! Refreshing page...');
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to delete event'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting event. Please try again.');
+            });
         }
 
         function handleEventSubmit(event) {
@@ -1150,52 +1137,66 @@
             const eventId = form.getAttribute('data-event-id');
 
             const eventName = document.getElementById('eventName').value;
-            const eventDate = document.getElementById('eventDate').value;
             const eventDescription = document.getElementById('eventDescription').value;
             const eventType = document.getElementById('modalEventType').value;
-            const eventCategory = document.getElementById('modalEventCategory').value;
+            const eventRecurrence = document.getElementById('modalEventRecurrence').value;
 
             if (mode === 'add') {
-                // Add new event
-                const eventsGrid = document.querySelector('.events-grid');
-                const newEventId = Date.now(); // Generate unique ID
-                
-                const newEvent = {
-                    name: eventName,
-                    date: eventDate,
-                    description: eventDescription,
-                    type: eventType,
-                    category: eventCategory
-                };
-                
-                const wrapper = document.createElement('div');
-                wrapper.className = 'event-card-wrapper';
-                wrapper.setAttribute('data-event-id', newEventId);
-                wrapper.setAttribute('data-type', eventType);
-                wrapper.setAttribute('data-category', eventCategory);
-                wrapper.setAttribute('data-date', 'upcoming');
-                wrapper.innerHTML = createEventCardHTML(newEvent, newEventId);
-                eventsGrid.appendChild(wrapper);
-                
-                // Save to localStorage
-                const events = getEventDataFromDOM();
-                savePersistedEvents(events);
-                alert('Event added successfully! This change will be visible to all users.');
+                // Add new event to database
+                fetch('/events/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        eventName: eventName,
+                        eventDescription: eventDescription,
+                        eventType: eventType,
+                        eventRecurrencePattern: eventRecurrence,
+                        eventDefaultCapacity: eventDefaultCapacity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Event added successfully! Refreshing page...');
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to add event'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error adding event. Please try again.');
+                });
             } else if (mode === 'edit') {
-                // Update existing event
-                const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-                if (wrapper) {
-                    wrapper.querySelector('.event-name').textContent = eventName;
-                    wrapper.querySelector('.event-date').textContent = eventDate;
-                    wrapper.querySelector('.event-description-text').textContent = eventDescription;
-                    wrapper.setAttribute('data-type', eventType);
-                    wrapper.setAttribute('data-category', eventCategory);
-                    
-                    // Save to localStorage
-                    const events = getEventDataFromDOM();
-                    savePersistedEvents(events);
-                    alert('Event updated successfully! This change will be visible to all users.');
-                }
+                // Update existing event in database
+                fetch(`/events/edit/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        eventName: eventName,
+                        eventDescription: eventDescription,
+                        eventType: eventType,
+                        eventRecurrencePattern: eventRecurrence,
+                        eventDefaultCapacity: eventDefaultCapacity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Event updated successfully! Refreshing page...');
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to update event'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating event. Please try again.');
+                });
             }
 
             const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
