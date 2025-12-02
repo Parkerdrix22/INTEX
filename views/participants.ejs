@@ -543,7 +543,7 @@
                     <% } %>
                     <% if (!user) { %>
                     <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/login">Sign In</a>
+                        <a class="nav-link sign-in-link" href="/login">Sign In / Create Account</a>
                     </li>
                     <% } else { %>
                     <li class="nav-item">
@@ -562,17 +562,29 @@
 
     <!-- Participant Count Box and Add Button -->
     <div class="table-header-section">
-        <% if (user && user.isManager) { %>
-        <button class="add-participant-btn" onclick="openAddParticipantModal()">
-            + Add Participant
-        </button>
-        <% } else { %>
-        <div></div>
-        <% } %>
-        <div class="participant-count-box">
-            Number of Participants: <strong><%= participants ? participants.length : 0 %></strong>
-        </div>
+    <% if (user && user.isManager) { %>
+    <button class="add-participant-btn" onclick="openAddParticipantModal()">
+        + Add Participant
+    </button>
+    <% } else { %>
+    <div></div>
+    <% } %>
+
+    <!-- Search Bar (added here) -->
+    <input
+        type="text"
+        id="participantSearch"
+        class="form-control"
+        placeholder="Search participants..."
+        style="max-width: 300px; margin: 0 1rem;"
+        onkeyup="filterParticipants()"
+    />
+
+    <div class="participant-count-box">
+        Number of Participants: <strong><%= participants ? participants.length : 0 %></strong>
     </div>
+</div>
+
 
     <!-- Participants Table -->
     <div class="table-container">
@@ -959,6 +971,24 @@
         }
         <% } %>
     </script>
+    <script>
+function filterParticipants() {
+    const searchValue = document.getElementById("participantSearch").value.toLowerCase();
+    const rows = document.querySelectorAll(".table tbody tr");
+
+    rows.forEach(row => {
+        const firstName = row.children[1]?.textContent.toLowerCase() || "";
+        const lastName = row.children[2]?.textContent.toLowerCase() || "";
+
+        if (firstName.includes(searchValue) || lastName.includes(searchValue)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+</script>
+
 </body>
 </html>
 
