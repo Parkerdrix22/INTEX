@@ -769,113 +769,56 @@
     <!-- Events Grid -->
     <div class="events-container">
         <div class="events-grid">
-            <!-- Event Card 1 -->
-            <div class="event-card-wrapper" data-event-id="1" data-type="workshop" data-category="steam" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(1)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(1, 'STEAM Workshop: Coding Basics')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">STEAM Workshop: Coding Basics</div>
-                        <div class="event-description">
-                            <span class="event-date">March 15, 2025</span>
-                            <span class="event-description-text">Learn the fundamentals of programming in a supportive environment designed for beginners.</span>
-                        </div>
+            <% if (events && events.length > 0) { %>
+                <% events.forEach((event, index) => { %>
+                    <% 
+                    // Format the date
+                    let formattedDate = '';
+                    let dateClass = 'upcoming';
+                    if (event.eventdatetimestart) {
+                        const eventDate = new Date(event.eventdatetimestart);
+                        formattedDate = eventDate.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                        // Determine if event is upcoming or past
+                        const now = new Date();
+                        if (eventDate < now) {
+                            dateClass = 'past';
+                        }
+                    }
+                    %>
+                    <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>" data-type="workshop" data-category="steam" data-date="<%= dateClass %>">
+                        <% if (user && user.isManager) { %>
+                        <button class="event-card-edit-btn" onclick="openEditEventModal(<%= event.eventid || index + 1 %>)" title="Edit Event">✎</button>
+                        <button class="event-card-delete-btn" onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= event.eventname ? event.eventname.replace(/'/g, "\\'") : '' %>')" title="Delete Event">×</button>
+                        <% } %>
+                        <a href="/rsvp" class="event-card">
+                            <div class="event-image">Image placeholder</div>
+                            <div class="event-content">
+                                <div class="event-name"><%= event.eventname || 'Untitled Event' %></div>
+                                <div class="event-description">
+                                    <% if (formattedDate) { %>
+                                    <span class="event-date"><%= formattedDate %></span>
+                                    <% } %>
+                                    <% if (event.eventlocation) { %>
+                                    <span class="event-location" style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍 <%= event.eventlocation %></span>
+                                    <% } %>
+                                    <span class="event-description-text"><%= event.eventdescription || 'No description available.' %></span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-
-            <!-- Event Card 2 -->
-            <div class="event-card-wrapper" data-event-id="2" data-type="creative" data-category="arts" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(2)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(2, 'Creative Design Lab')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">Creative Design Lab</div>
-                        <div class="event-description">
-                            <span class="event-date">March 22, 2025</span>
-                            <span class="event-description-text">Explore your artistic side while learning design principles and digital tools.</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Event Card 3 -->
-            <div class="event-card-wrapper" data-event-id="3" data-type="leadership" data-category="steam" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(3)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(3, 'Leadership Circle')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">Leadership Circle</div>
-                        <div class="event-description">
-                            <span class="event-date">April 5, 2025</span>
-                            <span class="event-description-text">Build confidence and leadership skills through mentorship and collaborative activities.</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Event Card 4 -->
-            <div class="event-card-wrapper" data-event-id="4" data-type="workshop" data-category="engineering" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(4)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(4, 'Engineering Challenge')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">Engineering Challenge</div>
-                        <div class="event-description">
-                            <span class="event-date">April 12, 2025</span>
-                            <span class="event-description-text">Hands-on engineering projects that combine creativity with technical problem-solving.</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Event Card 5 -->
-            <div class="event-card-wrapper" data-event-id="5" data-type="creative" data-category="arts" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(5)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(5, 'Math & Art Fusion')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">Math & Art Fusion</div>
-                        <div class="event-description">
-                            <span class="event-date">April 19, 2025</span>
-                            <span class="event-description-text">Discover the beautiful connection between mathematics and artistic expression.</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Event Card 6 -->
-            <div class="event-card-wrapper" data-event-id="6" data-type="mentoring" data-category="steam" data-date="upcoming">
-                <% if (user && user.isManager) { %>
-                <button class="event-card-edit-btn" onclick="openEditEventModal(6)" title="Edit Event">✎</button>
-                <button class="event-card-delete-btn" onclick="confirmDeleteEvent(6, 'Career Exploration Day')" title="Delete Event">×</button>
-                <% } %>
-                <a href="/rsvp" class="event-card">
-                    <div class="event-image">Image placeholder</div>
-                    <div class="event-content">
-                        <div class="event-name">Career Exploration Day</div>
-                        <div class="event-description">
-                            <span class="event-date">May 3, 2025</span>
-                            <span class="event-description-text">Meet professionals in STEAM fields and learn about exciting career opportunities.</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                    <p>No events available at this time. Check back soon!</p>
+                    <% if (error_message) { %>
+                    <p style="color: #d32f2f; margin-top: 1rem;"><%= error_message %></p>
+                    <% } %>
+                </div>
+            <% } %>
         </div>
     </div>
 
@@ -1082,17 +1025,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Apply persisted events if they exist
-            const persistedEvents = loadPersistedEvents();
-            if (persistedEvents && persistedEvents.length > 0) {
-                applyPersistedEvents();
-            } else {
-                // Save initial events to localStorage on first load
-                const initialEvents = getEventDataFromDOM();
-                if (initialEvents && initialEvents.length > 0) {
-                    savePersistedEvents(initialEvents);
-                }
-            }
+            // Don't load persisted events - use database events instead
+            // Only use localStorage for manager edits (add/edit/delete) if needed
+            // Clear old localStorage data to prevent conflicts
+            localStorage.removeItem('eventsData');
 
             const eventTypeFilter = document.getElementById('event-type');
             const eventDateFilter = document.getElementById('event-date');

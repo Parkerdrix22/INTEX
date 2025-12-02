@@ -108,13 +108,14 @@ app.use((req, res, next) => {
 const knex = require("knex")({
     client: "pg",
     connection: {
-        host: process.env.RDS_HOSTNAME || "localhost",
-        user: process.env.RDS_USERNAME || "postgres",
-        password: process.env.RDS_PASSWORD || "admin",
-        database: process.env.RDS_DB_NAME || "foodisus",
+        host: process.env.RDS_HOSTNAME || "awseb-e-qzuktehy2v-stack-awsebrdsdatabase-kjohppsz4ibe.cb8eie2ew4fz.us-east-2.rds.amazonaws.com",
+        user: process.env.RDS_USERNAME || "intex2025",
+        password: process.env.RDS_PASSWORD || "intex0403",
+        database: process.env.RDS_DB_NAME || "ebdb",
         port: process.env.RDS_PORT || 5432,
-        // The new part 
-        ssl: process.env.DB_SSL ? {rejectUnauthorized: false} : false 
+        // Enable SSL for remote connections (required by pg_hba.conf)
+        // If DB_SSL is explicitly set to false, disable SSL, otherwise enable it for remote hosts
+        ssl: process.env.DB_SSL === 'false' ? false : {rejectUnauthorized: false} 
     }
 });
 
@@ -212,7 +213,33 @@ app.get("/events", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    res.render("events", { user: userInfo });
+    
+    // Query to get events with their occurrence details
+    // Try common table name variations: eventoccurrence, event_occurrence, eventoccurence
+    knex.select(
+        'events.eventid',
+        'events.eventname',
+        'events.eventdescription',
+        'eventoccurrence.eventdatetimestart',
+        'eventoccurrence.eventlocation'
+    )
+    .from('events')
+    .leftJoin('eventoccurrence', 'events.eventid', 'eventoccurrence.eventid')
+    .then(events => {
+        console.log(`Successfully retrieved ${events.length} events from database`);
+        res.render("events", { 
+            user: userInfo,
+            events: events 
+        });
+    })
+    .catch(err => {
+        console.error("Database query error:", err.message);
+        res.render("events", { 
+            user: userInfo,
+            events: [],
+            error_message: `Database error: ${err.message}. Please check if the tables exist.`
+        });
+    });
 });
 
 // Participants route
