@@ -55,6 +55,12 @@ const upload = multer({ storage });
 // Expose everything in /images (including uploads) as static assets
 app.use("/images", express.static(uploadRoot));
 
+// Parse JSON bodies (as sent by API clients)
+app.use(express.json());
+
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(express.urlencoded({ extended: true }));
+
 // process.env.PORT is when you deploy and 3001 is for test (3000 is often in use)
 const port = process.env.PORT || 3001;
 
@@ -125,7 +131,7 @@ app.use(express.urlencoded({ extended: true }));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -286,7 +292,8 @@ app.get("/dashboard", (req, res) => {
 });
 
 // Personal Milestones route
-app.get("/personal-milestones", (req, res) => {
+// Personal Milestones route
+app.get("/personal-milestones", async (req, res) => {
     const userInfo = req.session.isLoggedIn ? {
         username: req.session.username,
         first_name: req.session.first_name,
@@ -296,17 +303,50 @@ app.get("/personal-milestones", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    const participantEmail = req.query.email || '';
-    const participantName = req.query.name || '';
+
+    const participantId = req.query.participantId;
+    let participant = null;
+    let milestones = [];
+
+    try {
+        if (participantId) {
+            participant = await knex("participants").where("participantid", participantId).first();
+        } else if (req.query.email) {
+            participant = await knex("participants").where("participantemail", req.query.email).first();
+        }
+
+        if (participant) {
+            milestones = await knex("milestones")
+                .where("participantid", participant.participantid)
+                .orderBy("milestonedate", "desc")
+                .select("milestonetitle", "milestonedate");
+        }
+    } catch (err) {
+        console.error("Error fetching participant/milestones:", err);
+    }
+
     res.render("personal-milestones", {
         user: userInfo,
-        participantEmail: participantEmail,
-        participantName: participantName
+        participant: participant ? {
+            id: participant.participantid,
+            name: `${participant.participantfirstname} ${participant.participantlastname}`,
+            email: participant.participantemail
+        } : null,
+        milestonesJson: JSON.stringify(milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        }))),
+        milestones: milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        })),
+        participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : (req.query.name || 'Participant'),
+        participantEmail: participant ? participant.participantemail : (req.query.email || '')
     });
 });
 
 // My Journey route (for logged-in users viewing their own milestones)
-app.get("/my-journey", (req, res) => {
+app.get("/my-journey", async (req, res) => {
     if (!req.session.isLoggedIn) {
         return res.redirect("/login");
     }
@@ -319,13 +359,41 @@ app.get("/my-journey", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     };
-    // Use the logged-in user's email and name
-    const participantEmail = req.session.username || '';
-    const participantName = userInfo.full_name;
+
+    let participant = null;
+    let milestones = [];
+
+    try {
+        // Try to find participant by email (username)
+        participant = await knex("participants").where("participantemail", req.session.username).first();
+
+        if (participant) {
+            milestones = await knex("milestones")
+                .where("participantid", participant.participantid)
+                .orderBy("milestonedate", "desc")
+                .select("milestonetitle", "milestonedate");
+        }
+    } catch (err) {
+        console.error("Error fetching my journey:", err);
+    }
+
     res.render("personal-milestones", {
         user: userInfo,
-        participantEmail: participantEmail,
-        participantName: participantName
+        participant: participant ? {
+            id: participant.participantid,
+            name: `${participant.participantfirstname} ${participant.participantlastname}`,
+            email: participant.participantemail
+        } : null,
+        milestonesJson: JSON.stringify(milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        }))),
+        milestones: milestones.map(m => ({
+            milestone_name: m.milestonetitle,
+            date_achieved: m.milestonedate
+        })),
+        participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : userInfo.full_name,
+        participantEmail: participant ? participant.participantemail : req.session.username
     });
 });
 
@@ -834,6 +902,75 @@ app.post("/deleteUser/:id", (req, res) => {
 app.get('/teapot', (req, res) => {
     res.status(418).render('teapot');
 
+});
+
+
+// API Routes for Milestones Feature
+
+// Search participants
+app.get("/api/participants", (req, res) => {
+    const search = req.query.search || "";
+    knex("participants")
+        .where("participantfirstname", "ilike", `%${search}%`)
+        .orWhere("participantlastname", "ilike", `%${search}%`)
+        .orWhere("participantemail", "ilike", `%${search}%`)
+        .select("participantid", "participantfirstname", "participantlastname", "participantemail")
+        .limit(10)
+        .then(participants => {
+            const mappedParticipants = participants.map(p => ({
+                id: p.participantid,
+                name: `${p.participantfirstname} ${p.participantlastname}`,
+                email: p.participantemail
+            }));
+            res.json(mappedParticipants);
+        })
+        .catch(err => {
+            console.error("Error searching participants:", err);
+            res.status(500).json({ error: "Database error" });
+        });
+});
+
+// Get milestones for a participant
+app.get("/api/participants/:id/milestones", (req, res) => {
+    const participantId = req.params.id;
+    knex("milestones")
+        .where("participantid", participantId)
+        .select("milestonetitle", "milestonedate")
+        .orderBy("milestonedate", "desc")
+        .then(milestones => {
+            const mappedMilestones = milestones.map(m => ({
+                milestone_name: m.milestonetitle,
+                date_achieved: m.milestonedate
+            }));
+            res.json(mappedMilestones);
+        })
+        .catch(err => {
+            console.error("Error fetching milestones:", err);
+            res.status(500).json({ error: "Database error" });
+        });
+});
+
+// Assign milestone
+app.post("/api/milestones", (req, res) => {
+    const { participant_id, milestone_name } = req.body;
+
+    if (!participant_id || !milestone_name) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    knex("milestones")
+        .insert({
+            participantid: participant_id,
+            milestonetitle: milestone_name,
+            milestonedate: new Date()
+        })
+        .then(() => {
+            res.json({ success: true });
+        })
+        .catch(err => {
+            console.error("Error assigning milestone:", err);
+            res.status(500).json({ error: "Database error" });
+        });
 });
 
 app.listen(port, () => {
