@@ -729,30 +729,20 @@
             <div class="filter-group">
                 <label for="event-type">Event Type</label>
                 <select id="event-type" class="event-filter">
-                    <option value="all">All Events</option>
-                    <option value="workshop">Workshops</option>
-                    <option value="mentoring">Mentoring</option>
-                    <option value="creative">Creative Experiences</option>
-                    <option value="leadership">Leadership</option>
+                    <option value="all">All Event Types</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="STEM">STEM</option>
+                    <option value="Arts">Arts</option>
+                    <option value="Annual Conference">Annual Conference</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label for="event-date">Date</label>
-                <select id="event-date" class="event-filter">
-                    <option value="all">All Dates</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="past">Past Events</option>
-                    <option value="this-month">This Month</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="event-category">Category</label>
-                <select id="event-category" class="event-filter">
-                    <option value="all">All Categories</option>
-                    <option value="steam">STEAM</option>
-                    <option value="arts">Arts</option>
-                    <option value="technology">Technology</option>
-                    <option value="engineering">Engineering</option>
+                <label for="event-recurrence">Recurrence Pattern</label>
+                <select id="event-recurrence" class="event-filter">
+                    <option value="all">All Patterns</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Annual">Annual</option>
                 </select>
             </div>
             <div class="filter-buttons">
@@ -770,194 +760,160 @@
         </div>
         <% } %>
 
-            <!-- Events Grid -->
-            <div class="events-container">
-                <div class="events-grid">
-                    <% if (events && events.length> 0) { %>
-                        <% events.forEach((event, index)=> { %>
-                            <%
-                                // Format the date
-                                let formattedDate = '';
-                                let dateClass = 'upcoming';
-                                if (event.eventdatetimestart) {
-                                    const eventDate = new Date(event.eventdatetimestart);
-                                    formattedDate = eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                                    
-                                    // Determine if event is upcoming or past
-                                    const now = new Date();
-                                    if (eventDate < now) {
-                                        dateClass = 'past';
-                                    }
-                                }
-                                
-                                // Escape single quotes for JS strings
-                                const escapedName = event.eventname ? event.eventname.replace(/'/g, "\\'") : '';
-                            %>
-                                <div class="event-card-wrapper" data-event-id="<%= event.eventid || index + 1 %>"
-                                    data-type="workshop" data-category="steam" data-date="<%= dateClass %>">
-                                    <% if (user && user.isManager) { %>
-                                        <button class="event-card-edit-btn"
-                                            onclick="openEditEventModal('<%= event.eventid || index + 1 %>')"
-                                            title="Edit Event">✎</button>
-                                        <button class="event-card-delete-btn"
-                                            onclick="confirmDeleteEvent('<%= event.eventid || index + 1 %>', '<%= escapedName %>')"
-                                            title="Delete Event">×</button>
-                                        <% } %>
-                                            <a href="/rsvp" class="event-card">
-                                                <div class="event-image">
-                                                    <% if (event.eventimage) { %>
-                                                        <img src="<%= event.eventimage %>" alt="<%= event.eventname %>"
-                                                            style="width: 100%; height: 100%; object-fit: cover;">
-                                                        <% } else { %>
-                                                            Image placeholder
-                                                            <% } %>
-                                                </div>
-                                                <div class="event-content">
-                                                    <div class="event-name">
-                                                        <%= event.eventname || 'Untitled Event' %>
-                                                    </div>
-                                                    <div class="event-description">
-                                                        <% if (formattedDate) { %>
-                                                            <span class="event-date">
-                                                                <%= formattedDate %>
-                                                            </span>
-                                                            <% } %>
-                                                                <% if (event.eventlocation) { %>
-                                                                    <span class="event-location"
-                                                                        style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍
-                                                                        <%= event.eventlocation %>
-                                                                    </span>
-                                                                    <% } %>
-                                                                        <span class="event-description-text">
-                                                                            <%= event.eventdescription
-                                                                                || 'No description available.' %>
-                                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                </div>
-                                <% }); %>
-                                    <% } else { %>
-                                        <div class="no-events-message"
-                                            style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
-                                            <p>No events available at this time. Check back soon!</p>
-                                            <% if (error_message) { %>
-                                                <p style="color: #d32f2f; margin-top: 1rem;">
-                                                    <%= error_message %>
-                                                </p>
-                                                <% } %>
-                                        </div>
-                                        <% } %>
-                </div>
-            </div>
+    <!-- Events Grid -->
+    <div class="events-container">
+        <div class="events-grid">
+            <% if (events && events.length > 0) { %>
+                <% events.forEach((event, index) => { 
+                    // Date class for filtering (not displayed)
+                    let dateClass = 'upcoming';
+                    if (event.eventdatetimestart) {
+                        const eventDate = new Date(event.eventdatetimestart);
+                        // Determine if event is upcoming or past
+                        const now = new Date();
+                        if (eventDate < now) {
+                            dateClass = 'past';
+                        }
+                    }
 
-            <!-- Event Modal -->
-            <% if (user && user.isManager) { %>
-                <div class="modal fade event-modal" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel"
-                    aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="eventModalTitle">Add New Event</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
+                    // Escape single quotes for JS strings
+                    const escapedName = event.eventname ? event.eventname.replace(/'/g, "\\'") : '';
+                %>
+                    <div class="event-card-wrapper" 
+                        data-event-id="<%= event.eventid || index + 1 %>" 
+                        data-event-type="<%= event.eventtype || '' %>" 
+                        data-event-recurrence="<%= event.eventrecurrencepattern || '' %>" 
+                        data-event-capacity="<%= event.eventdefaultcapacity || '' %>" 
+                        data-date="<%= dateClass %>">
+                        <% if (user && user.isManager) { %>
+                            <button class="event-card-edit-btn" onclick="openEditEventModal(<%= event.eventid || index + 1 %>)" title="Edit Event">✎</button>
+                            <button class="event-card-delete-btn" onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= escapedName %>')" title="Delete Event">×</button>
+                        <% } %>
+                        <a href="/rsvp" class="event-card">
+                            <div class="event-image">
+                                <% if (event.eventimage) { %>
+                                    <img src="<%= event.eventimage %>" alt="<%= event.eventname %>" style="width: 100%; height: 100%; object-fit: cover;">
+                                <% } else { %>
+                                    Image placeholder
+                                <% } %>
                             </div>
-                            <div class="modal-body">
-                                <form id="eventForm" onsubmit="handleEventSubmit(event)">
-                                    <div class="mb-3">
-                                        <label for="eventName" class="form-label">Event Name</label>
-                                        <input type="text" class="form-control" id="eventName" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="eventDate" class="form-label">Event Date</label>
-                                        <input type="text" class="form-control" id="eventDate"
-                                            placeholder="e.g., March 15, 2025" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="modalEventType" class="form-label">Event Type</label>
-                                        <select class="form-select" id="modalEventType" required>
-                                            <option value="workshop">Workshop</option>
-                                            <option value="mentoring">Mentoring</option>
-                                            <option value="creative">Creative Experience</option>
-                                            <option value="leadership">Leadership</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="modalEventCategory" class="form-label">Category</label>
-                                        <select class="form-select" id="modalEventCategory" required>
-                                            <option value="steam">STEAM</option>
-                                            <option value="arts">Arts</option>
-                                            <option value="technology">Technology</option>
-                                            <option value="engineering">Engineering</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="eventDescription" class="form-label">Description</label>
-                                        <textarea class="form-control" id="eventDescription" rows="4"
-                                            required></textarea>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Save Event</button>
-                                    </div>
-                                </form>
+                            <div class="event-content">
+                                <div class="event-name"><%= event.eventname || 'Untitled Event' %></div>
+                                <div class="event-description">
+                                    <span class="event-description-text"><%= event.eventdescription || 'No description available.' %></span>
+                                </div>
                             </div>
-                        </div>
+                        </a>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-events-message" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
+                    <p>No events available at this time. Check back soon!</p>
+                    <% if (error_message) { %>
+                        <p style="color: #d32f2f; margin-top: 1rem;"><%= error_message %></p>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <% if (user && user.isManager) { %>
+        <div class="modal fade event-modal" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="eventModalTitle">Add New Event</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="eventForm" onsubmit="handleEventSubmit(event)">
+                            <div class="mb-3">
+                                <label for="eventName" class="form-label">Event Name</label>
+                                <input type="text" class="form-control" id="eventName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modalEventType" class="form-label">Event Type</label>
+                                <select class="form-select" id="modalEventType" required>
+                                    <option value="">Select Event Type</option>
+                                    <option value="Leadership">Leadership</option>
+                                    <option value="STEM">STEM</option>
+                                    <option value="Arts">Arts</option>
+                                    <option value="Annual Conference">Annual Conference</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="modalEventRecurrence" class="form-label">Recurrence Pattern</label>
+                                <select class="form-select" id="modalEventRecurrence" required>
+                                    <option value="">Select Recurrence Pattern</option>
+                                    <option value="Monthly">Monthly</option>
+                                    <option value="Weekly">Weekly</option>
+                                    <option value="Annual">Annual</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="eventDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="eventDescription" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="eventDefaultCapacity" class="form-label">Default Capacity</label>
+                                <input type="number" class="form-control" id="eventDefaultCapacity" min="1" placeholder="Enter capacity number" required>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Event</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <% } %>
+            </div>
+        </div>
+    <% } %>
 
-                    <!-- Footer -->
-                    <footer>
-                        <div class="footer-content">
-                            <div class="footer-main">
-                                <div class="footer-left">
-                                    <div class="footer-logo">
-                                        <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
-                                        <span>Ella Rises</span>
-                                    </div>
-                                    <p>
-                                        Empowering the rising generation of women to pursue higher education
-                                        and embrace their heritage through STEAM programs, mentoring, and
-                                        leadership opportunities.
-                                    </p>
-                                </div>
-
-                                <div class="footer-divider"></div>
-
-                                <div class="footer-right">
-                                    <h4>Contact</h4>
-                                    <p>Visit us at:</p>
-                                    <p><a href="https://www.ellarises.org/" target="_blank">www.ellarises.org</a></p>
-                                    <div class="social-links">
-                                        <a href="https://www.instagram.com/ellarises/" target="_blank"
-                                            class="social-link">
-                                            <svg class="social-icon" viewBox="0 0 24 24"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path
-                                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                                            </svg>
-                                            <span>Instagram</span>
-                                        </a>
-                                        <a href="https://www.facebook.com/EllaRises" target="_blank"
-                                            class="social-link">
-                                            <svg class="social-icon" viewBox="0 0 24 24"
-                                                xmlns="http://www.w3.org/2000/svg">
-                                                <path
-                                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                            </svg>
-                                            <span>Facebook</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="footer-bottom">
-                                <p>&copy; 2025 Ella Rises. All rights reserved.</p>
-                            </div>
-                        </div>
-                    </footer>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-main">
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
+                        <span>Ella Rises</span>
+                    </div>
+                    <p>
+                        Empowering the rising generation of women to pursue higher education 
+                        and embrace their heritage through STEAM programs, mentoring, and 
+                        leadership opportunities.
+                    </p>
+                </div>
+                
+                <div class="footer-divider"></div>
+                
+                <div class="footer-right">
+                    <h4>Contact</h4>
+                    <p>Visit us at:</p>
+                    <p><a href="https://www.ellarises.org/" target="_blank">www.ellarises.org</a></p>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
+                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                            <span>Instagram</span>
+                        </a>
+                        <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
+                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <span>Facebook</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Ella Rises. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
                     <!-- Bootstrap JS -->
                     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -983,27 +939,25 @@
                             localStorage.setItem('eventsData', JSON.stringify(events));
                         }
 
-                        function getEventDataFromDOM() {
-                            const events = [];
-                            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
-                                const eventId = wrapper.getAttribute('data-event-id');
-                                const eventName = wrapper.querySelector('.event-name')?.textContent || '';
-                                const eventDate = wrapper.querySelector('.event-date')?.textContent || '';
-                                const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
-                                const eventType = wrapper.getAttribute('data-type') || '';
-                                const eventCategory = wrapper.getAttribute('data-category') || '';
-
-                                events.push({
-                                    id: eventId,
-                                    name: eventName,
-                                    date: eventDate,
-                                    description: eventDescription,
-                                    type: eventType,
-                                    category: eventCategory
-                                });
-                            });
-                            return events;
-                        }
+        function getEventDataFromDOM() {
+            const events = [];
+            document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
+                const eventId = wrapper.getAttribute('data-event-id');
+                const eventName = wrapper.querySelector('.event-name')?.textContent || '';
+                const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
+                const eventType = wrapper.getAttribute('data-event-type') || '';
+                const eventRecurrence = wrapper.getAttribute('data-event-recurrence') || '';
+                
+                events.push({
+                    id: eventId,
+                    name: eventName,
+                    description: eventDescription,
+                    type: eventType,
+                    recurrence: eventRecurrence
+                });
+            });
+            return events;
+        }
 
                         function createEventCardHTML(event, eventId) {
                             const escapedName = event.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -1016,7 +970,6 @@
                         <div class="event-content">
                             <div class="event-name">${event.name}</div>
                             <div class="event-description">
-                                <span class="event-date">${event.date}</span>
                                 <span class="event-description-text">${event.description}</span>
                             </div>
                         </div>
@@ -1029,7 +982,6 @@
                         <div class="event-content">
                             <div class="event-name">${event.name}</div>
                             <div class="event-description">
-                                <span class="event-date">${event.date}</span>
                                 <span class="event-description-text">${event.description}</span>
                             </div>
                         </div>
@@ -1070,37 +1022,35 @@
                             // Clear old localStorage data to prevent conflicts
                             localStorage.removeItem('eventsData');
 
-                            const eventTypeFilter = document.getElementById('event-type');
-                            const eventDateFilter = document.getElementById('event-date');
-                            const eventCategoryFilter = document.getElementById('event-category');
-                            const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
+            const eventTypeFilter = document.getElementById('event-type');
+            const eventRecurrenceFilter = document.getElementById('event-recurrence');
+            const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
 
-                            function filterEvents() {
-                                const typeValue = eventTypeFilter.value;
-                                const dateValue = eventDateFilter.value;
-                                const categoryValue = eventCategoryFilter.value;
+            function filterEvents() {
+                const typeValue = eventTypeFilter.value.trim();
+                const recurrenceValue = eventRecurrenceFilter.value.trim();
 
-                                eventCardWrappers.forEach(wrapper => {
-                                    const cardType = wrapper.getAttribute('data-type');
-                                    const cardDate = wrapper.getAttribute('data-date');
-                                    const cardCategory = wrapper.getAttribute('data-category');
+                eventCardWrappers.forEach(wrapper => {
+                    const cardType = (wrapper.getAttribute('data-event-type') || '').trim();
+                    const cardRecurrence = (wrapper.getAttribute('data-event-recurrence') || '').trim();
 
                                     let showCard = true;
 
-                                    // Filter by type
-                                    if (typeValue !== 'all' && cardType !== typeValue) {
-                                        showCard = false;
-                                    }
+                    // Filter by event type (exact match, case-sensitive)
+                    // Values must be: Leadership, STEM, Arts, Annual Conference
+                    if (typeValue !== 'all') {
+                        if (cardType !== typeValue) {
+                            showCard = false;
+                        }
+                    }
 
-                                    // Filter by date
-                                    if (dateValue !== 'all' && cardDate !== dateValue) {
-                                        showCard = false;
-                                    }
-
-                                    // Filter by category
-                                    if (categoryValue !== 'all' && cardCategory !== categoryValue) {
-                                        showCard = false;
-                                    }
+                    // Filter by recurrence pattern (exact match, case-sensitive)
+                    // Values must be: Monthly, Weekly, Annual
+                    if (recurrenceValue !== 'all') {
+                        if (cardRecurrence !== recurrenceValue) {
+                            showCard = false;
+                        }
+                    }
 
                                     // Show or hide card
                                     if (showCard) {
@@ -1111,19 +1061,17 @@
                                 });
                             }
 
-                            // Add event listeners
-                            eventTypeFilter.addEventListener('change', filterEvents);
-                            eventDateFilter.addEventListener('change', filterEvents);
-                            eventCategoryFilter.addEventListener('change', filterEvents);
+            // Add event listeners
+            eventTypeFilter.addEventListener('change', filterEvents);
+            eventRecurrenceFilter.addEventListener('change', filterEvents);
 
-                            // Clear filters function
-                            window.clearFilters = function () {
-                                eventTypeFilter.value = 'all';
-                                eventDateFilter.value = 'all';
-                                eventCategoryFilter.value = 'all';
-                                filterEvents();
-                            };
-                        });
+            // Clear filters function
+            window.clearFilters = function() {
+                eventTypeFilter.value = 'all';
+                eventRecurrenceFilter.value = 'all';
+                filterEvents();
+            };
+        });
 
                         // Manager Functions
                         function openAddEventModal() {
@@ -1135,112 +1083,148 @@
                             modal.show();
                         }
 
-                        function openEditEventModal(eventId) {
-                            // Get event data from the card
-                            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-                            if (!wrapper) return;
+        function openEditEventModal(eventId) {
+            // Get event data from the card
+            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+            if (!wrapper) return;
 
-                            const eventName = wrapper.querySelector('.event-name').textContent;
-                            const eventDate = wrapper.querySelector('.event-date').textContent;
-                            const eventDescription = wrapper.querySelector('.event-description-text').textContent;
-                            const eventType = wrapper.getAttribute('data-type');
-                            const eventCategory = wrapper.getAttribute('data-category');
+            const eventName = wrapper.querySelector('.event-name').textContent;
+            const eventDescription = wrapper.querySelector('.event-description-text').textContent;
+            const eventType = wrapper.getAttribute('data-event-type');
+            const eventRecurrence = wrapper.getAttribute('data-event-recurrence');
+            const eventCapacity = wrapper.getAttribute('data-event-capacity');
 
-                            // Populate form
-                            document.getElementById('eventModalTitle').textContent = 'Edit Event';
-                            document.getElementById('eventName').value = eventName;
-                            document.getElementById('eventDate').value = eventDate;
-                            document.getElementById('eventDescription').value = eventDescription;
-                            document.getElementById('modalEventType').value = eventType;
-                            document.getElementById('modalEventCategory').value = eventCategory;
+            // Populate form
+            document.getElementById('eventModalTitle').textContent = 'Edit Event';
+            document.getElementById('eventName').value = eventName;
+            document.getElementById('eventDescription').value = eventDescription;
+            document.getElementById('modalEventType').value = eventType || '';
+            document.getElementById('modalEventRecurrence').value = eventRecurrence || '';
+            
+            // Set capacity - handle both string and number values
+            const capacityValue = eventCapacity && eventCapacity.trim() !== '' ? eventCapacity : '';
+            document.getElementById('eventDefaultCapacity').value = capacityValue;
+            
+            document.getElementById('eventForm').setAttribute('data-mode', 'edit');
+            document.getElementById('eventForm').setAttribute('data-event-id', eventId);
+            
+            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+            modal.show();
+        }
 
-                            document.getElementById('eventForm').setAttribute('data-mode', 'edit');
-                            document.getElementById('eventForm').setAttribute('data-event-id', eventId);
+        function deleteEvent(eventId) {
+            // Delete event from database
+            fetch(`/events/delete/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the event card from the DOM
+                    const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
+                    if (wrapper) {
+                        wrapper.style.transition = 'opacity 0.3s';
+                        wrapper.style.opacity = '0';
+                        setTimeout(() => {
+                            wrapper.remove();
+                            alert('Event deleted successfully!');
+                        }, 300);
+                    } else {
+                        alert('Event deleted successfully! Refreshing page...');
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to delete event'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting event. Please try again.');
+            });
+        }
 
-                            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-                            modal.show();
-                        }
+        function confirmDeleteEvent(eventId, eventName) {
+            if (confirm(`Are you sure you want to delete "${eventName}"?\n\nThis action cannot be undone.`)) {
+                deleteEvent(eventId);
+            }
+        }
 
-                        function confirmDeleteEvent(eventId, eventName) {
-                            if (confirm(`Are you sure you want to delete "${eventName}"?\n\nThis action cannot be undone.`)) {
-                                deleteEvent(eventId);
-                            }
-                        }
+        function handleEventSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const mode = form.getAttribute('data-mode');
+            const eventId = form.getAttribute('data-event-id');
 
-                        function deleteEvent(eventId) {
-                            // Remove the event card from the DOM
-                            const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-                            if (wrapper) {
-                                wrapper.style.transition = 'opacity 0.3s';
-                                wrapper.style.opacity = '0';
-                                setTimeout(() => {
-                                    wrapper.remove();
-                                    // Update persisted events
-                                    const events = getEventDataFromDOM();
-                                    savePersistedEvents(events);
-                                    alert('Event deleted successfully! This change will be visible to all users.');
-                                }, 300);
-                            }
-                        }
+            const eventName = document.getElementById('eventName').value;
+            const eventDescription = document.getElementById('eventDescription').value;
+            const eventType = document.getElementById('modalEventType').value;
+            const eventRecurrence = document.getElementById('modalEventRecurrence').value;
+            const eventDefaultCapacity = document.getElementById('eventDefaultCapacity').value;
 
-                        function handleEventSubmit(event) {
-                            event.preventDefault();
-                            const form = event.target;
-                            const mode = form.getAttribute('data-mode');
-                            const eventId = form.getAttribute('data-event-id');
+            if (mode === 'add') {
+                // Add new event to database
+                fetch('/events/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        eventName: eventName,
+                        eventDescription: eventDescription,
+                        eventType: eventType,
+                        eventRecurrencePattern: eventRecurrence,
+                        eventDefaultCapacity: eventDefaultCapacity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Event added successfully! Refreshing page...');
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to add event'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error adding event. Please try again.');
+                });
+            } else if (mode === 'edit') {
+                // Update existing event in database
+                fetch(`/events/edit/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        eventName: eventName,
+                        eventDescription: eventDescription,
+                        eventType: eventType,
+                        eventRecurrencePattern: eventRecurrence,
+                        eventDefaultCapacity: eventDefaultCapacity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Event updated successfully! Refreshing page...');
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to update event'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating event. Please try again.');
+                });
+            }
 
-                            const eventName = document.getElementById('eventName').value;
-                            const eventDate = document.getElementById('eventDate').value;
-                            const eventDescription = document.getElementById('eventDescription').value;
-                            const eventType = document.getElementById('modalEventType').value;
-                            const eventCategory = document.getElementById('modalEventCategory').value;
-
-                            if (mode === 'add') {
-                                // Add new event
-                                const eventsGrid = document.querySelector('.events-grid');
-                                const newEventId = Date.now(); // Generate unique ID
-
-                                const newEvent = {
-                                    name: eventName,
-                                    date: eventDate,
-                                    description: eventDescription,
-                                    type: eventType,
-                                    category: eventCategory
-                                };
-
-                                const wrapper = document.createElement('div');
-                                wrapper.className = 'event-card-wrapper';
-                                wrapper.setAttribute('data-event-id', newEventId);
-                                wrapper.setAttribute('data-type', eventType);
-                                wrapper.setAttribute('data-category', eventCategory);
-                                wrapper.setAttribute('data-date', 'upcoming');
-                                wrapper.innerHTML = createEventCardHTML(newEvent, newEventId);
-                                eventsGrid.appendChild(wrapper);
-
-                                // Save to localStorage
-                                const events = getEventDataFromDOM();
-                                savePersistedEvents(events);
-                                alert('Event added successfully! This change will be visible to all users.');
-                            } else if (mode === 'edit') {
-                                // Update existing event
-                                const wrapper = document.querySelector(`[data-event-id="${eventId}"]`);
-                                if (wrapper) {
-                                    wrapper.querySelector('.event-name').textContent = eventName;
-                                    wrapper.querySelector('.event-date').textContent = eventDate;
-                                    wrapper.querySelector('.event-description-text').textContent = eventDescription;
-                                    wrapper.setAttribute('data-type', eventType);
-                                    wrapper.setAttribute('data-category', eventCategory);
-
-                                    // Save to localStorage
-                                    const events = getEventDataFromDOM();
-                                    savePersistedEvents(events);
-                                    alert('Event updated successfully! This change will be visible to all users.');
-                                }
-                            }
-
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
-                            modal.hide();
-                        }
+            const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+            modal.hide();
+        }
                     </script>
 </body>
 
