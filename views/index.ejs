@@ -43,6 +43,12 @@
 
         .navbar .container {
             padding-left: 1rem;
+            max-width: 1600px;
+            width: 100%;
+        }
+        
+        body .container {
+            max-width: 1400px;
         }
 
         .navbar-brand {
@@ -75,6 +81,7 @@
         /* Big centered site name */
         .hero-title {
             padding: 4rem 1rem 2rem;
+            position: relative;
         }
 
         .hero-title h1 {
@@ -82,6 +89,32 @@
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5.5rem;
+        }
+
+        .hero-heart-icon {
+            width: 200px;
+            height: 200px;
+            flex-shrink: 0;
+        }
+
+        .hero-heart-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+
+        }
+
+        .col-md-6.mb-4.mb-md-0.order-md-2 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            border-top: 3px solid #a1c687;
+            border-bottom: 3px solid #a1c687;
         }
 
         .section-block {
@@ -129,9 +162,55 @@
             object-position: center;
         }
 
+        /* Add spacing between events image and text */
+        #events .col-md-6.order-md-1 {
+            padding-right: 2rem;
+        }
+
+        #events .col-md-6.order-md-2 {
+            padding-left: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            #events .col-md-6.order-md-1 {
+                padding-right: 3rem;
+            }
+
+            #events .col-md-6.order-md-2 {
+                padding-left: 3rem;
+            }
+        }
+
         /* Crop top and bottom of events image specifically */
         #events .image-placeholder img {
             object-position: center 40%;
+        }
+
+        /* Add spacing between event feedback image and text */
+        #surveys .col-md-6:first-child {
+            padding-right: 2rem;
+        }
+
+        #surveys .col-md-6:last-child {
+            padding-left: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            #surveys .col-md-6:first-child {
+                padding-right: 3rem;
+            }
+
+            #surveys .col-md-6:last-child {
+                padding-left: 3rem;
+            }
+        }
+
+        /* Add light pink borders to event feedback text container */
+        #surveys .col-md-6.mb-4.mb-md-0 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            border-top: 3px solid var(--er-pink);
+            border-bottom: 3px solid var(--er-pink);
         }
 
         /* Event Feedback image - same size as events image */
@@ -166,6 +245,11 @@
             padding: 4rem 1rem;
         }
 
+        /* Participants section - light gray background */
+        #participants.section-centered {
+            background-color: #fafafa;
+        }
+
         .section-centered h2 {
             font-weight: 700;
             margin-bottom: 1rem;
@@ -187,21 +271,41 @@
             margin: 2rem 0;
         }
 
-        /* Milestones section - full width */
-        #milestones.section-card {
-            width: 100vw;
-            max-width: 100%;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-            border-radius: 0;
-            padding-left: 0;
-            padding-right: 0;
+        /* Milestones and Dashboard side-by-side container */
+        .milestones-dashboard-container {
+            display: flex;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border-top: 20px solid var(--er-pink);
         }
 
-        #milestones.section-card .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+        .milestones-dashboard-container .section-card {
+            flex: 1;
+            margin: 0;
+            border-radius: 0;
+            padding: 5rem 2rem;
+            background-color: #ffffff;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+        }
+
+        .milestones-dashboard-container .section-card .container {
+            width: 100%;
+        }
+
+        .milestones-dashboard-container .section-card .container {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        #milestones.section-card {
+            border-right: 20px solid var(--er-pink);
+        }
+
+        #dashboard.section-card {
+            border-left: none;
         }
 
         .section-card h2 {
@@ -238,7 +342,7 @@
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
             margin-top: 4rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--er-pink);
         }
 
         .footer-content {
@@ -298,11 +402,70 @@
             font-size: 0.9rem;
         }
 
+        .footer-main {
+            display: flex;
+            gap: 3rem;
+            align-items: flex-start;
+        }
+
+        .footer-left {
+            flex: 1;
+        }
+
+        .footer-divider {
+            width: 1px;
+            background-color: rgba(0, 0, 0, 0.2);
+            min-height: 150px;
+        }
+
+        .footer-right {
+            flex: 1;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--er-text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: var(--er-pink-dark);
+        }
+
+        .social-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
         @media (min-width: 768px) {
             .footer-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
                 gap: 2rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .footer-main {
+                flex-direction: column;
+            }
+
+            .footer-divider {
+                width: 100%;
+                height: 1px;
+                min-height: 1px;
+                margin: 1.5rem 0;
             }
         }
 
@@ -321,8 +484,7 @@
         .about-us-video {
             position: absolute;
             top: 0;
-            left: 2rem;
-            width: calc(100% - 4rem);
+            width: 100%;
             height: 100%;
             object-fit: cover;
             z-index: 1;
@@ -331,8 +493,7 @@
         .about-us-overlay {
             position: absolute;
             top: 0;
-            left: 2rem;
-            width: calc(100% - 4rem);
+            width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.523);
             z-index: 2;
@@ -379,6 +540,21 @@
                 font-size: 2.5rem;
             }
 
+            .milestones-dashboard-container {
+                flex-direction: column;
+            }
+
+            .milestones-dashboard-container .section-card {
+                border-right: none;
+                border-bottom: 5px solid var(--er-pink);
+                padding: 3rem 1.5rem;
+                min-height: 300px;
+            }
+
+            #dashboard.section-card {
+                border-bottom: none;
+            }
+
             .about-us-content p {
                 font-size: 1.1rem;
             }
@@ -388,8 +564,8 @@
 <body>
     <!-- Light pink navbar with links -->
     <nav class="navbar navbar-expand-md navbar-light">
-        <div class="container">
-            <a class="navbar-brand" href="#top">
+    <div class="container">
+            <a class="navbar-brand" href="/">
                 <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                 <span>Ella Rises</span>
             </a>
@@ -407,26 +583,31 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#participants">Participants</a>
+                        <a class="nav-link" href="/participants">Participants</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#events">Events</a>
+                        <a class="nav-link" href="/events">Events</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#surveys">Event Feedback</a>
+                        <a class="nav-link" href="/survey">Event Feedback</a>
                     </li>
+                    <% if (user && user.isUser) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                    </li>
+                    <% } %>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#milestones">Milestones</a>
+                        <a class="nav-link" href="/milestones">Milestones</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#donations">Donations</a>
+                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
                     </li>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link scroll-link" href="#dashboard">Dashboard</a>
+                        <a class="nav-link" href="/">Dashboard</a>
                     </li>
                     <% } %>
                     <% if (!user) { %>
@@ -459,7 +640,15 @@
     <!-- Big centered title -->
     <header id="top" class="hero-title text-center">
         <div class="container">
-            <h1>Ella Rises</h1>
+            <h1>
+                <span class="hero-heart-icon">
+                    <img src="/images/heart_icon.png" alt="Heart Icon">
+                </span>
+                Ella Rises
+                <span class="hero-heart-icon">
+                    <img src="/images/heart_icon.png" alt="Heart Icon">
+                </span>
+            </h1>
             <p class="lead mt-3 mb-0">
                 Inviting young women to pursue higher education and embrace their heritage by providing culturally rooted programs and educational experiences.
             </p>
@@ -478,33 +667,34 @@
             <div class="about-us-content">
                 <h2>About Us</h2>
                 <p>
-                    Ella Rises empowers the rising generation of women to pursue higher education and embrace their heritage 
-                    through mentoring, creative workshops, and leadership opportunities. We build both technical competence 
-                    and artistic confidence through STEAM programs that encourage women to pursue their interests in science, 
-                    technology, engineering, arts, and math. Working in partnership with UVU and BYU, we create transformative 
-                    experiences that help young women discover their divine worth and purpose.
+                    Ella Rises empowers young women to pursue higher education and embrace their
+                     cultural heritage through high-impact, culturally rooted programs focused on
+                      mariachi and STEAM. Each year, our signature programs engage more than 150
+                       young women, providing meaningful experiences, mentorship, and opportunities
+                        that inspire confidence, leadership, and a strong sense of identity.
+
                 </p>
             </div>
         </section>
 
-        <!-- Section 1: Centered -->
-        <% if (user && user.isManager) { %>
-        <section id="participants" class="section-centered">
+        <!-- My Journey | Mi Camino Section - Only for logged-in users -->
+        <% if (user && user.isUser) { %>
+        <section id="my-journey" class="section-centered" style="background-color: #ffffff;">
             <div class="container">
-                <h2>Participants</h2>
+                <h2>My Journey | Mi Camino</h2>
                 <p>
-                    View and manage the young women who participate in Ella Rises workshops, mentoring circles,
-                    and creative experiences. Track their progress and celebrate their achievements.
+                    Track your life achievements and biggest milestones. Celebrate your progress and see how far you've come 
+                    on your journey with Ella Rises.
                 </p>
-                <a href="/participants" class="btn btn-outline-dark btn-lg">
-                    Go to Participants
+                <a href="/my-journey" class="btn btn-outline-dark btn-lg">
+                    View My Journey
                 </a>
             </div>
         </section>
         <% } %>
 
         <!-- Section 2: Image left, Text right -->
-        <section id="events" class="section-alternate" style="background-color: #fafafa;">
+        <section id="events" class="section-alternate" style="background-color: #effcf2;">
             <div class="container">
                 <div class="row">
                     <div class="col-md-6 mb-4 mb-md-0 order-md-2">
@@ -549,22 +739,54 @@
             </div>
         </section>
 
-        <!-- Section 4: Card style -->
+        <!-- Section: Participants (Manager only) -->
         <% if (user && user.isManager) { %>
-        <section id="milestones" class="section-card">
+        <section id="participants" class="section-centered">
             <div class="container">
-                <h2>Milestones</h2>
+                <h2>Participants</h2>
                 <p>
-                    Define and track key milestones participants achieve on their path to long-term STEAM
-                    education and careers. Celebrate progress and identify areas for additional support.
+                    View and manage the young women who participate in Ella Rises workshops, mentoring circles,
+                    and creative experiences. Track their progress and celebrate their achievements.
                 </p>
-                <div class="text-center">
-                    <a href="/milestones" class="btn btn-outline-dark btn-lg">
-                        Go to Milestones
-                    </a>
-                </div>
+                <a href="/participants" class="btn btn-outline-dark btn-lg">
+                    Go to Participants
+                </a>
             </div>
         </section>
+        <% } %>
+
+        <!-- Milestones and Dashboard Side-by-Side -->
+        <% if (user && user.isManager) { %>
+        <div class="milestones-dashboard-container">
+            <section id="milestones" class="section-card">
+                <div class="container">
+                    <h2>Milestones</h2>
+                    <p>
+                        Define and track key milestones participants achieve on their path to long-term STEAM
+                        education and careers. Celebrate progress and identify areas for additional support.
+                    </p>
+                    <div class="text-center">
+                        <a href="/milestones" class="btn btn-outline-dark btn-lg">
+                            Go to Milestones
+                        </a>
+                    </div>
+                </div>
+            </section>
+            <section id="dashboard" class="section-card">
+                <div class="container">
+                    <h2>Impact Dashboard</h2>
+                    <p>
+                        Visualize satisfaction, milestone achievement, STEAM graduation, and job outcomes. This will
+                        eventually embed your interactive dashboard with filters and real-time insights.
+                    </p>
+                    <div class="text-center">
+                        <a href="/dashboard" class="btn btn-outline-dark btn-lg">
+                            Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
         <% } %>
 
         <!-- Section 5: Centered with different styling -->
@@ -585,31 +807,13 @@
         <div class="donate-image-container">
             <img src="/images/donate_image.avif" alt="Donate to Ella Rises" style="width: 100%; height: auto; display: block;">
         </div>
-
-        <!-- Section 6: Card style -->
-        <% if (user && user.isManager) { %>
-        <section id="dashboard" class="section-card">
-            <div class="container">
-                <h2>Impact Dashboard</h2>
-                <p>
-                    Visualize satisfaction, milestone achievement, STEAM graduation, and job outcomes. This will
-                    eventually embed your interactive dashboard with filters and real-time insights.
-                </p>
-                <div class="text-center">
-                    <a href="/dashboard" class="btn btn-outline-dark btn-lg">
-                        Go to Dashboard
-                    </a>
-                </div>
-            </div>
-        </section>
-        <% } %>
     </main>
 
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <div class="footer-grid">
-                <div class="footer-section">
+            <div class="footer-main">
+                <div class="footer-left">
                     <div class="footer-logo">
                         <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                         <span>Ella Rises</span>
@@ -626,6 +830,7 @@
                     <p><a href="#events">Events</a></p>
                     <p><a href="#surveys">Event Feedback</a></p>
                     <p><a href="#donations">Donations</a></p>
+                    <p><a href="/teapot">Teapot</a></p>
                     <% if (user && user.isManager) { %>
                     <p><a href="#participants">Participants</a></p>
                     <p><a href="#milestones">Milestones</a></p>
@@ -633,15 +838,26 @@
                     <% } %>
                 </div>
                 
-                <div class="footer-section">
+                <div class="footer-right">
                     <h4>Contact</h4>
                     <p>Visit us at:</p>
                     <p><a href="https://www.ellarises.org/" target="_blank">www.ellarises.org</a></p>
-                    <p style="margin-top: 1rem;">
-                        Partnerships with UVU and BYU
-                    </p>
-                </div>
+                    <div class="social-links">
+                        <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
+                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                            <span>Instagram</span>
+                        </a>
+                        <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
+                            <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                            <span>Facebook</span>
+                        </a>
             </div>
+        </div>
+    </div>
             
             <div class="footer-bottom">
                 <p>&copy; 2025 Ella Rises. All rights reserved.</p>

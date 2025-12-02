@@ -108,13 +108,14 @@ app.use((req, res, next) => {
 const knex = require("knex")({
     client: "pg",
     connection: {
-        host: process.env.RDS_HOSTNAME || "localhost",
-        user: process.env.RDS_USERNAME || "postgres",
-        password: process.env.RDS_PASSWORD || "admin",
-        database: process.env.RDS_DB_NAME || "foodisus",
+        host: process.env.RDS_HOSTNAME || "awseb-e-qzuktehy2v-stack-awsebrdsdatabase-kjohppsz4ibe.cb8eie2ew4fz.us-east-2.rds.amazonaws.com",
+        user: process.env.RDS_USERNAME || "intex2025",
+        password: process.env.RDS_PASSWORD || "intex0403",
+        database: process.env.RDS_DB_NAME || "ebdb",
         port: process.env.RDS_PORT || 5432,
-        // The new part 
-        ssl: process.env.DB_SSL ? {rejectUnauthorized: false} : false 
+        // Enable SSL for remote connections (required by pg_hba.conf)
+        // If DB_SSL is explicitly set to false, disable SSL, otherwise enable it for remote hosts
+        ssl: process.env.DB_SSL === 'false' ? false : {rejectUnauthorized: false} 
     }
 });
 
@@ -124,9 +125,18 @@ app.use(express.urlencoded({extended: true}));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones') {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
         //continue with the request path
         return next();
+    }
+    
+    // My Journey requires authentication
+    if (req.path === '/my-journey') {
+        if (req.session.isLoggedIn) {
+            return next();
+        } else {
+            return res.render("login", { error_message: "Please log in to access this page" });
+        }
     }
     
     // Check if user is logged in for all other routes
@@ -203,7 +213,33 @@ app.get("/events", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    res.render("events", { user: userInfo });
+    
+    // Query to get events with their occurrence details
+    // Try common table name variations: eventoccurrence, event_occurrence, eventoccurence
+    knex.select(
+        'events.eventid',
+        'events.eventname',
+        'events.eventdescription',
+        'eventoccurrence.eventdatetimestart',
+        'eventoccurrence.eventlocation'
+    )
+    .from('events')
+    .leftJoin('eventoccurrence', 'events.eventid', 'eventoccurrence.eventid')
+    .then(events => {
+        console.log(`Successfully retrieved ${events.length} events from database`);
+        res.render("events", { 
+            user: userInfo,
+            events: events 
+        });
+    })
+    .catch(err => {
+        console.error("Database query error:", err.message);
+        res.render("events", { 
+            user: userInfo,
+            events: [],
+            error_message: `Database error: ${err.message}. Please check if the tables exist.`
+        });
+    });
 });
 
 // Participants route
@@ -232,6 +268,64 @@ app.get("/milestones", (req, res) => {
         isUser: req.session.level === 'U'
     } : null;
     res.render("milestones", { user: userInfo });
+});
+
+// Dashboard route
+app.get("/dashboard", (req, res) => {
+    const userInfo = req.session.isLoggedIn ? {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    } : null;
+    res.render("dashboard", { user: userInfo });
+});
+
+// Personal Milestones route
+app.get("/personal-milestones", (req, res) => {
+    const userInfo = req.session.isLoggedIn ? {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    } : null;
+    const participantEmail = req.query.email || '';
+    const participantName = req.query.name || '';
+    res.render("personal-milestones", { 
+        user: userInfo,
+        participantEmail: participantEmail,
+        participantName: participantName
+    });
+});
+
+// My Journey route (for logged-in users viewing their own milestones)
+app.get("/my-journey", (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect("/login");
+    }
+    const userInfo = {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    };
+    // Use the logged-in user's email and name
+    const participantEmail = req.session.username || '';
+    const participantName = userInfo.full_name;
+    res.render("personal-milestones", { 
+        user: userInfo,
+        participantEmail: participantEmail,
+        participantName: participantName
+    });
 });
 
 // RSVP route
@@ -734,6 +828,11 @@ app.post("/deleteUser/:id", (req, res) => {
         console.log(err);
         res.status(500).json({err});
     })
+});
+
+app.get('/teapot', (req, res) => {
+    res.status(418).render('teapot');
+    
 });
 
 app.listen(port, () => {
