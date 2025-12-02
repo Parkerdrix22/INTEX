@@ -698,27 +698,56 @@ app.post("/rsvp", async (req, res) => {
     const userEmail = req.session.username; // Assuming username is email based on login logic
 
     try {
-        // Get participant ID
-        const participant = await knex('participants')
-            .where('participantemail', userEmail)
-            .first();
+        let participantId = req.session.participantid;
 
-        if (!participant) {
+        // If participantId is not in session, try to find it by email
+        if (!participantId) {
+            const participant = await knex('participants')
+                .where('participantemail', userEmail)
+                .first();
+
+            if (participant) {
+                participantId = participant.participantid;
+            }
+        }
+
+        if (!participantId) {
             return res.status(400).send("Participant record not found for your account. Please contact support.");
         }
 
         // Insert registration
         await knex('registration').insert({
             registrationcreatedate: new Date(),
-            participantid: participant.participantid,
+            participantid: participantId,
             eventoccurenceid: eventOccurrenceId,
             registrationstatus: null,
             registrationattendedflage: null
         });
 
-        // Redirect back to events or a success page
-        // For now, redirect to events with a success query param (or just back to events)
-        res.redirect("/events");
+        // Fetch event details for the success page
+        const eventDetails = await knex('eventoccurrence')
+            .join('events', 'eventoccurrence.eventid', 'events.eventid')
+            .select('events.eventname', 'eventoccurrence.eventdatetimestart')
+            .where('eventoccurrence.eventoccurrenceid', eventOccurrenceId)
+            .first();
+
+        const userInfo = await getUserInfo(req);
+
+        if (eventDetails) {
+            const date = new Date(eventDetails.eventdatetimestart);
+            const eventDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const eventTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            res.render("rsvp-success", {
+                user: userInfo,
+                eventName: eventDetails.eventname,
+                eventDate: eventDate,
+                eventTime: eventTime
+            });
+        } else {
+            res.redirect("/events");
+        }
+
     } catch (err) {
         console.error("Error processing RSVP:", err.message);
         res.status(500).send(`Error processing RSVP: ${err.message}`);
@@ -974,11 +1003,7 @@ app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
 
-<<<<<<< HEAD
-    knex.select("username", "password", "level")
-=======
     knex.select("username", "password", "level", "participantid")
->>>>>>> 446172665c2ab49169c04b191516c88ab652b09f
         .from('users')
         .where("username", sName)
         .andWhere("password", sPassword)
@@ -988,10 +1013,7 @@ app.post("/login", (req, res) => {
                 req.session.isLoggedIn = true;
                 req.session.username = sName;
                 req.session.level = users[0].level; // Store the user's level (M or U)
-<<<<<<< HEAD
-=======
                 req.session.participantid = users[0].participantid || null;
->>>>>>> 446172665c2ab49169c04b191516c88ab652b09f
                 res.redirect("/");
             } else {
                 // No matching user found
