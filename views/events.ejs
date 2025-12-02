@@ -765,13 +765,10 @@
         <div class="events-grid">
             <% if (events && events.length > 0) { %>
                 <% events.forEach((event, index) => { 
-                    // Format the date
-                    let formattedDate = '';
+                    // Date class for filtering (not displayed)
                     let dateClass = 'upcoming';
                     if (event.eventdatetimestart) {
                         const eventDate = new Date(event.eventdatetimestart);
-                        formattedDate = eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
                         // Determine if event is upcoming or past
                         const now = new Date();
                         if (eventDate < now) {
@@ -803,12 +800,6 @@
                             <div class="event-content">
                                 <div class="event-name"><%= event.eventname || 'Untitled Event' %></div>
                                 <div class="event-description">
-                                    <% if (formattedDate) { %>
-                                        <span class="event-date"><%= formattedDate %></span>
-                                    <% } %>
-                                    <% if (event.eventlocation) { %>
-                                        <span class="event-location" style="display: block; font-size: 0.9rem; color: #666; margin-top: 0.25rem;">📍 <%= event.eventlocation %></span>
-                                    <% } %>
                                     <span class="event-description-text"><%= event.eventdescription || 'No description available.' %></span>
                                 </div>
                             </div>
@@ -953,7 +944,6 @@
             document.querySelectorAll('.event-card-wrapper').forEach(wrapper => {
                 const eventId = wrapper.getAttribute('data-event-id');
                 const eventName = wrapper.querySelector('.event-name')?.textContent || '';
-                const eventDate = wrapper.querySelector('.event-date')?.textContent || '';
                 const eventDescription = wrapper.querySelector('.event-description-text')?.textContent || '';
                 const eventType = wrapper.getAttribute('data-event-type') || '';
                 const eventRecurrence = wrapper.getAttribute('data-event-recurrence') || '';
@@ -961,7 +951,6 @@
                 events.push({
                     id: eventId,
                     name: eventName,
-                    date: eventDate,
                     description: eventDescription,
                     type: eventType,
                     recurrence: eventRecurrence
@@ -981,7 +970,6 @@
                         <div class="event-content">
                             <div class="event-name">${event.name}</div>
                             <div class="event-description">
-                                <span class="event-date">${event.date}</span>
                                 <span class="event-description-text">${event.description}</span>
                             </div>
                         </div>
@@ -994,7 +982,6 @@
                         <div class="event-content">
                             <div class="event-name">${event.name}</div>
                             <div class="event-description">
-                                <span class="event-date">${event.date}</span>
                                 <span class="event-description-text">${event.description}</span>
                             </div>
                         </div>

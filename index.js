@@ -125,8 +125,8 @@ app.use(express.urlencoded({ extended: true }));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    // Note: /events/add, /events/edit/:id, /events/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
+    // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot') {
         //continue with the request path
         return next();
     }
@@ -361,7 +361,155 @@ app.get("/participants", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    res.render("participants", { user: userInfo });
+    
+    // Query to get all participants from database
+    knex.select()
+        .from('participants')
+        .orderBy('participantlastname', 'asc')
+        .then(participants => {
+            console.log(`Successfully retrieved ${participants.length} participants from database`);
+            res.render("participants", { 
+                user: userInfo,
+                participants: participants || []
+            });
+        })
+        .catch(err => {
+            console.error("Database query error:", err.message);
+            res.render("participants", { 
+                user: userInfo,
+                participants: [],
+                error_message: `Database error: ${err.message}. Please check if the 'participants' table exists.`
+            });
+        });
+});
+
+// Participants POST route - Add Participant (Manager only)
+app.post("/participants/add", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+    
+    const { 
+        participantEmail, 
+        participantFirstName, 
+        participantLastName, 
+        participantDOB, 
+        participantRole, 
+        participantPhone, 
+        participantCity, 
+        participantState, 
+        participantZip, 
+        participantSchoolOrEmployer, 
+        participantFieldOfInterest 
+    } = req.body;
+    
+    if (!participantEmail || !participantFirstName || !participantLastName) {
+        return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
+    }
+    
+    knex('participants')
+        .insert({
+            participantemail: participantEmail,
+            participantfirstname: participantFirstName,
+            participantlastname: participantLastName,
+            participantdob: participantDOB || null,
+            participantrole: participantRole || null,
+            participantphone: participantPhone || null,
+            participantcity: participantCity || null,
+            participantstate: participantState || null,
+            participantzip: participantZip || null,
+            participantschooloremployer: participantSchoolOrEmployer || null,
+            participantfieldofinterest: participantFieldOfInterest || null
+        })
+        .returning('participantid')
+        .then(result => {
+            console.log(`Participant added successfully with ID: ${result[0].participantid}`);
+            res.json({ success: true, participantId: result[0].participantid, message: 'Participant added successfully' });
+        })
+        .catch(err => {
+            console.error("Error adding participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
+});
+
+// Participants POST route - Edit Participant (Manager only)
+app.post("/participants/edit/:id", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+    
+    const participantId = req.params.id;
+    const { 
+        participantEmail, 
+        participantFirstName, 
+        participantLastName, 
+        participantDOB, 
+        participantRole, 
+        participantPhone, 
+        participantCity, 
+        participantState, 
+        participantZip, 
+        participantSchoolOrEmployer, 
+        participantFieldOfInterest 
+    } = req.body;
+    
+    if (!participantEmail || !participantFirstName || !participantLastName) {
+        return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
+    }
+    
+    knex('participants')
+        .where('participantid', participantId)
+        .update({
+            participantemail: participantEmail,
+            participantfirstname: participantFirstName,
+            participantlastname: participantLastName,
+            participantdob: participantDOB || null,
+            participantrole: participantRole || null,
+            participantphone: participantPhone || null,
+            participantcity: participantCity || null,
+            participantstate: participantState || null,
+            participantzip: participantZip || null,
+            participantschooloremployer: participantSchoolOrEmployer || null,
+            participantfieldofinterest: participantFieldOfInterest || null
+        })
+        .then(result => {
+            if (result === 0) {
+                return res.status(404).json({ error: 'Participant not found' });
+            }
+            console.log(`Participant ${participantId} updated successfully`);
+            res.json({ success: true, message: 'Participant updated successfully' });
+        })
+        .catch(err => {
+            console.error("Error updating participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
+});
+
+// Participants POST route - Delete Participant (Manager only)
+app.post("/participants/delete/:id", (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+    
+    const participantId = req.params.id;
+    
+    knex('participants')
+        .where('participantid', participantId)
+        .del()
+        .then(result => {
+            if (result === 0) {
+                return res.status(404).json({ error: 'Participant not found' });
+            }
+            console.log(`Participant ${participantId} deleted successfully`);
+            res.json({ success: true, message: 'Participant deleted successfully' });
+        })
+        .catch(err => {
+            console.error("Error deleting participant:", err.message);
+            res.status(500).json({ error: `Database error: ${err.message}` });
+        });
 });
 
 // Milestones route
