@@ -132,7 +132,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
     // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot' || req.path.startsWith('/api/')) {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -652,8 +652,8 @@ app.get("/my-journey", async (req, res) => {
     });
 });
 
-// RSVP route
-app.get("/rsvp", (req, res) => {
+// RSVP route - GET
+app.get("/rsvp/:id", (req, res) => {
     const userInfo = req.session.isLoggedIn ? {
         username: req.session.username,
         first_name: req.session.first_name,
@@ -663,7 +663,80 @@ app.get("/rsvp", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    res.render("rsvp", { user: userInfo });
+
+    const eventId = req.params.id;
+
+    // Fetch event details and occurrences
+    knex('events')
+        .where('eventid', eventId)
+        .first()
+        .then(event => {
+            if (!event) {
+                return res.status(404).render("rsvp", {
+                    user: userInfo,
+                    event: null,
+                    occurrences: [],
+                    error_message: "Event not found"
+                });
+            }
+
+            return knex('eventoccurrence')
+                .where('eventid', eventId)
+                .orderBy('eventdatetimestart', 'asc')
+                .then(occurrences => {
+                    res.render("rsvp", {
+                        user: userInfo,
+                        event: event,
+                        occurrences: occurrences
+                    });
+                });
+        })
+        .catch(err => {
+            console.error("Error fetching event for RSVP:", err.message);
+            res.render("rsvp", {
+                user: userInfo,
+                event: null,
+                occurrences: [],
+                error_message: `Database error: ${err.message}`
+            });
+        });
+});
+
+// RSVP route - POST
+app.post("/rsvp", async (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect("/login");
+    }
+
+    const { eventOccurrenceId } = req.body;
+    const userEmail = req.session.username; // Assuming username is email based on login logic
+
+    try {
+        // Get participant ID
+        const participant = await knex('participants')
+            .where('participantemail', userEmail)
+            .first();
+
+        if (!participant) {
+            return res.status(400).send("Participant record not found for your account. Please contact support.");
+        }
+
+        // Insert registration
+        await knex('registration').insert({
+            registrationcreatedate: new Date(),
+            participantid: participant.participantid,
+            eventoccurenceid: eventOccurrenceId,
+            registrationstatus: null,
+            registrationattendedflage: null
+        });
+
+        // Redirect back to events or a success page
+        // For now, redirect to events with a success query param (or just back to events)
+        res.redirect("/events");
+    } catch (err) {
+        console.error("Error processing RSVP:", err.message);
+        res.status(500).send(`Error processing RSVP: ${err.message}`);
+    }
 });
 
 // Survey route - GET (singular)
@@ -907,7 +980,7 @@ app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
 
-    knex.select("username", "password", "level", "first_name", "last_name")
+    knex.select("username", "password", "level")
         .from('users')
         .where("username", sName)
         .andWhere("password", sPassword)
@@ -917,8 +990,6 @@ app.post("/login", (req, res) => {
                 req.session.isLoggedIn = true;
                 req.session.username = sName;
                 req.session.level = users[0].level; // Store the user's level (M or U)
-                req.session.first_name = users[0].first_name;
-                req.session.last_name = users[0].last_name;
                 res.redirect("/");
             } else {
                 // No matching user found

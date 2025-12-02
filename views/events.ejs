@@ -786,7 +786,7 @@
                                             onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= escapedName %>')"
                                             title="Delete Event">×</button>
                                         <% } %>
-                                            <a href="/rsvp" class="event-card">
+                                            <a href="/rsvp/<%= event.eventid %>" class="event-card">
                                                 <div class="event-image">
                                                     <% if (event.eventimage) { %>
                                                         <img src="<%= event.eventimage %>" alt="<%= event.eventname %>"
