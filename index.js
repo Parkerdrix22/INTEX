@@ -81,9 +81,9 @@ saveUninitialized - Default: true
 app.use(
     session(
         {
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    resave: false,
-    saveUninitialized: false,
+            secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+            resave: false,
+            saveUninitialized: false,
         }
     )
 );
@@ -115,12 +115,12 @@ const knex = require("knex")({
         port: process.env.RDS_PORT || 5432,
         // Enable SSL for remote connections (required by pg_hba.conf)
         // If DB_SSL is explicitly set to false, disable SSL, otherwise enable it for remote hosts
-        ssl: process.env.DB_SSL === 'false' ? false : {rejectUnauthorized: false} 
+        ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false }
     }
 });
 
 // Tells Express how to read form data sent in the body of a request
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
@@ -130,7 +130,7 @@ app.use((req, res, next) => {
         //continue with the request path
         return next();
     }
-    
+
     // My Journey requires authentication
     if (req.path === '/my-journey') {
         if (req.session.isLoggedIn) {
@@ -139,12 +139,12 @@ app.use((req, res, next) => {
             return res.render("login", { error_message: "Please log in to access this page" });
         }
     }
-    
+
     // Check if user is logged in for all other routes
     if (req.session.isLoggedIn) {
         //notice no return because nothing below it
         next(); // User is logged in, continue
-    } 
+    }
     else {
         res.render("login", { error_message: "Please log in to access this page" });
     }
@@ -158,9 +158,9 @@ app.get("/login", (req, res) => {
 
 app.get("/test", (req, res) => {
     // Check if user is logged in
-    if (req.session.isLoggedIn) {        
-        res.render("test", {name : "BYU"});
-    } 
+    if (req.session.isLoggedIn) {
+        res.render("test", { name: "BYU" });
+    }
     else {
         res.render("login", { error_message: "" });
     }
@@ -168,11 +168,11 @@ app.get("/test", (req, res) => {
 
 app.get("/users", (req, res) => {
     // Check if user is logged in
-    if (req.session.isLoggedIn) { 
+    if (req.session.isLoggedIn) {
         knex.select().from("users")
             .then(users => {
                 console.log(`Successfully retrieved ${users.length} users from database`);
-                res.render("displayUsers", {users: users});
+                res.render("displayUsers", { users: users });
             })
             .catch((err) => {
                 console.error("Database query error:", err.message);
@@ -181,7 +181,7 @@ app.get("/users", (req, res) => {
                     error_message: `Database error: ${err.message}. Please check if the 'users' table exists.`
                 });
             });
-    } 
+    }
     else {
         res.render("login", { error_message: "" });
     }
@@ -199,7 +199,7 @@ app.get("/", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    
+
     res.render("index", { user: userInfo });
 });
 
@@ -214,7 +214,7 @@ app.get("/events", (req, res) => {
         isManager: req.session.level === 'M',
         isUser: req.session.level === 'U'
     } : null;
-    
+
     // Query to get events with their occurrence details
     // Use DISTINCT ON eventname to get unique event names
     knex.raw(`
@@ -225,6 +225,7 @@ app.get("/events", (req, res) => {
             events.eventtype,
             events.eventrecurrencepattern,
             events.eventdefaultcapacity,
+            events.eventimage,
             eventoccurrence.eventdatetimestart,
             eventoccurrence.eventlocation
         FROM events
@@ -404,7 +405,7 @@ app.get("/personal-milestones", (req, res) => {
     } : null;
     const participantEmail = req.query.email || '';
     const participantName = req.query.name || '';
-    res.render("personal-milestones", { 
+    res.render("personal-milestones", {
         user: userInfo,
         participantEmail: participantEmail,
         participantName: participantName
@@ -428,7 +429,7 @@ app.get("/my-journey", (req, res) => {
     // Use the logged-in user's email and name
     const participantEmail = req.session.username || '';
     const participantName = userInfo.full_name;
-    res.render("personal-milestones", { 
+    res.render("personal-milestones", {
         user: userInfo,
         participantEmail: participantEmail,
         participantName: participantName
@@ -689,7 +690,7 @@ app.post("/surveys", (req, res) => {
 app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
-    
+
     knex.select("username", "password", "level", "first_name", "last_name")
         .from('users')
         .where("username", sName)
@@ -711,7 +712,7 @@ app.post("/login", (req, res) => {
         .catch(err => {
             console.error("Login error:", err);
             res.render("login", { error_message: "Invalid login" });
-        });   
+        });
 });
 
 // Signup route - GET
@@ -725,7 +726,7 @@ app.post("/signup", (req, res) => {
     console.log("Request body:", req.body);
     console.log("Request method:", req.method);
     console.log("Request URL:", req.url);
-    
+
     const { username, password, first_name, last_name } = req.body;
 
     console.log("Signup attempt:", { username, first_name, last_name, hasPassword: !!password });
@@ -796,7 +797,7 @@ app.get("/logout", (req, res) => {
 
 app.get("/addUser", (req, res) => {
     res.render("addUser");
-});    
+});
 
 app.post("/addUser", upload.single("profileImage"), (req, res) => {
     // Destructuring grabs them regardless of field order.
@@ -821,7 +822,7 @@ app.post("/addUser", upload.single("profileImage"), (req, res) => {
     // the uploaded image ends up in the profile_image column for that user.
     const newUser = {
         username,
-        password,            
+        password,
         profile_image: profileImagePath
     };
 
@@ -836,7 +837,7 @@ app.post("/addUser", upload.single("profileImage"), (req, res) => {
             // Database error, so show the form again with a generic message.
             res.status(500).render("addUser", { error_message: "Unable to save user. Please try again." });
         });
-});  
+});
 
 app.get("/editUser/:id", (req, res) => {
     const userId = req.params.id;
@@ -1127,13 +1128,13 @@ app.post("/deleteUser/:id", (req, res) => {
         res.redirect("/users");
     }).catch(err => {
         console.log(err);
-        res.status(500).json({err});
+        res.status(500).json({ err });
     })
 });
 
 app.get('/teapot', (req, res) => {
     res.status(418).render('teapot');
-    
+
 });
 
 app.listen(port, () => {
