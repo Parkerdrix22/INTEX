@@ -172,6 +172,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .participant-item:last-child {
@@ -180,6 +182,7 @@
 
         .participant-item:hover {
             background-color: var(--er-pink);
+            transform: translateX(5px);
         }
 
         .participant-info {
@@ -321,26 +324,31 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#participants">Participants</a>
+                        <a class="nav-link" href="/participants">Participants</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#events">Events</a>
+                        <a class="nav-link" href="/events">Events</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#surveys">Event Feedback</a>
+                        <a class="nav-link" href="/survey">Event Feedback</a>
                     </li>
+                    <% if (user && user.isUser) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                    </li>
+                    <% } %>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#milestones">Milestones</a>
+                        <a class="nav-link" href="/milestones">Milestones</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#donations">Donations</a>
+                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
                     </li>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#dashboard">Dashboard</a>
+                        <a class="nav-link" href="/">Dashboard</a>
                     </li>
                     <% } %>
                     <% if (!user) { %>
@@ -460,7 +468,7 @@
                 
                 <div class="footer-section">
                     <h4>Quick Links</h4>
-                    <p><a href="/#events">Events</a></p>
+                    <p><a href="/events">Events</a></p>
                     <p><a href="/#surveys">Event Feedback</a></p>
                     <p><a href="/#donations">Donations</a></p>
                 </div>
@@ -507,7 +515,7 @@
             }
 
             resultsContainer.innerHTML = filtered.map(p => `
-                <div class="participant-item">
+                <div class="participant-item" onclick="viewPersonalMilestones('${p.email}', '${p.name}')">
                     <div class="participant-info">
                         <div class="participant-name">${p.name}</div>
                         <div class="participant-email">${p.email}</div>
@@ -528,6 +536,11 @@
 
             // In production, this would make an API call to assign the milestone
             alert(`Milestone "${milestone}" will be assigned to participants matching "${searchTerm}".\n\n(In production, this would save to the database.)`);
+        }
+
+        function viewPersonalMilestones(email, name) {
+            // Navigate to personal milestones page
+            window.location.href = `/personal-milestones?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
         }
 
         // Initialize with all participants

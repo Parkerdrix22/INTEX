@@ -111,7 +111,7 @@ const knex = require("knex")({
         host: process.env.RDS_HOSTNAME || "localhost",
         user: process.env.RDS_USERNAME || "postgres",
         password: process.env.RDS_PASSWORD || "admin",
-        database: process.env.RDS_DB_NAME || "intex",
+        database: process.env.RDS_DB_NAME || "foodisus",
         port: process.env.RDS_PORT || 5432,
         // The new part 
         ssl: process.env.DB_SSL ? {rejectUnauthorized: false} : false 
@@ -124,9 +124,18 @@ app.use(express.urlencoded({extended: true}));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones') {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones') {
         //continue with the request path
         return next();
+    }
+    
+    // My Journey requires authentication
+    if (req.path === '/my-journey') {
+        if (req.session.isLoggedIn) {
+            return next();
+        } else {
+            return res.render("login", { error_message: "Please log in to access this page" });
+        }
     }
     
     // Check if user is logged in for all other routes
@@ -232,6 +241,50 @@ app.get("/milestones", (req, res) => {
         isUser: req.session.level === 'U'
     } : null;
     res.render("milestones", { user: userInfo });
+});
+
+// Personal Milestones route
+app.get("/personal-milestones", (req, res) => {
+    const userInfo = req.session.isLoggedIn ? {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    } : null;
+    const participantEmail = req.query.email || '';
+    const participantName = req.query.name || '';
+    res.render("personal-milestones", { 
+        user: userInfo,
+        participantEmail: participantEmail,
+        participantName: participantName
+    });
+});
+
+// My Journey route (for logged-in users viewing their own milestones)
+app.get("/my-journey", (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect("/login");
+    }
+    const userInfo = {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    };
+    // Use the logged-in user's email and name
+    const participantEmail = req.session.username || '';
+    const participantName = userInfo.full_name;
+    res.render("personal-milestones", { 
+        user: userInfo,
+        participantEmail: participantEmail,
+        participantName: participantName
+    });
 });
 
 // RSVP route

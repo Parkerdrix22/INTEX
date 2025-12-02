@@ -618,26 +618,31 @@
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#participants">Participants</a>
+                        <a class="nav-link" href="/participants">Participants</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#events">Events</a>
+                        <a class="nav-link" href="/events">Events</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#surveys">Event Feedback</a>
+                        <a class="nav-link" href="/survey">Event Feedback</a>
                     </li>
+                    <% if (user && user.isUser) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                    </li>
+                    <% } %>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#milestones">Milestones</a>
+                        <a class="nav-link" href="/milestones">Milestones</a>
                     </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#donations">Donations</a>
+                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
                     </li>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/#dashboard">Dashboard</a>
+                        <a class="nav-link" href="/">Dashboard</a>
                     </li>
                     <% } %>
                     <% if (!user) { %>
