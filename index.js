@@ -936,14 +936,34 @@ app.post("/signup", (req, res) => {
     console.log("Request method:", req.method);
     console.log("Request URL:", req.url);
 
-    const { username, password, first_name, last_name } = req.body;
+    const { 
+        email,
+        username, 
+        password, 
+        participantFirstName, 
+        participantLastName, 
+        participantDOB, 
+        participantPhone, 
+        participantCity, 
+        participantState, 
+        participantZip, 
+        participantSchoolOrEmployer, 
+        participantFieldOfInterest 
+    } = req.body;
 
-    console.log("Signup attempt:", { username, first_name, last_name, hasPassword: !!password });
+    console.log("Signup attempt:", { 
+        email, 
+        username, 
+        participantFirstName, 
+        participantLastName, 
+        hasPassword: !!password 
+    });
 
-    // Basic validation
-    if (!username || !password || !first_name || !last_name) {
-        console.log("Validation failed - missing fields");
-        return res.render("login", { error_message: "All fields are required." });
+    // Basic validation - email, username, password, first name, and last name are required
+    if (!email || !username || !password || !participantFirstName || !participantLastName) {
+        console.log("Validation failed - missing required fields");
+        console.log("Received values:", { email, username, hasPassword: !!password, participantFirstName, participantLastName });
+        return res.render("login", { error_message: "Email, Username, Password, First Name, and Last Name are required." });
     }
 
     // Check if username already exists
@@ -956,38 +976,57 @@ app.post("/signup", (req, res) => {
                 return res.render("login", { error_message: "Username already exists. Please choose another." });
             }
 
-            // First create participant record
+            // Check if email already exists in participants table
             return knex("participants")
-                .insert({
-                    participantemail: username,
-                    participantfirstname: first_name,
-                    participantlastname: last_name
-                })
-                .returning('participantid')
-                .then(participantIds => {
-                    const participantid = participantIds[0].participantid;
-                    
-                    // Create new user with level 'U' (User) and link to participant
-                    const newUser = {
-                        username,
-                        password,
-                        participantid: participantid,
-                        level: 'U'
-                    };
+                .where("participantemail", email)
+                .first()
+                .then((existingParticipant) => {
+                    if (existingParticipant) {
+                        console.log("Email already exists in participants:", email);
+                        return res.render("login", { error_message: "This email is already registered. Please use a different email or log in." });
+                    }
 
-                    console.log("Attempting to insert user:", newUser);
+                    // Create participant record with all information
+                    return knex("participants")
+                        .insert({
+                            participantemail: email,
+                            participantfirstname: participantFirstName,
+                            participantlastname: participantLastName,
+                            participantdob: participantDOB || null,
+                            participantrole: 'participant', // Set role to 'participant' automatically
+                            participantphone: participantPhone || null,
+                            participantcity: participantCity || null,
+                            participantstate: participantState || null,
+                            participantzip: participantZip || null,
+                            participantschooloremployer: participantSchoolOrEmployer || null,
+                            participantfieldofinterest: participantFieldOfInterest || null
+                        })
+                        .returning('participantid')
+                        .then(participantIds => {
+                            const participantid = participantIds[0].participantid;
+                            
+                            // Create new user with level 'U' (User) and link to participant
+                            const newUser = {
+                                username,
+                                password,
+                                participantid: participantid,
+                                level: 'U'
+                            };
 
-                    // Insert the new user
-                    return knex("users")
-                        .insert(newUser)
-                        .then(() => {
-                            console.log("User created successfully:", username);
-                            // Automatically sign them in and redirect to homepage
-                            req.session.isLoggedIn = true;
-                            req.session.username = username;
-                            req.session.level = 'U';
-                            req.session.participantid = participantid;
-                            res.redirect("/");
+                            console.log("Attempting to insert user:", newUser);
+
+                            // Insert the new user
+                            return knex("users")
+                                .insert(newUser)
+                                .then(() => {
+                                    console.log("User created successfully:", username);
+                                    // Automatically sign them in and redirect to homepage
+                                    req.session.isLoggedIn = true;
+                                    req.session.username = username;
+                                    req.session.level = 'U';
+                                    req.session.participantid = participantid;
+                                    res.redirect("/");
+                                });
                         });
                 });
         })
@@ -995,11 +1034,6 @@ app.post("/signup", (req, res) => {
             console.error("Error creating user:", dbErr);
             console.error("Error details:", dbErr.message);
             res.render("login", { error_message: `Unable to create account: ${dbErr.message}` });
-        })
-        .catch((err) => {
-            console.error("Error checking username:", err);
-            console.error("Error details:", err.message);
-            res.render("login", { error_message: `An error occurred: ${err.message}` });
         });
 });
 
@@ -1404,19 +1438,66 @@ app.get("/api/participants/:id/milestones", (req, res) => {
 
 // Assign milestone
 app.post("/api/milestones", (req, res) => {
-    const { participant_id, milestone_name } = req.body;
+    const { participant_id, milestone_name, date_achieved } = req.body;
+
+    console.log("=== MILESTONE API ROUTE HIT ===");
+    console.log("Request body:", req.body);
+    console.log("date_achieved value:", date_achieved);
 
     if (!participant_id || !milestone_name) {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Use the provided date_achieved, or default to today if not provided
+    let milestoneDate;
+    if (date_achieved && date_achieved.trim() !== '') {
+        const dateStr = date_achieved.trim();
+        console.log("Processing date string:", dateStr);
+        
+        // Parse the date string (format: YYYY-MM-DD) 
+        // Add time component to avoid timezone issues - set to noon UTC to avoid date shifts
+        const dateParts = dateStr.split('-');
+        console.log("Date parts:", dateParts);
+        
+        if (dateParts.length === 3) {
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
+            const day = parseInt(dateParts[2], 10);
+            
+            console.log("Parsed date components:", { year, month: month + 1, day });
+            
+            // Create date at noon UTC to avoid timezone shifts
+            milestoneDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+            console.log("Created Date object:", milestoneDate);
+            console.log("Date ISO string:", milestoneDate.toISOString());
+        } else {
+            // Fallback to parsing as-is
+            console.log("Date format unexpected, trying to parse as-is");
+            milestoneDate = new Date(dateStr);
+        }
+        
+        // Ensure it's a valid date
+        if (isNaN(milestoneDate.getTime())) {
+            console.log("ERROR: Invalid date parsed, using today's date");
+            milestoneDate = new Date();
+        } else {
+            console.log("Successfully parsed date:", milestoneDate);
+        }
+    } else {
+        console.log("WARNING: No date_achieved provided or empty, using today's date");
+        milestoneDate = new Date();
+    }
+
+    console.log("Final milestoneDate being saved:", milestoneDate);
+
     knex("milestones")
         .insert({
             participantid: participant_id,
             milestonetitle: milestone_name,
-            milestonedate: new Date()
+            milestonedate: milestoneDate
         })
         .then(() => {
+            console.log("Milestone saved successfully");
             res.json({ success: true });
         })
         .catch(err => {
