@@ -124,7 +124,7 @@ app.use(express.urlencoded({extended: true}));
 // Global authentication middleware - runs on EVERY request
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones') {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard') {
         //continue with the request path
         return next();
     }
@@ -241,6 +241,20 @@ app.get("/milestones", (req, res) => {
         isUser: req.session.level === 'U'
     } : null;
     res.render("milestones", { user: userInfo });
+});
+
+// Dashboard route
+app.get("/dashboard", (req, res) => {
+    const userInfo = req.session.isLoggedIn ? {
+        username: req.session.username,
+        first_name: req.session.first_name,
+        last_name: req.session.last_name,
+        full_name: `${req.session.first_name || ''} ${req.session.last_name || ''}`.trim() || req.session.username,
+        level: req.session.level,
+        isManager: req.session.level === 'M',
+        isUser: req.session.level === 'U'
+    } : null;
+    res.render("dashboard", { user: userInfo });
 });
 
 // Personal Milestones route
