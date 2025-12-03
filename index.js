@@ -104,9 +104,10 @@ app.use((req, res, next) => {
         "default-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
         "connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
         "img-src 'self' data: https:; " +
-        "font-src 'self' https://cdn.jsdelivr.net;"
+        "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; " +
+        "frame-src 'self' https://app.powerbi.com;"
     );
     next();
 });
@@ -676,19 +677,19 @@ app.get("/profile", async (req, res) => {
     if (!req.session.isLoggedIn) {
         return res.redirect("/login");
     }
-    
+
     const userInfo = await getUserInfo(req);
-    
+
     // Get user data from database
     let userData = null;
     let participantData = null;
-    
+
     try {
         // Get user data
         userData = await knex('users')
             .where('username', req.session.username)
             .first();
-        
+
         // Get participant data if participantid exists
         if (req.session.participantid) {
             participantData = await knex('participants')
@@ -698,8 +699,8 @@ app.get("/profile", async (req, res) => {
     } catch (err) {
         console.error("Error fetching profile data:", err);
     }
-    
-    res.render("profile", { 
+
+    res.render("profile", {
         user: userInfo,
         userData: userData,
         participantData: participantData
@@ -711,7 +712,7 @@ app.post("/profile/update", async (req, res) => {
     if (!req.session.isLoggedIn) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     const {
         username,
         password,
@@ -726,24 +727,24 @@ app.post("/profile/update", async (req, res) => {
         participantSchoolOrEmployer,
         participantFieldOfInterest
     } = req.body;
-    
+
     try {
         // Update user data if username or password changed
         if (username || password) {
             const userUpdate = {};
             if (username) userUpdate.username = username;
             if (password) userUpdate.password = password;
-            
+
             await knex('users')
                 .where('username', req.session.username)
                 .update(userUpdate);
-            
+
             // Update session if username changed
             if (username && username !== req.session.username) {
                 req.session.username = username;
             }
         }
-        
+
         // Update participant data if participantid exists
         if (req.session.participantid) {
             const participantUpdate = {};
@@ -757,12 +758,12 @@ app.post("/profile/update", async (req, res) => {
             if (participantZip !== undefined) participantUpdate.participantzip = participantZip || null;
             if (participantSchoolOrEmployer !== undefined) participantUpdate.participantschooloremployer = participantSchoolOrEmployer || null;
             if (participantFieldOfInterest !== undefined) participantUpdate.participantfieldofinterest = participantFieldOfInterest || null;
-            
+
             await knex('participants')
                 .where('participantid', req.session.participantid)
                 .update(participantUpdate);
         }
-        
+
         res.json({ success: true, message: 'Profile updated successfully' });
     } catch (err) {
         console.error("Error updating profile:", err);
@@ -2074,8 +2075,8 @@ app.get("/api/reservations/:eventId/occurrence/:occurrenceId", async (req, res) 
             .where('eventoccurrenceid', occurrenceId)
             .first();
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             registrations: registrations,
             occurrence: occurrence || null
         });

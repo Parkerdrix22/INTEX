@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,12 @@
         }
 
         /* DM Serif Display for all titles and headers */
-        h1, h2, h3, h4, h5, h6,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
         .navbar-brand {
             font-family: 'DM Serif Display', serif;
         }
@@ -40,7 +46,7 @@
             max-width: 1600px;
             width: 100%;
         }
-        
+
         body .container {
             max-width: 1400px;
         }
@@ -192,7 +198,7 @@
             overflow-y: auto;
             overflow-x: hidden;
         }
-        
+
         /* Dropdown with arrow icon */
         .form-control.select-dropdown {
             appearance: none;
@@ -204,21 +210,21 @@
             background-size: 12px 12px;
             padding-right: 2.5rem;
         }
-        
+
         .events-list-container::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         .events-list-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 4px;
         }
-        
+
         .events-list-container::-webkit-scrollbar-thumb {
             background: var(--er-pink-dark);
             border-radius: 4px;
         }
-        
+
         .events-list-container::-webkit-scrollbar-thumb:hover {
             background: var(--er-pink);
         }
@@ -503,6 +509,7 @@
                 padding: 1.5rem;
                 max-height: 400px;
             }
+
             .footer-main {
                 flex-direction: column;
             }
@@ -520,6 +527,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Top bar for authentication links -->
     <div class="top-bar">
@@ -527,14 +535,15 @@
             <div class="top-bar-links">
                 <% if (!user) { %>
                     <a href="/login" class="top-bar-link">Sign In / Create Account</a>
-                <% } else { %>
-                    <a href="/logout" class="top-bar-link">Logout</a>
-                    <a href="/profile" class="top-bar-link">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                    </a>
-                <% } %>
+                    <% } else { %>
+                        <a href="/logout" class="top-bar-link">Logout</a>
+                        <a href="/profile" class="top-bar-link">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                            </svg>
+                        </a>
+                        <% } %>
             </div>
         </div>
     </div>
@@ -546,14 +555,8 @@
                 <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                 <span>Ella Rises</span>
             </a>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navContent"
-                aria-controls="navContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+                aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navContent">
@@ -606,23 +609,30 @@
         <div class="events-list-divider"></div>
         <div class="events-list-container">
             <h2 class="mb-4" style="font-weight: 600;">Select an event you attended:</h2>
-        
-            <% if (events && events.length > 0) { %>
-                <% events.forEach((event, index) => { %>
-                    <div class="event-item" data-event-name="<%= event.eventname || 'Untitled Event' %>" data-event-id="<%= event.eventid || index + 1 %>" data-event-occurrence-id="<%= event.eventoccurrenceid || '' %>">
-                        <div onclick="openSurvey('<%= event.eventname || 'Untitled Event' %>', <%= event.eventid || index + 1 %>, <%= event.eventoccurrenceid || 'null' %>)">
-                            <h3><%= event.eventname || 'Untitled Event' %></h3>
+
+            <% if (events && events.length> 0) { %>
+                <% events.forEach((event, index)=> { %>
+                    <div class="event-item" data-event-name="<%= event.eventname || 'Untitled Event' %>"
+                        data-event-id="<%= event.eventid || index + 1 %>"
+                        data-event-occurrence-id="<%= event.eventoccurrenceid || '' %>">
+                        <div
+                            onclick="openSurvey('<%= event.eventname || 'Untitled Event' %>', <%= event.eventid || index + 1 %>, <%= event.eventoccurrenceid || 'null' %>)">
+                            <h3>
+                                <%= event.eventname || 'Untitled Event' %>
+                            </h3>
                         </div>
                     </div>
-                <% }); %>
-            <% } else { %>
-                <div class="no-events-message" style="text-align: center; padding: 2rem; color: #666;">
-                    <p>No events available for feedback at this time.</p>
-                    <% if (error_message) { %>
-                    <p style="color: #d32f2f; margin-top: 1rem;"><%= error_message %></p>
-                    <% } %>
-                </div>
-            <% } %>
+                    <% }); %>
+                        <% } else { %>
+                            <div class="no-events-message" style="text-align: center; padding: 2rem; color: #666;">
+                                <p>No events available for feedback at this time.</p>
+                                <% if (error_message) { %>
+                                    <p style="color: #d32f2f; margin-top: 1rem;">
+                                        <%= error_message %>
+                                    </p>
+                                    <% } %>
+                            </div>
+                            <% } %>
         </div>
     </div>
 
@@ -637,7 +647,7 @@
                 <div class="modal-body" id="surveyFormContainer">
                     <form id="surveyForm" action="/surveys" method="POST">
                         <input type="hidden" id="eventName" name="eventName" value="">
-                        
+
                         <!-- Email Field -->
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address</label>
@@ -727,10 +737,12 @@
 
                         <!-- Recommendation Score -->
                         <div class="form-group">
-                            <label class="form-label">How likely are you to recommend this event to others? (1-5)</label>
+                            <label class="form-label">How likely are you to recommend this event to others?
+                                (1-5)</label>
                             <div class="rating-group">
                                 <div class="rating-option">
-                                    <input type="radio" id="recommendation1" name="recommendationScore" value="1" required>
+                                    <input type="radio" id="recommendation1" name="recommendationScore" value="1"
+                                        required>
                                     <label for="recommendation1">1</label>
                                 </div>
                                 <div class="rating-option">
@@ -755,7 +767,8 @@
                         <!-- Comments -->
                         <div class="form-group">
                             <label for="comments" class="form-label">Additional Comments</label>
-                            <textarea id="comments" name="comments" class="form-control" rows="4" placeholder="Share your thoughts about the event..."></textarea>
+                            <textarea id="comments" name="comments" class="form-control" rows="4"
+                                placeholder="Share your thoughts about the event..."></textarea>
                         </div>
 
                         <button type="submit" class="btn-submit">Submit Feedback</button>
@@ -775,14 +788,14 @@
                         <span>Ella Rises</span>
                     </div>
                     <p>
-                        Empowering the rising generation of women to pursue higher education 
-                        and embrace their heritage through STEAM programs, mentoring, and 
+                        Empowering the rising generation of women to pursue higher education
+                        and embrace their heritage through STEAM programs, mentoring, and
                         leadership opportunities.
                     </p>
                 </div>
-                
+
                 <div class="footer-divider"></div>
-                
+
                 <div class="footer-right">
                     <h4>Contact</h4>
                     <p>Visit us at:</p>
@@ -790,20 +803,22 @@
                     <div class="social-links">
                         <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                             </svg>
                             <span>Instagram</span>
                         </a>
                         <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                             </svg>
                             <span>Facebook</span>
                         </a>
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2025 Ella Rises. All rights reserved.</p>
             </div>
@@ -823,20 +838,20 @@
         ];
 
         // Store occurrences data from server
-        const occurrencesByEvent = <%- JSON.stringify(occurrencesByEvent || {}) %>;
-        
+        const occurrencesByEvent = <% - JSON.stringify(occurrencesByEvent || {}) %>;
+
         function formatDateTime(dateTimeString) {
             if (!dateTimeString) return '';
             const date = new Date(dateTimeString);
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: '2-digit'
             });
         }
-        
+
         function openSurvey(eventName, eventId, eventOccurrenceId) {
             // Use provided parameters or get from DOM
             if (!eventId) {
@@ -844,20 +859,20 @@
                 eventId = eventItem ? eventItem.getAttribute('data-event-id') : null;
                 eventOccurrenceId = eventItem ? eventItem.getAttribute('data-event-occurrence-id') : null;
             }
-            
+
             // Get occurrences for this event
             const occurrences = occurrencesByEvent[eventId] || [];
-            
+
             // Build survey form dynamically using default questions
             const questions = defaultQuestions;
             const formContainer = document.getElementById('surveyFormContainer');
-            
+
             let formHTML = `
                 <form id="surveyForm" action="/survey" method="POST">
                     <input type="hidden" id="eventName" name="eventName" value="${eventName}">
                     <input type="hidden" id="eventId" name="eventId" value="${eventId || ''}">
             `;
-            
+
             // Only show dropdown if there are 2 or more occurrences
             if (occurrences.length > 1) {
                 formHTML += `
@@ -866,14 +881,14 @@
                         <select id="eventOccurrenceSelect" name="eventoccurrenceid" class="form-control select-dropdown" required>
                             <option value="">-- Select an occurrence --</option>
                 `;
-                
+
                 // Add occurrence options to dropdown
                 occurrences.forEach(occ => {
                     const formattedDate = formatDateTime(occ.eventdatetimestart);
                     const selected = (occ.eventoccurrenceid == eventOccurrenceId) ? 'selected' : '';
                     formHTML += `<option value="${occ.eventoccurrenceid}" ${selected}>${formattedDate}</option>`;
                 });
-                
+
                 formHTML += `
                         </select>
                     </div>
@@ -890,14 +905,14 @@
                     `;
                 }
             }
-            
+
             formHTML += `
                     <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" id="email" name="email" class="form-control" required>
                     </div>
             `;
-            
+
             questions.forEach((q, index) => {
                 if (q.type === 'rating') {
                     formHTML += `
@@ -934,20 +949,20 @@
                     `;
                 }
             });
-            
+
             formHTML += `
                     <button type="submit" class="btn-submit">Submit Feedback</button>
                 </form>
             `;
-            
+
             formContainer.innerHTML = formHTML;
             document.getElementById('eventNameTitle').textContent = eventName;
-            
+
             const modal = new bootstrap.Modal(document.getElementById('surveyModal'));
             modal.show();
         }
 
     </script>
 </body>
-</html>
 
+</html>
