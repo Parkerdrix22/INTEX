@@ -713,6 +713,9 @@
                         <th>Zip</th>
                         <th>School/Employer</th>
                         <th>Interest</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Level</th>
                         <% if (user && user.isManager) { %>
                             <th style="min-width: 150px;">Actions</th>
                             <% } %>
@@ -756,6 +759,15 @@
                                 <td>
                                     <%= p.participantfieldofinterest || '' %>
                                 </td>
+                                <td>
+                                    <%= p.username || '' %>
+                                </td>
+                                <td>
+                                    <%= p.password || '' %>
+                                </td>
+                                <td>
+                                    <%= p.level || '' %>
+                                </td>
                                 <% if (user && user.isManager) { %>
                                     <td class="action-buttons-cell" onclick="event.stopPropagation();">
                                         <div class="action-buttons">
@@ -776,7 +788,7 @@
                             <% }); %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="<%= user && user.isManager ? '12' : '11' %>"
+                                        <td colspan="<%= user && user.isManager ? '15' : '14' %>"
                                             style="text-align: center; padding: 2rem; color: #666;">
                                             No participants found.
                                             <% if (error_message) { %>

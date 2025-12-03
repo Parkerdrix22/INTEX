@@ -491,9 +491,15 @@ app.post("/events/delete/:id", (req, res) => {
 app.get("/participants", async (req, res) => {
     const userInfo = await getUserInfo(req);
 
-    // Query to get all participants from database
-    knex.select()
+    // Query to get all participants from database with user account info
+    knex.select(
+        'participants.*',
+        'users.username',
+        'users.password',
+        'users.level'
+    )
         .from('participants')
+        .leftJoin('users', 'participants.participantid', 'users.participantid')
         .orderBy('participantlastname', 'asc')
         .then(participants => {
             console.log(`Successfully retrieved ${participants.length} participants from database`);
@@ -537,24 +543,37 @@ app.post("/participants/add", (req, res) => {
         return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
     }
 
+    // Check if email already exists
     knex('participants')
-        .insert({
-            participantemail: participantEmail,
-            participantfirstname: participantFirstName,
-            participantlastname: participantLastName,
-            participantdob: participantDOB || null,
-            participantrole: participantRole || null,
-            participantphone: participantPhone || null,
-            participantcity: participantCity || null,
-            participantstate: participantState || null,
-            participantzip: participantZip || null,
-            participantschooloremployer: participantSchoolOrEmployer || null,
-            participantfieldofinterest: participantFieldOfInterest || null
-        })
-        .returning('participantid')
-        .then(result => {
-            console.log(`Participant added successfully with ID: ${result[0].participantid}`);
-            res.json({ success: true, participantId: result[0].participantid, message: 'Participant added successfully' });
+        .where('participantemail', participantEmail)
+        .first()
+        .then(existingParticipant => {
+            if (existingParticipant) {
+                return res.status(400).json({ 
+                    error: 'This email is already in use by another participant. Please use a different email address.' 
+                });
+            }
+
+            // Email is unique, proceed with insert
+            return knex('participants')
+                .insert({
+                    participantemail: participantEmail,
+                    participantfirstname: participantFirstName,
+                    participantlastname: participantLastName,
+                    participantdob: participantDOB || null,
+                    participantrole: participantRole || null,
+                    participantphone: participantPhone || null,
+                    participantcity: participantCity || null,
+                    participantstate: participantState || null,
+                    participantzip: participantZip || null,
+                    participantschooloremployer: participantSchoolOrEmployer || null,
+                    participantfieldofinterest: participantFieldOfInterest || null
+                })
+                .returning('participantid')
+                .then(result => {
+                    console.log(`Participant added successfully with ID: ${result[0].participantid}`);
+                    res.json({ success: true, participantId: result[0].participantid, message: 'Participant added successfully' });
+                });
         })
         .catch(err => {
             console.error("Error adding participant:", err.message);
@@ -600,6 +619,18 @@ app.post("/participants/edit/:id", async (req, res) => {
     const autoRole = level === "M" ? "admin" : "participant";
 
     try {
+        // Check if email already exists for a different participant
+        const existingParticipant = await knex("participants")
+            .where("participantemail", participantEmail)
+            .whereNot("participantid", participantId)
+            .first();
+
+        if (existingParticipant) {
+            return res.status(400).json({ 
+                error: "This email is already in use by another participant. Please use a different email address." 
+            });
+        }
+
         await knex.transaction(async (trx) => {
             // 1️⃣ Update participant info
             const updatedRows = await trx("participants")
