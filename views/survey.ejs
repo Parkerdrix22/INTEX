@@ -13,14 +13,27 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
     <style>
         :root {
-            --er-pink: #ffeef5;
+            --er-pink: #FFD8D1;
             --er-pink-dark: #ff9fc4;
             --er-text: #222222;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             background-color: #ffffff;
             color: var(--er-text);
+        }
+
+        /* Wrapper for sticky footer */
+        .page-wrap {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* DM Serif Display for all titles and headers */
@@ -37,8 +50,8 @@
         /* Light pink navbar */
         .navbar {
             background-color: var(--er-pink) !important;
-            padding: 1.2rem 0;
-            min-height: 70px;
+            padding: 0.8rem 0;
+            min-height: 55px;
         }
 
         .navbar .container {
@@ -63,7 +76,7 @@
         }
 
         .navbar-brand img {
-            height: 60px;
+            height: 50px;
             width: auto;
         }
 
@@ -377,8 +390,8 @@
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: auto;
         }
 
         .footer-content {
@@ -529,6 +542,7 @@
 </head>
 
 <body>
+    <div class="page-wrap">
     <!-- Top bar for authentication links -->
     <div class="top-bar">
         <div class="container">
@@ -611,12 +625,17 @@
             <h2 class="mb-4" style="font-weight: 600;">Select an event you attended:</h2>
 
             <% if (events && events.length> 0) { %>
-                <% events.forEach((event, index)=> { %>
+                <% events.forEach((event, index)=> { 
+                    // Escape single quotes in event name for JavaScript
+                    const escapedName = (event.eventname || 'Untitled Event').replace(/'/g, "\\'");
+                    const eventId = event.eventid || index + 1;
+                    const eventOccurrenceId = event.eventoccurrenceid || null;
+                %>
                     <div class="event-item" data-event-name="<%= event.eventname || 'Untitled Event' %>"
-                        data-event-id="<%= event.eventid || index + 1 %>"
-                        data-event-occurrence-id="<%= event.eventoccurrenceid || '' %>">
+                        data-event-id="<%= eventId %>"
+                        data-event-occurrence-id="<%= eventOccurrenceId || '' %>">
                         <div
-                            onclick="openSurvey('<%= event.eventname || 'Untitled Event' %>', <%= event.eventid || index + 1 %>, <%= event.eventoccurrenceid || 'null' %>)">
+                            onclick="openSurvey('<%= escapedName %>', <%= eventId %>, <%= eventOccurrenceId !== null ? eventOccurrenceId : 'null' %>)">
                             <h3>
                                 <%= event.eventname || 'Untitled Event' %>
                             </h3>
@@ -824,6 +843,7 @@
             </div>
         </div>
     </footer>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -838,7 +858,7 @@
         ];
 
         // Store occurrences data from server
-        const occurrencesByEvent = <% - JSON.stringify(occurrencesByEvent || {}) %>;
+        const occurrencesByEvent = <%- JSON.stringify(occurrencesByEvent || {}) %>;
 
         function formatDateTime(dateTimeString) {
             if (!dateTimeString) return '';
@@ -860,8 +880,16 @@
                 eventOccurrenceId = eventItem ? eventItem.getAttribute('data-event-occurrence-id') : null;
             }
 
-            // Get occurrences for this event
-            const occurrences = occurrencesByEvent[eventId] || [];
+            // Convert eventId to number for consistent lookup (occurrencesByEvent uses numeric keys)
+            const numericEventId = parseInt(eventId, 10);
+            
+            // Handle null eventOccurrenceId (convert string 'null' to actual null)
+            if (eventOccurrenceId === 'null' || eventOccurrenceId === null || eventOccurrenceId === undefined) {
+                eventOccurrenceId = null;
+            }
+
+            // Get occurrences for this event - try both string and numeric keys
+            const occurrences = occurrencesByEvent[numericEventId] || occurrencesByEvent[eventId] || [];
 
             // Build survey form dynamically using default questions
             const questions = defaultQuestions;
@@ -958,8 +986,21 @@
             formContainer.innerHTML = formHTML;
             document.getElementById('eventNameTitle').textContent = eventName;
 
-            const modal = new bootstrap.Modal(document.getElementById('surveyModal'));
-            modal.show();
+            // Get the modal element and show it
+            const modalElement = document.getElementById('surveyModal');
+            if (!modalElement) {
+                console.error('Survey modal element not found!');
+                alert('Error: Survey form could not be opened. Please refresh the page and try again.');
+                return;
+            }
+
+            try {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            } catch (error) {
+                console.error('Error opening survey modal:', error);
+                alert('Error opening survey form. Please refresh the page and try again.');
+            }
         }
 
     </script>
