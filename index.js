@@ -703,29 +703,37 @@ app.post("/participants/edit/:id", async (req, res) => {
 
 
 // Participants POST route - Delete Participant (Manager only)
-app.post("/participants/delete/:id", (req, res) => {
-    // Check if user is logged in as manager
-    if (!req.session.isLoggedIn || req.session.level !== 'M') {
-        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+app.post("/participants/delete/:id", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== "M") {
+        return res.status(403).json({ error: "Unauthorized. Manager access required." });
     }
 
     const participantId = req.params.id;
 
-    knex('participants')
-        .where('participantid', participantId)
-        .del()
-        .then(result => {
-            if (result === 0) {
-                return res.status(404).json({ error: 'Participant not found' });
-            }
-            console.log(`Participant ${participantId} deleted successfully`);
-            res.json({ success: true, message: 'Participant deleted successfully' });
-        })
-        .catch(err => {
-            console.error("Error deleting participant:", err.message);
-            res.status(500).json({ error: `Database error: ${err.message}` });
-        });
+    try {
+        // 1. Delete related user first
+        await knex("users")
+            .where("participantid", participantId)
+            .del();
+
+        // 2. Delete participant
+        const result = await knex("participants")
+            .where("participantid", participantId)
+            .del();
+
+        if (result === 0) {
+            return res.status(404).json({ error: "Participant not found" });
+        }
+
+        console.log(`Participant ${participantId} and any linked user deleted.`);
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error("Error deleting participant/user:", err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
+
 
 // Milestones route
 app.get("/milestones", async (req, res) => {
