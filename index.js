@@ -289,19 +289,19 @@ app.get("/api/donations/data", async (req, res) => {
 app.post("/donations/submit", async (req, res) => {
     // Check if user is logged in
     if (!req.session.isLoggedIn) {
-        return res.status(401).json({ 
-            success: false, 
-            error: "Please sign in to make a donation." 
+        return res.status(401).json({
+            success: false,
+            error: "Please sign in to make a donation."
         });
     }
 
     const userInfo = await getUserInfo(req);
-    
+
     // Check if user has a participantid
     if (!userInfo || !userInfo.participantid) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "User account is not linked to a participant." 
+        return res.status(400).json({
+            success: false,
+            error: "User account is not linked to a participant."
         });
     }
 
@@ -309,9 +309,9 @@ app.post("/donations/submit", async (req, res) => {
 
     // Validate donation amount
     if (!donationAmount || parseFloat(donationAmount) <= 0) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "Please enter a valid donation amount." 
+        return res.status(400).json({
+            success: false,
+            error: "Please enter a valid donation amount."
         });
     }
 
@@ -322,7 +322,7 @@ app.post("/donations/submit", async (req, res) => {
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         const donationDate = `${year}-${month}-${day}`;
-        
+
         // Insert donation into database
         await knex('donations').insert({
             participantid: userInfo.participantid,
@@ -331,16 +331,16 @@ app.post("/donations/submit", async (req, res) => {
         });
 
         // Return success - frontend will redirect to Givebutter
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: "Donation recorded successfully.",
             givebutterUrl: "https://givebutter.com/EllaRises"
         });
     } catch (err) {
         console.error("Error saving donation:", err.message);
-        res.status(500).json({ 
-            success: false, 
-            error: "Failed to save donation. Please try again." 
+        res.status(500).json({
+            success: false,
+            error: "Failed to save donation. Please try again."
         });
     }
 });
@@ -405,7 +405,8 @@ app.post("/events/add", (req, res) => {
             eventdescription: eventDescription,
             eventtype: eventType,
             eventrecurrencepattern: eventRecurrencePattern,
-            eventdefaultcapacity: parseInt(eventDefaultCapacity) || null
+            eventdefaultcapacity: parseInt(eventDefaultCapacity) || null,
+            eventimage: '/images/event_1_real.jpg'
         })
         .returning('eventid')
         .then(result => {
