@@ -13,25 +13,27 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
     <style>
         :root {
-            --er-pink: #ffeef5;
+            --er-pink: #FFD8D1;
             --er-pink-dark: #ff9fc4;
             --er-text: #222222;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             background-color: #ffffff;
             color: var(--er-text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100%;
-            margin: 0;
-            padding: 0;
         }
 
-        main {
-            flex: 1;
-            width: 100%;
+        /* Wrapper for sticky footer */
+        .page-wrap {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* DM Serif Display for all titles and headers */
@@ -48,8 +50,8 @@
         /* Light pink navbar */
         .navbar {
             background-color: var(--er-pink) !important;
-            padding: 1.2rem 0;
-            min-height: 70px;
+            padding: 0.8rem 0;
+            min-height: 55px;
         }
 
         .navbar .container {
@@ -74,7 +76,7 @@
         }
 
         .navbar-brand img {
-            height: 60px;
+            height: 50px;
             width: auto;
         }
 
@@ -361,8 +363,8 @@
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: auto;
         }
 
         .footer-content {
@@ -517,20 +519,22 @@
 </head>
 
 <body>
+    <div class="page-wrap">
     <!-- Top bar for authentication links -->
     <div class="top-bar">
         <div class="container">
             <div class="top-bar-links">
                 <% if (!user) { %>
                     <a href="/login" class="top-bar-link">Sign In / Create Account</a>
-                <% } else { %>
-                    <a href="/logout" class="top-bar-link">Logout</a>
-                    <a href="/profile" class="top-bar-link">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                    </a>
-                <% } %>
+                    <% } else { %>
+                        <a href="/logout" class="top-bar-link">Logout</a>
+                        <a href="/profile" class="top-bar-link">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                            </svg>
+                        </a>
+                        <% } %>
             </div>
         </div>
     </div>
@@ -573,7 +577,7 @@
                         </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donate</a>
+                        <a class="nav-link" href="/donations">Donate</a>
                     </li>
                 </ul>
             </div>
@@ -583,413 +587,444 @@
     <!-- Event Header -->
     <% if (event) { %>
         <div class="event-header">
-            <h1><%= event.eventname %></h1>
+            <h1>
+                <%= event.eventname %>
+            </h1>
         </div>
-    <% } %>
-
-    <!-- Main Content -->
-    <main class="container">
-        <div class="back-button">
-            <a href="/events">Back to Events</a>
-        </div>
-
-        <% if (error_message) { %>
-            <div class="alert alert-danger" role="alert">
-                <%= error_message %>
-            </div>
         <% } %>
 
-        <% if (!event) { %>
-            <div class="alert alert-warning" role="alert">
-                Event not found.
-            </div>
-        <% } else { %>
-            <!-- Event Details -->
-            <div class="event-details-section mb-4">
-                <div class="event-details-card">
-                    <h2 class="event-details-title"><%= event.eventname %></h2>
-                    <% if (firstFutureOccurrence) { %>
-                        <div class="event-details-info">
-                            <div class="event-detail-item">
-                                <span class="event-detail-label">Date & Time:</span>
-                                <span class="event-detail-value">
-                                    <%= new Date(firstFutureOccurrence.eventdatetimestart).toLocaleDateString('en-US', { 
-                                        weekday: 'long', 
-                                        year: 'numeric', 
-                                        month: 'long', 
-                                        day: 'numeric' 
-                                    }) %> at 
-                                    <%= new Date(firstFutureOccurrence.eventdatetimestart).toLocaleTimeString('en-US', { 
-                                        hour: 'numeric', 
-                                        minute: '2-digit' 
-                                    }) %>
-                                </span>
-                            </div>
-                            <% if (firstFutureOccurrence.eventlocation) { %>
-                                <div class="event-detail-item">
-                                    <span class="event-detail-label">Location:</span>
-                                    <span class="event-detail-value"><%= firstFutureOccurrence.eventlocation %></span>
-                                </div>
-                            <% } %>
-                        </div>
+            <!-- Main Content -->
+            <main class="container">
+                <div class="back-button">
+                    <a href="/events">Back to Events</a>
+                </div>
+
+                <% if (error_message) { %>
+                    <div class="alert alert-danger" role="alert">
+                        <%= error_message %>
+                    </div>
                     <% } %>
-                </div>
-            </div>
 
-            <!-- Past Occurrences Dropdown -->
-            <% if (pastOccurrences && pastOccurrences.length > 0) { %>
-                <div class="occurrence-selector mb-4">
-                    <div class="d-flex justify-content-between align-items-end">
-                        <div>
-                            <label for="past-occurrence-select" class="form-label" style="font-weight: 600; margin-bottom: 0.5rem;">View Past Occurrences:</label>
-                            <select id="past-occurrence-select" class="form-select" style="max-width: 400px;">
-                                <option value="">-- Select a past occurrence --</option>
-                                <% pastOccurrences.forEach(function(occurrence) { %>
-                                    <option value="<%= occurrence.eventoccurrenceid %>">
-                                        <%= new Date(occurrence.eventdatetimestart).toLocaleDateString('en-US', { 
-                                            year: 'numeric', 
-                                            month: 'long', 
-                                            day: 'numeric',
-                                            hour: 'numeric',
-                                            minute: '2-digit'
-                                        }) %>
-                                    </option>
-                                <% }); %>
-                            </select>
-                        </div>
-                        <button id="view-future-btn" class="btn ms-2" style="display: none; background-color: var(--er-pink); border-color: var(--er-pink-dark); color: var(--er-text);">View Future Occurrences</button>
-                    </div>
-                </div>
-            <% } %>
-
-            <!-- Status Totals (shown for past occurrences) -->
-            <div id="status-totals" class="status-totals mb-4" style="display: none;">
-                <div class="d-flex gap-3">
-                    <div class="status-total-card" style="background-color: var(--er-pink); border: 2px solid var(--er-pink-dark); border-radius: 0.5rem; padding: 1rem; flex: 1;">
-                        <div style="font-weight: 600; color: var(--er-text); margin-bottom: 0.5rem;">Attended</div>
-                        <div id="total-attended" style="font-size: 2rem; font-weight: 700; color: var(--er-text);">0</div>
-                    </div>
-                    <div class="status-total-card" style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 0.5rem; padding: 1rem; flex: 1;">
-                        <div style="font-weight: 600; color: #155724; margin-bottom: 0.5rem;">No-Show</div>
-                        <div id="total-noshow" style="font-size: 2rem; font-weight: 700; color: #155724;">0</div>
-                    </div>
-                    <div class="status-total-card" style="background-color: #e9ecef; border: 2px solid #6c757d; border-radius: 0.5rem; padding: 1rem; flex: 1;">
-                        <div style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">Cancelled</div>
-                        <div id="total-cancelled" style="font-size: 2rem; font-weight: 700; color: #495057;">0</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="registrations-container">
-                <% if (!registrations || registrations.length === 0) { %>
-                    <div class="alert alert-info" role="alert">
-                        No registrations found for future occurrences of this event.
-                    </div>
-                <% } else { %>
-                    <div class="participants-grid" id="participants-grid">
-                <% registrations.forEach(function(registration) { 
-                    const uniqueId = registration.participantid + '-' + registration.eventoccurrenceid;
-                %>
-                    <div class="participant-card" data-participant-id="<%= registration.participantid %>" data-event-occurrence-id="<%= registration.eventoccurrenceid %>">
-                        <div class="participant-name">
-                            <%= registration.participantfirstname %> <%= registration.participantlastname %>
-                        </div>
-                        
-                        <div class="check-in-section">
-                            <label for="checkin-<%= uniqueId %>">Check-In Time</label>
-                            <input 
-                                type="time" 
-                                id="checkin-<%= uniqueId %>"
-                                class="checkin-time"
-                                value="<%= registration.registrationcheckintime ? new Date(registration.registrationcheckintime).toTimeString().slice(0, 5) : '' %>"
-                                data-participant-id="<%= registration.participantid %>"
-                                data-event-occurrence-id="<%= registration.eventoccurrenceid %>">
-                        </div>
-
-                        <div class="status-section">
-                            <label>Status</label>
-                            <div class="status-radio-group">
-                                <div class="status-radio">
-                                    <input 
-                                        type="radio" 
-                                        id="attended-<%= uniqueId %>"
-                                        name="status-<%= uniqueId %>"
-                                        value="Attended"
-                                        data-participant-id="<%= registration.participantid %>"
-                                        data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
-                                        <%= (registration.registrationstatus || '').toLowerCase() === 'attended' ? 'checked' : '' %>>
-                                    <label for="attended-<%= uniqueId %>">Attended</label>
+                        <% if (!event) { %>
+                            <div class="alert alert-warning" role="alert">
+                                Event not found.
+                            </div>
+                            <% } else { %>
+                                <!-- Event Details -->
+                                <div class="event-details-section mb-4">
+                                    <div class="event-details-card">
+                                        <h2 class="event-details-title">
+                                            <%= event.eventname %>
+                                        </h2>
+                                        <% if (firstFutureOccurrence) { %>
+                                            <div class="event-details-info">
+                                                <div class="event-detail-item">
+                                                    <span class="event-detail-label">Date & Time:</span>
+                                                    <span class="event-detail-value">
+                                                        <%= new
+                                                            Date(firstFutureOccurrence.eventdatetimestart).toLocaleDateString('en-US',
+                                                            { weekday: 'long' , year: 'numeric' , month: 'long' ,
+                                                            day: 'numeric' }) %> at
+                                                            <%= new
+                                                                Date(firstFutureOccurrence.eventdatetimestart).toLocaleTimeString('en-US',
+                                                                { hour: 'numeric' , minute: '2-digit' }) %>
+                                                    </span>
+                                                </div>
+                                                <% if (firstFutureOccurrence.eventlocation) { %>
+                                                    <div class="event-detail-item">
+                                                        <span class="event-detail-label">Location:</span>
+                                                        <span class="event-detail-value">
+                                                            <%= firstFutureOccurrence.eventlocation %>
+                                                        </span>
+                                                    </div>
+                                                    <% } %>
+                                            </div>
+                                            <% } %>
+                                    </div>
                                 </div>
-                                <div class="status-radio">
-                                    <input 
-                                        type="radio" 
-                                        id="noshow-<%= uniqueId %>"
-                                        name="status-<%= uniqueId %>"
-                                        value="No-Show"
-                                        data-participant-id="<%= registration.participantid %>"
-                                        data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
-                                        <%= (registration.registrationstatus || '').toLowerCase() === 'no-show' ? 'checked' : '' %>>
-                                    <label for="noshow-<%= uniqueId %>">No-Show</label>
-                                </div>
-                                <div class="status-radio">
-                                    <input 
-                                        type="radio" 
-                                        id="cancelled-<%= uniqueId %>"
-                                        name="status-<%= uniqueId %>"
-                                        value="Cancelled"
-                                        data-participant-id="<%= registration.participantid %>"
-                                        data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
-                                        <%= (registration.registrationstatus || '').toLowerCase() === 'cancelled' ? 'checked' : '' %>>
-                                    <label for="cancelled-<%= uniqueId %>">Cancelled</label>
-                                </div>
+
+                                <!-- Past Occurrences Dropdown -->
+                                <% if (pastOccurrences && pastOccurrences.length> 0) { %>
+                                    <div class="occurrence-selector mb-4">
+                                        <div class="d-flex justify-content-between align-items-end">
+                                            <div>
+                                                <label for="past-occurrence-select" class="form-label"
+                                                    style="font-weight: 600; margin-bottom: 0.5rem;">View Past
+                                                    Occurrences:</label>
+                                                <select id="past-occurrence-select" class="form-select"
+                                                    style="max-width: 400px;">
+                                                    <option value="">-- Select a past occurrence --</option>
+                                                    <% pastOccurrences.forEach(function(occurrence) { %>
+                                                        <option value="<%= occurrence.eventoccurrenceid %>">
+                                                            <%= new
+                                                                Date(occurrence.eventdatetimestart).toLocaleDateString('en-US',
+                                                                { year: 'numeric' , month: 'long' , day: 'numeric' ,
+                                                                hour: 'numeric' , minute: '2-digit' }) %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                            <button id="view-future-btn" class="btn ms-2"
+                                                style="display: none; background-color: var(--er-pink); border-color: var(--er-pink-dark); color: var(--er-text);">View
+                                                Future Occurrences</button>
+                                        </div>
+                                    </div>
+                                    <% } %>
+
+                                        <!-- Status Totals (shown for past occurrences) -->
+                                        <div id="status-totals" class="status-totals mb-4" style="display: none;">
+                                            <div class="d-flex gap-3">
+                                                <div class="status-total-card"
+                                                    style="background-color: var(--er-pink); border: 2px solid var(--er-pink-dark); border-radius: 0.5rem; padding: 1rem; flex: 1;">
+                                                    <div
+                                                        style="font-weight: 600; color: var(--er-text); margin-bottom: 0.5rem;">
+                                                        Attended</div>
+                                                    <div id="total-attended"
+                                                        style="font-size: 2rem; font-weight: 700; color: var(--er-text);">
+                                                        0</div>
+                                                </div>
+                                                <div class="status-total-card"
+                                                    style="background-color: #d4edda; border: 2px solid #28a745; border-radius: 0.5rem; padding: 1rem; flex: 1;">
+                                                    <div
+                                                        style="font-weight: 600; color: #155724; margin-bottom: 0.5rem;">
+                                                        No-Show</div>
+                                                    <div id="total-noshow"
+                                                        style="font-size: 2rem; font-weight: 700; color: #155724;">0
+                                                    </div>
+                                                </div>
+                                                <div class="status-total-card"
+                                                    style="background-color: #e9ecef; border: 2px solid #6c757d; border-radius: 0.5rem; padding: 1rem; flex: 1;">
+                                                    <div
+                                                        style="font-weight: 600; color: #495057; margin-bottom: 0.5rem;">
+                                                        Cancelled</div>
+                                                    <div id="total-cancelled"
+                                                        style="font-size: 2rem; font-weight: 700; color: #495057;">0
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div id="registrations-container">
+                                            <% if (!registrations || registrations.length===0) { %>
+                                                <div class="alert alert-info" role="alert">
+                                                    No registrations found for future occurrences of this event.
+                                                </div>
+                                                <% } else { %>
+                                                    <div class="participants-grid" id="participants-grid">
+                                                        <% registrations.forEach(function(registration) { const
+                                                            uniqueId=registration.participantid + '-' +
+                                                            registration.eventoccurrenceid; %>
+                                                            <div class="participant-card"
+                                                                data-participant-id="<%= registration.participantid %>"
+                                                                data-event-occurrence-id="<%= registration.eventoccurrenceid %>">
+                                                                <div class="participant-name">
+                                                                    <%= registration.participantfirstname %>
+                                                                        <%= registration.participantlastname %>
+                                                                </div>
+
+                                                                <div class="check-in-section">
+                                                                    <label for="checkin-<%= uniqueId %>">Check-In
+                                                                        Time</label>
+                                                                    <input type="time" id="checkin-<%= uniqueId %>"
+                                                                        class="checkin-time"
+                                                                        value="<%= registration.registrationcheckintime ? new Date(registration.registrationcheckintime).toTimeString().slice(0, 5) : '' %>"
+                                                                        data-participant-id="<%= registration.participantid %>"
+                                                                        data-event-occurrence-id="<%= registration.eventoccurrenceid %>">
+                                                                </div>
+
+                                                                <div class="status-section">
+                                                                    <label>Status</label>
+                                                                    <div class="status-radio-group">
+                                                                        <div class="status-radio">
+                                                                            <input type="radio"
+                                                                                id="attended-<%= uniqueId %>"
+                                                                                name="status-<%= uniqueId %>"
+                                                                                value="Attended"
+                                                                                data-participant-id="<%= registration.participantid %>"
+                                                                                data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
+                                                                                <%=(registration.registrationstatus
+                                                                                || '' ).toLowerCase()==='attended'
+                                                                                ? 'checked' : '' %>>
+                                                                            <label
+                                                                                for="attended-<%= uniqueId %>">Attended</label>
+                                                                        </div>
+                                                                        <div class="status-radio">
+                                                                            <input type="radio"
+                                                                                id="noshow-<%= uniqueId %>"
+                                                                                name="status-<%= uniqueId %>"
+                                                                                value="No-Show"
+                                                                                data-participant-id="<%= registration.participantid %>"
+                                                                                data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
+                                                                                <%=(registration.registrationstatus
+                                                                                || '' ).toLowerCase()==='no-show'
+                                                                                ? 'checked' : '' %>>
+                                                                            <label
+                                                                                for="noshow-<%= uniqueId %>">No-Show</label>
+                                                                        </div>
+                                                                        <div class="status-radio">
+                                                                            <input type="radio"
+                                                                                id="cancelled-<%= uniqueId %>"
+                                                                                name="status-<%= uniqueId %>"
+                                                                                value="Cancelled"
+                                                                                data-participant-id="<%= registration.participantid %>"
+                                                                                data-event-occurrence-id="<%= registration.eventoccurrenceid %>"
+                                                                                <%=(registration.registrationstatus
+                                                                                || '' ).toLowerCase()==='cancelled'
+                                                                                ? 'checked' : '' %>>
+                                                                            <label
+                                                                                for="cancelled-<%= uniqueId %>">Cancelled</label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <% }); %>
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+                                        <% } %>
+            </main>
+
+            <!-- Footer -->
+            <footer>
+                <div class="footer-content">
+                    <div class="footer-main">
+                        <div class="footer-left">
+                            <div class="footer-logo">
+                                <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
+                                <span>Ella Rises</span>
+                            </div>
+                            <p>
+                                Empowering the rising generation of women to pursue higher education
+                                and embrace their heritage through STEAM programs, mentoring, and
+                                leadership opportunities.
+                            </p>
+                        </div>
+
+                        <div class="footer-divider"></div>
+
+                        <div class="footer-section contact-section">
+                            <h4>Contact</h4>
+                            <p>Visit us at:</p>
+                            <p><a href="https://www.ellarises.org" target="_blank">www.ellarises.org</a></p>
+                            <div class="social-links">
+                                <a href="https://www.instagram.com/ellarises/" target="_blank" aria-label="Instagram">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.645.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                    </svg>
+                                </a>
+                                <a href="https://www.facebook.com/EllaRises" target="_blank" aria-label="Facebook">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     </div>
-                <% }); %>
-                    </div>
-                <% } %>
-            </div>
-        <% } %>
-    </main>
-
-    <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-main">
-                <div class="footer-left">
-                    <div class="footer-logo">
-                        <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
-                        <span>Ella Rises</span>
-                    </div>
-                    <p>
-                        Empowering the rising generation of women to pursue higher education
-                        and embrace their heritage through STEAM programs, mentoring, and
-                        leadership opportunities.
-                    </p>
-                </div>
-
-                <div class="footer-divider"></div>
-
-                <div class="footer-section contact-section">
-                    <h4>Contact</h4>
-                    <p>Visit us at:</p>
-                    <p><a href="https://www.ellarises.org" target="_blank">www.ellarises.org</a></p>
-                    <div class="social-links">
-                        <a href="https://www.instagram.com/ellarises/" target="_blank" aria-label="Instagram">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.645.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                            </svg>
-                        </a>
-                        <a href="https://www.facebook.com/EllaRises" target="_blank" aria-label="Facebook">
-                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                        </a>
+                    <div class="footer-bottom">
+                        <p>&copy; 2025 Ella Rises. All rights reserved.</p>
                     </div>
                 </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Ella Rises. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+            </footer>
+    </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <!-- Bootstrap JS -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // Handle check-in time updates
-        document.querySelectorAll('.checkin-time').forEach(input => {
-            input.addEventListener('change', function() {
-                const participantId = this.getAttribute('data-participant-id');
-                const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
-                const timeValue = this.value;
-                
-                if (!timeValue) {
-                    return;
-                }
+            <script>
+                // Handle check-in time updates
+                document.querySelectorAll('.checkin-time').forEach(input => {
+                    input.addEventListener('change', function () {
+                        const participantId = this.getAttribute('data-participant-id');
+                        const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
+                        const timeValue = this.value;
 
-                // Get today's date and combine with time
-                const today = new Date();
-                const [hours, minutes] = timeValue.split(':');
-                const checkInDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours, 10), parseInt(minutes, 10), 0);
-                
-                // Format as ISO string for database
-                const isoString = checkInDateTime.toISOString();
-
-                fetch('/api/registration/checkin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        participantId: participantId,
-                        eventOccurrenceId: eventOccurrenceId,
-                        checkInTime: isoString
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Check-in time updated successfully');
-                    } else {
-                        console.error('Error updating check-in time:', data.error);
-                        alert('Error updating check-in time: ' + (data.error || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating check-in time. Please try again.');
-                });
-            });
-        });
-
-        // Handle status updates
-        document.querySelectorAll('input[type="radio"][name^="status-"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const participantId = this.getAttribute('data-participant-id');
-                const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
-                const status = this.value;
-
-                fetch('/api/registration/status', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        participantId: participantId,
-                        eventOccurrenceId: eventOccurrenceId,
-                        status: status
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Status updated successfully');
-                    } else {
-                        console.error('Error updating status:', data.error);
-                        alert('Error updating status: ' + (data.error || 'Unknown error'));
-                        // Revert the radio button selection
-                        this.checked = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating status. Please try again.');
-                    // Revert the radio button selection
-                    this.checked = false;
-                });
-            });
-        });
-
-        // Handle past occurrence dropdown selection
-        const pastOccurrenceSelect = document.getElementById('past-occurrence-select');
-        const viewFutureBtn = document.getElementById('view-future-btn');
-        const eventId = '<%= event ? event.eventid : "" %>';
-        const initialRegistrations = <%- JSON.stringify(registrations || []) %>;
-        const eventDetailsSection = document.querySelector('.event-details-section');
-
-        if (pastOccurrenceSelect) {
-            pastOccurrenceSelect.addEventListener('change', function() {
-                const occurrenceId = this.value;
-                
-                if (!occurrenceId) {
-                    // Show future registrations
-                    displayRegistrations(initialRegistrations, false);
-                    viewFutureBtn.style.display = 'none';
-                    document.getElementById('status-totals').style.display = 'none';
-                    return;
-                }
-
-                // Fetch registrations for the selected past occurrence
-                fetch(`/api/reservations/${eventId}/occurrence/${occurrenceId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update event details if occurrence data is available
-                            if (data.occurrence && eventDetailsSection) {
-                                updateEventDetails(data.occurrence);
-                            }
-                            displayRegistrations(data.registrations, true);
-                            viewFutureBtn.style.display = 'inline-block';
-                        } else {
-                            console.error('Error fetching registrations:', data.error);
-                            alert('Error fetching registrations: ' + (data.error || 'Unknown error'));
+                        if (!timeValue) {
+                            return;
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error fetching registrations. Please try again.');
+
+                        // Get today's date and combine with time
+                        const today = new Date();
+                        const [hours, minutes] = timeValue.split(':');
+                        const checkInDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours, 10), parseInt(minutes, 10), 0);
+
+                        // Format as ISO string for database
+                        const isoString = checkInDateTime.toISOString();
+
+                        fetch('/api/registration/checkin', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                participantId: participantId,
+                                eventOccurrenceId: eventOccurrenceId,
+                                checkInTime: isoString
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    console.log('Check-in time updated successfully');
+                                } else {
+                                    console.error('Error updating check-in time:', data.error);
+                                    alert('Error updating check-in time: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error updating check-in time. Please try again.');
+                            });
                     });
-            });
-        }
+                });
 
-        if (viewFutureBtn) {
-            viewFutureBtn.addEventListener('click', function() {
-                displayRegistrations(initialRegistrations, false);
-                pastOccurrenceSelect.value = '';
-                this.style.display = 'none';
-                document.getElementById('status-totals').style.display = 'none';
-                // Restore original event details
-                if (eventDetailsSection) {
-                    restoreOriginalEventDetails();
+                // Handle status updates
+                document.querySelectorAll('input[type="radio"][name^="status-"]').forEach(radio => {
+                    radio.addEventListener('change', function () {
+                        const participantId = this.getAttribute('data-participant-id');
+                        const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
+                        const status = this.value;
+
+                        fetch('/api/registration/status', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                participantId: participantId,
+                                eventOccurrenceId: eventOccurrenceId,
+                                status: status
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    console.log('Status updated successfully');
+                                } else {
+                                    console.error('Error updating status:', data.error);
+                                    alert('Error updating status: ' + (data.error || 'Unknown error'));
+                                    // Revert the radio button selection
+                                    this.checked = false;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error updating status. Please try again.');
+                                // Revert the radio button selection
+                                this.checked = false;
+                            });
+                    });
+                });
+
+                // Handle past occurrence dropdown selection
+                const pastOccurrenceSelect = document.getElementById('past-occurrence-select');
+                const viewFutureBtn = document.getElementById('view-future-btn');
+                const eventId = '<%= event ? event.eventid : "" %>';
+                const initialRegistrations = <%- JSON.stringify(registrations || []) %>;
+                const eventDetailsSection = document.querySelector('.event-details-section');
+
+                if (pastOccurrenceSelect) {
+                    pastOccurrenceSelect.addEventListener('change', function () {
+                        const occurrenceId = this.value;
+
+                        if (!occurrenceId) {
+                            // Show future registrations
+                            displayRegistrations(initialRegistrations, false);
+                            viewFutureBtn.style.display = 'none';
+                            document.getElementById('status-totals').style.display = 'none';
+                            return;
+                        }
+
+                        // Fetch registrations for the selected past occurrence
+                        fetch(`/api/reservations/${eventId}/occurrence/${occurrenceId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Update event details if occurrence data is available
+                                    if (data.occurrence && eventDetailsSection) {
+                                        updateEventDetails(data.occurrence);
+                                    }
+                                    displayRegistrations(data.registrations, true);
+                                    viewFutureBtn.style.display = 'inline-block';
+                                } else {
+                                    console.error('Error fetching registrations:', data.error);
+                                    alert('Error fetching registrations: ' + (data.error || 'Unknown error'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error fetching registrations. Please try again.');
+                            });
+                    });
                 }
-            });
-        }
 
-        function updateEventDetails(occurrence) {
-            const eventDetailsInfo = eventDetailsSection.querySelector('.event-details-info');
-            if (!eventDetailsInfo) return;
+                if (viewFutureBtn) {
+                    viewFutureBtn.addEventListener('click', function () {
+                        displayRegistrations(initialRegistrations, false);
+                        pastOccurrenceSelect.value = '';
+                        this.style.display = 'none';
+                        document.getElementById('status-totals').style.display = 'none';
+                        // Restore original event details
+                        if (eventDetailsSection) {
+                            restoreOriginalEventDetails();
+                        }
+                    });
+                }
 
-            const dateTime = new Date(occurrence.eventdatetimestart);
-            const dateStr = dateTime.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            const timeStr = dateTime.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit' 
-            });
+                function updateEventDetails(occurrence) {
+                    const eventDetailsInfo = eventDetailsSection.querySelector('.event-details-info');
+                    if (!eventDetailsInfo) return;
 
-            let html = `
+                    const dateTime = new Date(occurrence.eventdatetimestart);
+                    const dateStr = dateTime.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    const timeStr = dateTime.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    });
+
+                    let html = `
                 <div class="event-detail-item">
                     <span class="event-detail-label">Date & Time:</span>
                     <span class="event-detail-value">${dateStr} at ${timeStr}</span>
                 </div>
             `;
-            
-            if (occurrence.eventlocation) {
-                html += `
+
+                    if (occurrence.eventlocation) {
+                        html += `
                     <div class="event-detail-item">
                         <span class="event-detail-label">Location:</span>
                         <span class="event-detail-value">${occurrence.eventlocation}</span>
                     </div>
                 `;
-            }
+                    }
 
-            eventDetailsInfo.innerHTML = html;
-        }
+                    eventDetailsInfo.innerHTML = html;
+                }
 
-        function restoreOriginalEventDetails() {
-            const eventDetailsInfo = eventDetailsSection.querySelector('.event-details-info');
-            if (!eventDetailsInfo) return;
+                function restoreOriginalEventDetails() {
+                    const eventDetailsInfo = eventDetailsSection.querySelector('.event-details-info');
+                    if (!eventDetailsInfo) return;
 
             <% if (firstFutureOccurrence) { %>
                 const dateTime = new Date('<%= firstFutureOccurrence.eventdatetimestart %>');
-                const dateStr = dateTime.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-                const timeStr = dateTime.toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit' 
-                });
+                        const dateStr = dateTime.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        const timeStr = dateTime.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit'
+                        });
 
-                let html = `
+                        let html = `
                     <div class="event-detail-item">
                         <span class="event-detail-label">Date & Time:</span>
                         <span class="event-detail-value">${dateStr} at ${timeStr}</span>
@@ -997,7 +1032,7 @@
                 `;
                 
                 <% if (firstFutureOccurrence.eventlocation) { %>
-                    html += `
+                            html += `
                         <div class="event-detail-item">
                             <span class="event-detail-label">Location:</span>
                             <span class="event-detail-value"><%= firstFutureOccurrence.eventlocation %></span>
@@ -1005,70 +1040,70 @@
                     `;
                 <% } %>
 
-                eventDetailsInfo.innerHTML = html;
+                            eventDetailsInfo.innerHTML = html;
             <% } %>
         }
 
-        function displayRegistrations(registrations, isPastOccurrence = false) {
-            const container = document.getElementById('registrations-container');
-            const statusTotals = document.getElementById('status-totals');
-            
-            if (!registrations || registrations.length === 0) {
-                container.innerHTML = '<div class="alert alert-info" role="alert">No registrations found for this occurrence.</div>';
-                if (statusTotals) statusTotals.style.display = 'none';
-                return;
-            }
+                function displayRegistrations(registrations, isPastOccurrence = false) {
+                    const container = document.getElementById('registrations-container');
+                    const statusTotals = document.getElementById('status-totals');
 
-            // Calculate status totals for past occurrences
-            if (isPastOccurrence && statusTotals) {
-                let attended = 0;
-                let noshow = 0;
-                let cancelled = 0;
-                
-                registrations.forEach(r => {
-                    const status = ((r.registrationstatus || '').trim()).toLowerCase();
-                    if (status === 'attended') {
-                        attended++;
-                    } else if (status === 'no-show') {
-                        noshow++;
-                    } else if (status === 'cancelled') {
-                        cancelled++;
+                    if (!registrations || registrations.length === 0) {
+                        container.innerHTML = '<div class="alert alert-info" role="alert">No registrations found for this occurrence.</div>';
+                        if (statusTotals) statusTotals.style.display = 'none';
+                        return;
                     }
-                });
-                
-                document.getElementById('total-attended').textContent = attended;
-                document.getElementById('total-noshow').textContent = noshow;
-                document.getElementById('total-cancelled').textContent = cancelled;
-                statusTotals.style.display = 'block';
-            } else if (statusTotals) {
-                statusTotals.style.display = 'none';
-            }
 
-            let html = '<div class="participants-grid" id="participants-grid">';
-            
-            registrations.forEach(registration => {
-                const uniqueId = registration.participantid + '-' + registration.eventoccurrenceid;
-                
-                // Parse check-in time properly
-                let checkInTime = '';
-                if (registration.registrationcheckintime) {
-                    try {
-                        const date = new Date(registration.registrationcheckintime);
-                        // Format as HH:MM for time input
-                        const hours = String(date.getHours()).padStart(2, '0');
-                        const minutes = String(date.getMinutes()).padStart(2, '0');
-                        checkInTime = `${hours}:${minutes}`;
-                    } catch (e) {
-                        console.error('Error parsing check-in time:', e);
-                        checkInTime = '';
+                    // Calculate status totals for past occurrences
+                    if (isPastOccurrence && statusTotals) {
+                        let attended = 0;
+                        let noshow = 0;
+                        let cancelled = 0;
+
+                        registrations.forEach(r => {
+                            const status = ((r.registrationstatus || '').trim()).toLowerCase();
+                            if (status === 'attended') {
+                                attended++;
+                            } else if (status === 'no-show') {
+                                noshow++;
+                            } else if (status === 'cancelled') {
+                                cancelled++;
+                            }
+                        });
+
+                        document.getElementById('total-attended').textContent = attended;
+                        document.getElementById('total-noshow').textContent = noshow;
+                        document.getElementById('total-cancelled').textContent = cancelled;
+                        statusTotals.style.display = 'block';
+                    } else if (statusTotals) {
+                        statusTotals.style.display = 'none';
                     }
-                }
-                
-                const statusRaw = (registration.registrationstatus || '').trim() || null;
-                const status = statusRaw ? statusRaw.toLowerCase() : null;
-                
-                // For past occurrences, show current status prominently
-                const statusDisplay = isPastOccurrence ? `
+
+                    let html = '<div class="participants-grid" id="participants-grid">';
+
+                    registrations.forEach(registration => {
+                        const uniqueId = registration.participantid + '-' + registration.eventoccurrenceid;
+
+                        // Parse check-in time properly
+                        let checkInTime = '';
+                        if (registration.registrationcheckintime) {
+                            try {
+                                const date = new Date(registration.registrationcheckintime);
+                                // Format as HH:MM for time input
+                                const hours = String(date.getHours()).padStart(2, '0');
+                                const minutes = String(date.getMinutes()).padStart(2, '0');
+                                checkInTime = `${hours}:${minutes}`;
+                            } catch (e) {
+                                console.error('Error parsing check-in time:', e);
+                                checkInTime = '';
+                            }
+                        }
+
+                        const statusRaw = (registration.registrationstatus || '').trim() || null;
+                        const status = statusRaw ? statusRaw.toLowerCase() : null;
+
+                        // For past occurrences, show current status prominently
+                        const statusDisplay = isPastOccurrence ? `
                     <div class="current-status-display" style="margin-bottom: 1rem; padding: 0.5rem; border-radius: 0.5rem; text-align: center; font-weight: 600; 
                         ${status === 'attended' ? 'background-color: #d4edda; color: #155724;' : ''}
                         ${status === 'no-show' ? 'background-color: #fff3cd; color: #856404;' : ''}
@@ -1077,8 +1112,8 @@
                         Status: ${statusRaw || 'Signed Up'}
                     </div>
                 ` : '';
-                
-                html += `
+
+                        html += `
                     <div class="participant-card" data-participant-id="${registration.participantid}" data-event-occurrence-id="${registration.eventoccurrenceid}">
                         <div class="participant-name">
                             ${registration.participantfirstname} ${registration.participantlastname}
@@ -1137,102 +1172,101 @@
                         </div>
                     </div>
                 `;
-            });
-            
-            html += '</div>';
-            container.innerHTML = html;
-
-            // Re-attach event listeners for check-in and status updates
-            attachEventListeners();
-        }
-
-        function attachEventListeners() {
-            // Handle check-in time updates
-            document.querySelectorAll('.checkin-time').forEach(input => {
-                input.addEventListener('change', function() {
-                    const participantId = this.getAttribute('data-participant-id');
-                    const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
-                    const timeValue = this.value;
-                    
-                    if (!timeValue) {
-                        return;
-                    }
-
-                    // Get today's date and combine with time
-                    const today = new Date();
-                    const [hours, minutes] = timeValue.split(':');
-                    const checkInDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours, 10), parseInt(minutes, 10), 0);
-                    
-                    // Format as ISO string for database
-                    const isoString = checkInDateTime.toISOString();
-
-                    fetch('/api/registration/checkin', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            participantId: participantId,
-                            eventOccurrenceId: eventOccurrenceId,
-                            checkInTime: isoString
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log('Check-in time updated successfully');
-                        } else {
-                            console.error('Error updating check-in time:', data.error);
-                            alert('Error updating check-in time: ' + (data.error || 'Unknown error'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error updating check-in time. Please try again.');
                     });
-                });
-            });
 
-            // Handle status updates
-            document.querySelectorAll('input[type="radio"][name^="status-"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const participantId = this.getAttribute('data-participant-id');
-                    const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
-                    const status = this.value;
+                    html += '</div>';
+                    container.innerHTML = html;
 
-                    fetch('/api/registration/status', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            participantId: participantId,
-                            eventOccurrenceId: eventOccurrenceId,
-                            status: status
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log('Status updated successfully');
-                        } else {
-                            console.error('Error updating status:', data.error);
-                            alert('Error updating status: ' + (data.error || 'Unknown error'));
-                            // Revert the radio button selection
-                            this.checked = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error updating status. Please try again.');
-                        // Revert the radio button selection
-                        this.checked = false;
+                    // Re-attach event listeners for check-in and status updates
+                    attachEventListeners();
+                }
+
+                function attachEventListeners() {
+                    // Handle check-in time updates
+                    document.querySelectorAll('.checkin-time').forEach(input => {
+                        input.addEventListener('change', function () {
+                            const participantId = this.getAttribute('data-participant-id');
+                            const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
+                            const timeValue = this.value;
+
+                            if (!timeValue) {
+                                return;
+                            }
+
+                            // Get today's date and combine with time
+                            const today = new Date();
+                            const [hours, minutes] = timeValue.split(':');
+                            const checkInDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours, 10), parseInt(minutes, 10), 0);
+
+                            // Format as ISO string for database
+                            const isoString = checkInDateTime.toISOString();
+
+                            fetch('/api/registration/checkin', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    participantId: participantId,
+                                    eventOccurrenceId: eventOccurrenceId,
+                                    checkInTime: isoString
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        console.log('Check-in time updated successfully');
+                                    } else {
+                                        console.error('Error updating check-in time:', data.error);
+                                        alert('Error updating check-in time: ' + (data.error || 'Unknown error'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error updating check-in time. Please try again.');
+                                });
+                        });
                     });
-                });
-            });
-        }
-    </script>
+
+                    // Handle status updates
+                    document.querySelectorAll('input[type="radio"][name^="status-"]').forEach(radio => {
+                        radio.addEventListener('change', function () {
+                            const participantId = this.getAttribute('data-participant-id');
+                            const eventOccurrenceId = this.getAttribute('data-event-occurrence-id');
+                            const status = this.value;
+
+                            fetch('/api/registration/status', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    participantId: participantId,
+                                    eventOccurrenceId: eventOccurrenceId,
+                                    status: status
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        console.log('Status updated successfully');
+                                    } else {
+                                        console.error('Error updating status:', data.error);
+                                        alert('Error updating status: ' + (data.error || 'Unknown error'));
+                                        // Revert the radio button selection
+                                        this.checked = false;
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error updating status. Please try again.');
+                                    // Revert the radio button selection
+                                    this.checked = false;
+                                });
+                        });
+                    });
+                }
+            </script>
 </body>
 
 </html>
-
