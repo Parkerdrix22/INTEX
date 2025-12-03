@@ -463,10 +463,9 @@ app.post("/participants/add", (req, res) => {
 });
 
 // Participants POST route - Edit Participant (Manager only)
-app.post("/participants/edit/:id", (req, res) => {
-    // Check if user is logged in as manager
-    if (!req.session.isLoggedIn || req.session.level !== 'M') {
-        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+app.post("/participants/edit/:id", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== "M") {
+        return res.status(403).json({ error: "Unauthorized. Manager access required." });
     }
 
     const participantId = req.params.id;
@@ -475,46 +474,67 @@ app.post("/participants/edit/:id", (req, res) => {
         participantFirstName,
         participantLastName,
         participantDOB,
-        participantRole,
+        participantRole, // <- no longer used for final value
         participantPhone,
         participantCity,
         participantState,
         participantZip,
         participantSchoolOrEmployer,
-        participantFieldOfInterest
+        participantFieldOfInterest,
+        participantUsername,
+        participantPassword,
+        participantLevel
     } = req.body;
 
     if (!participantEmail || !participantFirstName || !participantLastName) {
-        return res.status(400).json({ error: 'Email, First Name, and Last Name are required fields' });
+        return res.status(400).json({ error: "Email, First Name, and Last Name are required fields." });
     }
 
-    knex('participants')
-        .where('participantid', participantId)
-        .update({
-            participantemail: participantEmail,
-            participantfirstname: participantFirstName,
-            participantlastname: participantLastName,
-            participantdob: participantDOB || null,
-            participantrole: participantRole || null,
-            participantphone: participantPhone || null,
-            participantcity: participantCity || null,
-            participantstate: participantState || null,
-            participantzip: participantZip || null,
-            participantschooloremployer: participantSchoolOrEmployer || null,
-            participantfieldofinterest: participantFieldOfInterest || null
-        })
-        .then(result => {
-            if (result === 0) {
-                return res.status(404).json({ error: 'Participant not found' });
-            }
-            console.log(`Participant ${participantId} updated successfully`);
-            res.json({ success: true, message: 'Participant updated successfully' });
-        })
-        .catch(err => {
-            console.error("Error updating participant:", err.message);
-            res.status(500).json({ error: `Database error: ${err.message}` });
-        });
+    try {
+        // Determine the role AUTOMATICALLY based on user level
+        let autoRole = participantLevel === "M" ? "admin" : "participant";
+
+        // Update participants table
+        await knex("participants")
+            .where("participantid", participantId)
+            .update({
+                participantemail: participantEmail,
+                participantfirstname: participantFirstName,
+                participantlastname: participantLastName,
+                participantdob: participantDOB || null,
+                participantrole: autoRole,   // <-- AUTOMATIC ROLE
+                participantphone: participantPhone || null,
+                participantcity: participantCity || null,
+                participantstate: participantState || null,
+                participantzip: participantZip || null,
+                participantschooloremployer: participantSchoolOrEmployer || null,
+                participantfieldofinterest: participantFieldOfInterest || null
+            });
+
+        // Get current user record
+        const existingUser = await knex("users")
+            .where("participantid", participantId)
+            .first();
+
+        if (existingUser) {
+            await knex("users")
+                .where("participantid", participantId)
+                .update({
+                    username: participantUsername || existingUser.username,
+                    password: participantPassword || existingUser.password,
+                    level: participantLevel || existingUser.level
+                });
+        }
+
+        return res.json({ success: true });
+
+    } catch (err) {
+        console.error("Error updating participant:", err);
+        return res.status(500).json({ error: "Database error: " + err.message });
+    }
 });
+
+
 
 // Participants POST route - Delete Participant (Manager only)
 app.post("/participants/delete/:id", (req, res) => {
@@ -1809,6 +1829,36 @@ app.post("/api/milestones", (req, res) => {
             res.status(500).json({ error: "Database error" });
         });
 });
+
+app.get("/participants/userinfo/:id", async (req, res) => {
+    const participantId = req.params.id;
+
+    try {
+        const user = await knex("users")
+            .where("participantid", participantId)
+            .first();
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "No user account linked to this participant."
+            });
+        }
+
+        res.json({
+            success: true,
+            user: {
+                username: user.username,
+                password: user.password,   // You said you want it prefilled
+                level: user.level
+            }
+        });
+    } catch (err) {
+        console.error("Error fetching user info:", err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 
 // Update registration check-in time
 app.post("/api/registration/checkin", async (req, res) => {

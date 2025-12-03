@@ -884,6 +884,29 @@
                                 <input type="text" class="form-control" id="participantFieldOfInterest"
                                     placeholder="e.g., STEM, Arts">
                             </div>
+                            <hr class="my-4">
+
+                            <h5 style="font-family: 'DM Serif Display';">Login Information</h5>
+
+                            <div class="mb-3">
+                                <label for="participantUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="participantUsername">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="participantPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="participantPassword"
+                                    placeholder="Leave blank to keep current password">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="participantLevel" class="form-label">Account Level</label>
+                                <select class="form-select" id="participantLevel">
+                                    <option value="U">User</option>
+                                    <option value="M">Admin</option>
+                                </select>
+                            </div>
+
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-primary">Save Participant</button>
@@ -892,251 +915,254 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <% } %>
+            <% } %>
 
-            <!-- Bootstrap JS -->
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                <!-- Bootstrap JS -->
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-            <script>
-                // Make table rows clickable to navigate to personal milestones
-                document.addEventListener('DOMContentLoaded', function () {
-                    const rows = document.querySelectorAll('.table tbody tr.clickable-row');
-                    rows.forEach(row => {
-                        row.addEventListener('click', function (e) {
-                            // Don't navigate if clicking on action buttons
-                            if (e.target.closest('.action-buttons-cell') || e.target.closest('button')) {
-                                return;
-                            }
-                            const participantId = this.getAttribute('data-participant-id');
-                            if (participantId) {
-                                window.location.href = `/personal-milestones?participantId=${participantId}`;
-                            }
+                <script>
+                    // Make table rows clickable to navigate to personal milestones
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const rows = document.querySelectorAll('.table tbody tr.clickable-row');
+                        rows.forEach(row => {
+                            row.addEventListener('click', function (e) {
+                                // Don't navigate if clicking on action buttons
+                                if (e.target.closest('.action-buttons-cell') || e.target.closest('button')) {
+                                    return;
+                                }
+                                const participantId = this.getAttribute('data-participant-id');
+                                if (participantId) {
+                                    window.location.href = `/personal-milestones?participantId=${participantId}`;
+                                }
+                            });
                         });
                     });
-                });
 
         <% if (user && user.isManager) { %>
-                    // Manager Functions
-                    function openAddParticipantModal() {
-                        document.getElementById('participantModalTitle').textContent = 'Add New Participant';
-                        document.getElementById('participantForm').reset();
-                        document.getElementById('participantForm').setAttribute('data-mode', 'add');
-                        document.getElementById('participantForm').removeAttribute('data-participant-id');
-                        const modal = new bootstrap.Modal(document.getElementById('participantModal'));
-                        modal.show();
-                    }
-
-                    function openEditParticipantModal(participantId) {
-                        // Find the row by looking for the edit button with this participant ID
-                        const rows = document.querySelectorAll('.table tbody tr');
-                        let targetRow = null;
-                        rows.forEach(r => {
-                            const editBtn = r.querySelector('button[onclick*="openEditParticipantModal"]');
-                            if (editBtn && editBtn.getAttribute('onclick').includes(participantId.toString())) {
-                                targetRow = r;
-                            }
-                        });
-                        if (!targetRow) {
-                            alert('Could not find participant data');
-                            return;
+                        // Manager Functions
+                        function openAddParticipantModal() {
+                            document.getElementById('participantModalTitle').textContent = 'Add New Participant';
+                            document.getElementById('participantForm').reset();
+                            document.getElementById('participantForm').setAttribute('data-mode', 'add');
+                            document.getElementById('participantForm').removeAttribute('data-participant-id');
+                            const modal = new bootstrap.Modal(document.getElementById('participantModal'));
+                            modal.show();
                         }
 
-                        const cells = targetRow.querySelectorAll('td');
-                        const dataStartIndex = 0;
-                        const expectedCells = 11; // Email through Interest
-
-                        if (cells.length < expectedCells) {
-                            alert('Invalid table structure');
-                            return;
-                        }
-
-                        // Populate form
-                        document.getElementById('participantModalTitle').textContent = 'Edit Participant';
-                        document.getElementById('participantEmail').value = cells[dataStartIndex].textContent.trim();
-                        document.getElementById('participantFirstName').value = cells[dataStartIndex + 1].textContent.trim();
-                        document.getElementById('participantLastName').value = cells[dataStartIndex + 2].textContent.trim();
-
-                        // Parse date from formatted string
-                        const dobText = cells[dataStartIndex + 3].textContent.trim();
-                        if (dobText) {
-                            let dobDate = null;
-                            if (dobText.includes('/')) {
-                                const parts = dobText.split('/');
-                                if (parts.length === 3) {
-                                    dobDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                        function openEditParticipantModal(participantId) {
+                            // Find the row by looking for the edit button with this participant ID
+                            const rows = document.querySelectorAll('.table tbody tr');
+                            let targetRow = null;
+                            rows.forEach(r => {
+                                const editBtn = r.querySelector('button[onclick*="openEditParticipantModal"]');
+                                if (editBtn && editBtn.getAttribute('onclick').includes(participantId.toString())) {
+                                    targetRow = r;
                                 }
-                            } else if (dobText.includes('-')) {
-                                dobDate = new Date(dobText);
-                            }
-                            if (dobDate && !isNaN(dobDate.getTime())) {
-                                document.getElementById('participantDOB').value = dobDate.toISOString().split('T')[0];
-                            }
-                        }
-
-                        document.getElementById('participantRole').value = cells[dataStartIndex + 4].textContent.trim();
-                        document.getElementById('participantPhone').value = cells[dataStartIndex + 5].textContent.trim();
-                        document.getElementById('participantCity').value = cells[dataStartIndex + 6].textContent.trim();
-                        document.getElementById('participantState').value = cells[dataStartIndex + 7].textContent.trim();
-                        document.getElementById('participantZip').value = cells[dataStartIndex + 8].textContent.trim();
-                        document.getElementById('participantSchoolOrEmployer').value = cells[dataStartIndex + 9].textContent.trim();
-                        document.getElementById('participantFieldOfInterest').value = cells[dataStartIndex + 10].textContent.trim();
-
-                        document.getElementById('participantForm').setAttribute('data-mode', 'edit');
-                        document.getElementById('participantForm').setAttribute('data-participant-id', participantId);
-
-                        const modal = new bootstrap.Modal(document.getElementById('participantModal'));
-                        modal.show();
-                    }
-
-                    function confirmDeleteParticipant(participantId, participantName) {
-                        if (confirm(`Are you sure you want to delete "${participantName}"?\n\nThis action cannot be undone.`)) {
-                            deleteParticipant(participantId);
-                        }
-                    }
-
-                    function deleteParticipant(participantId) {
-                        fetch(`/participants/delete/${participantId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    const rows = document.querySelectorAll('.table tbody tr');
-                                    rows.forEach(row => {
-                                        const deleteBtn = row.querySelector(`button[onclick*="confirmDeleteParticipant(${participantId}"]`);
-                                        if (deleteBtn) {
-                                            row.style.transition = 'opacity 0.3s';
-                                            row.style.opacity = '0';
-                                            setTimeout(() => {
-                                                row.remove();
-                                                const remainingRows = document.querySelectorAll('.table tbody tr');
-                                                document.querySelector('.participant-count-box strong').textContent = remainingRows.length;
-                                                alert('Participant deleted successfully!');
-                                            }, 300);
-                                        }
-                                    });
-                                } else {
-                                    alert('Error: ' + (data.error || 'Failed to delete participant'));
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Error deleting participant. Please try again.');
                             });
-                    }
+                            if (!targetRow) {
+                                alert('Could not find participant data');
+                                return;
+                            }
 
-                    function handleParticipantSubmit(event) {
-                        event.preventDefault();
-                        const form = event.target;
-                        const mode = form.getAttribute('data-mode');
-                        const participantId = form.getAttribute('data-participant-id');
+                            const cells = targetRow.querySelectorAll('td');
+                            const dataStartIndex = 0;
+                            const expectedCells = 11; // Email through Interest
 
-                        const participantEmail = document.getElementById('participantEmail').value;
-                        const participantFirstName = document.getElementById('participantFirstName').value;
-                        const participantLastName = document.getElementById('participantLastName').value;
-                        const participantDOB = document.getElementById('participantDOB').value;
-                        const participantRole = document.getElementById('participantRole').value;
-                        const participantPhone = document.getElementById('participantPhone').value;
-                        const participantCity = document.getElementById('participantCity').value;
-                        const participantState = document.getElementById('participantState').value;
-                        const participantZip = document.getElementById('participantZip').value;
-                        const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
-                        const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
+                            if (cells.length < expectedCells) {
+                                alert('Invalid table structure');
+                                return;
+                            }
 
-                        if (mode === 'add') {
-                            fetch('/participants/add', {
+                            // Populate form
+                            document.getElementById('participantModalTitle').textContent = 'Edit Participant';
+                            document.getElementById('participantEmail').value = cells[dataStartIndex].textContent.trim();
+                            document.getElementById('participantFirstName').value = cells[dataStartIndex + 1].textContent.trim();
+                            document.getElementById('participantLastName').value = cells[dataStartIndex + 2].textContent.trim();
+
+                            // Parse date from formatted string
+                            const dobText = cells[dataStartIndex + 3].textContent.trim();
+                            if (dobText) {
+                                let dobDate = null;
+                                if (dobText.includes('/')) {
+                                    const parts = dobText.split('/');
+                                    if (parts.length === 3) {
+                                        dobDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                                    }
+                                } else if (dobText.includes('-')) {
+                                    dobDate = new Date(dobText);
+                                }
+                                if (dobDate && !isNaN(dobDate.getTime())) {
+                                    document.getElementById('participantDOB').value = dobDate.toISOString().split('T')[0];
+                                }
+                            }
+
+                            document.getElementById('participantRole').value = cells[dataStartIndex + 4].textContent.trim();
+                            document.getElementById('participantPhone').value = cells[dataStartIndex + 5].textContent.trim();
+                            document.getElementById('participantCity').value = cells[dataStartIndex + 6].textContent.trim();
+                            document.getElementById('participantState').value = cells[dataStartIndex + 7].textContent.trim();
+                            document.getElementById('participantZip').value = cells[dataStartIndex + 8].textContent.trim();
+                            document.getElementById('participantSchoolOrEmployer').value = cells[dataStartIndex + 9].textContent.trim();
+                            document.getElementById('participantFieldOfInterest').value = cells[dataStartIndex + 10].textContent.trim();
+
+                            document.getElementById('participantForm').setAttribute('data-mode', 'edit');
+                            document.getElementById('participantForm').setAttribute('data-participant-id', participantId);
+                            // Fetch user account info for this participant
+                            fetch(`/participants/userinfo/${participantId}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success && data.user) {
+                                        document.getElementById("participantUsername").value = data.user.username || "";
+                                        document.getElementById("participantPassword").value = data.user.password || "";
+                                        document.getElementById("participantLevel").value = data.user.level || "U";
+                                    } else {
+                                        // No account found — clear the fields
+                                        document.getElementById("participantUsername").value = "";
+                                        document.getElementById("participantPassword").value = "";
+                                        document.getElementById("participantLevel").value = "U";
+                                    }
+                                })
+                                .catch(err => console.error("Error fetching user info:", err));
+
+
+                            const modal = new bootstrap.Modal(document.getElementById('participantModal'));
+                            modal.show();
+                        }
+
+                        function confirmDeleteParticipant(participantId, participantName) {
+                            if (confirm(`Are you sure you want to delete "${participantName}"?\n\nThis action cannot be undone.`)) {
+                                deleteParticipant(participantId);
+                            }
+                        }
+
+                        function deleteParticipant(participantId) {
+                            fetch(`/participants/delete/${participantId}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: new URLSearchParams({
-                                    participantEmail: participantEmail,
-                                    participantFirstName: participantFirstName,
-                                    participantLastName: participantLastName,
-                                    participantDOB: participantDOB,
-                                    participantRole: participantRole,
-                                    participantPhone: participantPhone,
-                                    participantCity: participantCity,
-                                    participantState: participantState,
-                                    participantZip: participantZip,
-                                    participantSchoolOrEmployer: participantSchoolOrEmployer,
-                                    participantFieldOfInterest: participantFieldOfInterest
-                                })
+                                }
                             })
                                 .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
-                                        alert('Participant added successfully! Refreshing page...');
-                                        window.location.reload();
+                                        const rows = document.querySelectorAll('.table tbody tr');
+                                        rows.forEach(row => {
+                                            const deleteBtn = row.querySelector(`button[onclick*="confirmDeleteParticipant(${participantId}"]`);
+                                            if (deleteBtn) {
+                                                row.style.transition = 'opacity 0.3s';
+                                                row.style.opacity = '0';
+                                                setTimeout(() => {
+                                                    row.remove();
+                                                    const remainingRows = document.querySelectorAll('.table tbody tr');
+                                                    document.querySelector('.participant-count-box strong').textContent = remainingRows.length;
+                                                    alert('Participant deleted successfully!');
+                                                }, 300);
+                                            }
+                                        });
                                     } else {
-                                        alert('Error: ' + (data.error || 'Failed to add participant'));
+                                        alert('Error: ' + (data.error || 'Failed to delete participant'));
                                     }
                                 })
                                 .catch(error => {
                                     console.error('Error:', error);
-                                    alert('Error adding participant. Please try again.');
-                                });
-                        } else if (mode === 'edit') {
-                            fetch(`/participants/edit/${participantId}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: new URLSearchParams({
-                                    participantEmail: participantEmail,
-                                    participantFirstName: participantFirstName,
-                                    participantLastName: participantLastName,
-                                    participantDOB: participantDOB,
-                                    participantRole: participantRole,
-                                    participantPhone: participantPhone,
-                                    participantCity: participantCity,
-                                    participantState: participantState,
-                                    participantZip: participantZip,
-                                    participantSchoolOrEmployer: participantSchoolOrEmployer,
-                                    participantFieldOfInterest: participantFieldOfInterest
-                                })
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        alert('Participant updated successfully! Refreshing page...');
-                                        window.location.reload();
-                                    } else {
-                                        alert('Error: ' + (data.error || 'Failed to update participant'));
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    alert('Error updating participant. Please try again.');
+                                    alert('Error deleting participant. Please try again.');
                                 });
                         }
 
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('participantModal'));
-                        modal.hide();
-                    }
-        <% } %>
-            </script>
-            <script>
-                    function filterParticipants() {
-                        const searchValue = document.getElementById("participantSearch").value.toLowerCase();
-                        const rows = document.querySelectorAll(".table tbody tr");
+                        function handleParticipantSubmit(event) {
+                            event.preventDefault();
 
-                        rows.forEach(row => {
-                            const firstName = row.children[1]?.textContent.toLowerCase() || "";
-                            const lastName = row.children[2]?.textContent.toLowerCase() || "";
+                            const form = event.target;
+                            const mode = form.getAttribute("data-mode");
+                            const participantId = form.getAttribute("data-participant-id");
 
-                            if (firstName.includes(searchValue) || lastName.includes(searchValue)) {
-                                row.style.display = "";
-                            } else {
-                                row.style.display = "none";
+                            // Participant fields
+                            const participantEmail = document.getElementById('participantEmail').value;
+                            const participantFirstName = document.getElementById('participantFirstName').value;
+                            const participantLastName = document.getElementById('participantLastName').value;
+                            const participantDOB = document.getElementById('participantDOB').value;
+                            const participantRole = document.getElementById('participantRole').value;
+                            const participantPhone = document.getElementById('participantPhone').value;
+                            const participantCity = document.getElementById('participantCity').value;
+                            const participantState = document.getElementById('participantState').value;
+                            const participantZip = document.getElementById('participantZip').value;
+                            const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
+                            const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
+
+                            // NEW — Login fields
+                            const participantUsername = document.getElementById('participantUsername').value;
+                            const participantPassword = document.getElementById('participantPassword').value;
+                            const participantLevel = document.getElementById('participantLevel').value;
+
+                            // REQUIRED on ADD (Option B) 
+                            if (mode === "add") {
+                                if (!participantUsername || !participantPassword) {
+                                    alert("Username and Password are required to create a new participant login.");
+                                    return;
+                                }
                             }
-                        });
-                    }
-            </script>
+
+                            const url = mode === "add"
+                                ? "/participants/add"
+                                : `/participants/edit/${participantId}`;
+
+                            const bodyData = new URLSearchParams({
+                                participantEmail,
+                                participantFirstName,
+                                participantLastName,
+                                participantDOB,
+                                participantRole,
+                                participantPhone,
+                                participantCity,
+                                participantState,
+                                participantZip,
+                                participantSchoolOrEmployer,
+                                participantFieldOfInterest,
+                                participantUsername,
+                                participantPassword,
+                                participantLevel
+                            });
+
+                            fetch(url, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: bodyData
+                            })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    if (data.success) {
+                                        alert(`Participant ${mode === "add" ? "added" : "updated"} successfully!`);
+                                        window.location.reload();
+                                    } else {
+                                        alert("Error: " + (data.error || "An error occurred."));
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error("Error:", error);
+                                    alert("An error occurred. Please try again.");
+                                });
+
+                            const modal = bootstrap.Modal.getInstance(document.getElementById("participantModal"));
+                            modal.hide();
+                        }
+        <% } %>
+                </script>
+                <script>
+                        function filterParticipants() {
+                            const searchValue = document.getElementById("participantSearch").value.toLowerCase();
+                            const rows = document.querySelectorAll(".table tbody tr");
+
+                            rows.forEach(row => {
+                                const firstName = row.children[1]?.textContent.toLowerCase() || "";
+                                const lastName = row.children[2]?.textContent.toLowerCase() || "";
+
+                                if (firstName.includes(searchValue) || lastName.includes(searchValue)) {
+                                    row.style.display = "";
+                                } else {
+                                    row.style.display = "none";
+                                }
+                            });
+                        }
+                </script>
 
 </body>
 
