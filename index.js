@@ -245,6 +245,105 @@ app.get("/", async (req, res) => {
     res.render("index", { user: userInfo });
 });
 
+// Donations route
+app.get("/donations", async (req, res) => {
+    const userInfo = await getUserInfo(req);
+    res.render("donations", { user: userInfo });
+});
+
+// Donations data API for managers
+app.get("/api/donations/data", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    try {
+        // Get all donations and calculate totals
+        const donations = await knex('donations')
+            .select('donations.donationamount');
+
+        let totalDonations = 0;
+        let totalAmount = 0;
+
+        donations.forEach(donation => {
+            totalDonations++;
+            totalAmount += parseFloat(donation.donationamount || 0);
+        });
+
+        res.json({
+            success: true,
+            data: {
+                totalDonations: totalDonations,
+                totalAmount: totalAmount
+            }
+        });
+    } catch (err) {
+        console.error("Error fetching donation data:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// Donations submit route - save donation to database
+app.post("/donations/submit", async (req, res) => {
+    // Check if user is logged in
+    if (!req.session.isLoggedIn) {
+        return res.status(401).json({ 
+            success: false, 
+            error: "Please sign in to make a donation." 
+        });
+    }
+
+    const userInfo = await getUserInfo(req);
+    
+    // Check if user has a participantid
+    if (!userInfo || !userInfo.participantid) {
+        return res.status(400).json({ 
+            success: false, 
+            error: "User account is not linked to a participant." 
+        });
+    }
+
+    const { donationAmount } = req.body;
+
+    // Validate donation amount
+    if (!donationAmount || parseFloat(donationAmount) <= 0) {
+        return res.status(400).json({ 
+            success: false, 
+            error: "Please enter a valid donation amount." 
+        });
+    }
+
+    try {
+        // Get current date only (no time) - format as YYYY-MM-DD
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const donationDate = `${year}-${month}-${day}`;
+        
+        // Insert donation into database
+        await knex('donations').insert({
+            participantid: userInfo.participantid,
+            donationdate: donationDate,
+            donationamount: parseFloat(donationAmount)
+        });
+
+        // Return success - frontend will redirect to Givebutter
+        res.json({ 
+            success: true, 
+            message: "Donation recorded successfully.",
+            givebutterUrl: "https://givebutter.com/EllaRises"
+        });
+    } catch (err) {
+        console.error("Error saving donation:", err.message);
+        res.status(500).json({ 
+            success: false, 
+            error: "Failed to save donation. Please try again." 
+        });
+    }
+});
+
 
 
 // Events route
