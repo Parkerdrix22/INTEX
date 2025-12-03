@@ -462,18 +462,20 @@ app.post("/participants/add", (req, res) => {
 });
 
 // Participants POST route - Edit Participant (Manager only)
+// Participants POST route - Edit Participant (Manager only)
 app.post("/participants/edit/:id", async (req, res) => {
     if (!req.session.isLoggedIn || req.session.level !== "M") {
         return res.status(403).json({ error: "Unauthorized. Manager access required." });
     }
 
     const participantId = req.params.id;
+
     const {
         participantEmail,
         participantFirstName,
         participantLastName,
         participantDOB,
-        participantRole, // <- no longer used for final value
+        participantRole, // ignored; we compute it from level
         participantPhone,
         participantCity,
         participantState,
@@ -485,53 +487,86 @@ app.post("/participants/edit/:id", async (req, res) => {
         participantLevel
     } = req.body;
 
+    // Basic validation for participant info
     if (!participantEmail || !participantFirstName || !participantLastName) {
-        return res.status(400).json({ error: "Email, First Name, and Last Name are required fields." });
+        return res
+            .status(400)
+            .json({ error: "Email, First Name, and Last Name are required." });
     }
+
+    // Normalize level and auto-set participant role
+    const level = participantLevel === "M" ? "M" : "U"; // default to User
+    const autoRole = level === "M" ? "admin" : "participant";
 
     try {
-        // Determine the role AUTOMATICALLY based on user level
-        let autoRole = participantLevel === "M" ? "admin" : "participant";
-
-        // Update participants table
-        await knex("participants")
-            .where("participantid", participantId)
-            .update({
-                participantemail: participantEmail,
-                participantfirstname: participantFirstName,
-                participantlastname: participantLastName,
-                participantdob: participantDOB || null,
-                participantrole: autoRole,   // <-- AUTOMATIC ROLE
-                participantphone: participantPhone || null,
-                participantcity: participantCity || null,
-                participantstate: participantState || null,
-                participantzip: participantZip || null,
-                participantschooloremployer: participantSchoolOrEmployer || null,
-                participantfieldofinterest: participantFieldOfInterest || null
-            });
-
-        // Get current user record
-        const existingUser = await knex("users")
-            .where("participantid", participantId)
-            .first();
-
-        if (existingUser) {
-            await knex("users")
+        await knex.transaction(async (trx) => {
+            // 1️⃣ Update participant info
+            const updatedRows = await trx("participants")
                 .where("participantid", participantId)
                 .update({
-                    username: participantUsername || existingUser.username,
-                    password: participantPassword || existingUser.password,
-                    level: participantLevel || existingUser.level
+                    participantemail: participantEmail,
+                    participantfirstname: participantFirstName,
+                    participantlastname: participantLastName,
+                    participantdob: participantDOB || null,
+                    participantrole: autoRole, // 🔥 automatic from level
+                    participantphone: participantPhone || null,
+                    participantcity: participantCity || null,
+                    participantstate: participantState || null,
+                    participantzip: participantZip || null,
+                    participantschooloremployer: participantSchoolOrEmployer || null,
+                    participantfieldofinterest: participantFieldOfInterest || null
                 });
-        }
 
-        return res.json({ success: true });
+            if (updatedRows === 0) {
+                throw new Error("Participant not found");
+            }
+
+            // 2️⃣ If username + password were provided, sync the users table
+            const hasLoginData =
+                (participantUsername && participantUsername.trim() !== "") &&
+                (participantPassword && participantPassword.trim() !== "");
+
+            if (!hasLoginData) {
+                // No login info provided → don't create/update a user record
+                return;
+            }
+
+            const existingUser = await trx("users")
+                .where("participantid", participantId)
+                .first();
+
+            if (existingUser) {
+                // 3️⃣ UPDATE existing user
+                await trx("users")
+                    .where("participantid", participantId)
+                    .update({
+                        username: participantUsername,
+                        password: participantPassword,
+                        level: level
+                    });
+            } else {
+                // 4️⃣ CREATE new user linked to this participant
+                await trx("users").insert({
+                    participantid: participantId,
+                    username: participantUsername,
+                    password: participantPassword,
+                    level: level
+                });
+            }
+        });
+
+        console.log(`Participant ${participantId} (and user, if provided) updated successfully.`);
+        return res.json({ success: true, message: "Participant saved successfully." });
 
     } catch (err) {
-        console.error("Error updating participant:", err);
-        return res.status(500).json({ error: "Database error: " + err.message });
+        console.error("Error updating participant/user:", err);
+        if (err.message === "Participant not found") {
+            return res.status(404).json({ error: "Participant not found" });
+        }
+        return res.status(500).json({ error: err.message });
     }
 });
+
 
 
 

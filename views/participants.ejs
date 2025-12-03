@@ -1031,42 +1031,28 @@ fetch(`/participants/userinfo/${participantId}`)
         
         function handleParticipantSubmit(event) {
     event.preventDefault();
-
     const form = event.target;
     const mode = form.getAttribute("data-mode");
     const participantId = form.getAttribute("data-participant-id");
 
-    // Participant fields
-    const participantEmail = document.getElementById('participantEmail').value;
-    const participantFirstName = document.getElementById('participantFirstName').value;
-    const participantLastName = document.getElementById('participantLastName').value;
-    const participantDOB = document.getElementById('participantDOB').value;
-    const participantRole = document.getElementById('participantRole').value;
-    const participantPhone = document.getElementById('participantPhone').value;
-    const participantCity = document.getElementById('participantCity').value;
-    const participantState = document.getElementById('participantState').value;
-    const participantZip = document.getElementById('participantZip').value;
-    const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
-    const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
+    const participantEmail = document.getElementById("participantEmail").value;
+    const participantFirstName = document.getElementById("participantFirstName").value;
+    const participantLastName = document.getElementById("participantLastName").value;
+    const participantDOB = document.getElementById("participantDOB").value;
+    const participantRole = document.getElementById("participantRole").value;
+    const participantPhone = document.getElementById("participantPhone").value;
+    const participantCity = document.getElementById("participantCity").value;
+    const participantState = document.getElementById("participantState").value;
+    const participantZip = document.getElementById("participantZip").value;
+    const participantSchoolOrEmployer = document.getElementById("participantSchoolOrEmployer").value;
+    const participantFieldOfInterest = document.getElementById("participantFieldOfInterest").value;
 
-    // NEW — Login fields
-    const participantUsername = document.getElementById('participantUsername').value;
-    const participantPassword = document.getElementById('participantPassword').value;
-    const participantLevel = document.getElementById('participantLevel').value;
+    // 🔹 NEW: grab login fields
+    const participantUsername = document.getElementById("participantUsername").value;
+    const participantPassword = document.getElementById("participantPassword").value;
+    const participantLevel = document.getElementById("participantLevel").value;
 
-    // REQUIRED on ADD (Option B) 
-    if (mode === "add") {
-        if (!participantUsername || !participantPassword) {
-            alert("Username and Password are required to create a new participant login.");
-            return;
-        }
-    }
-
-    const url = mode === "add"
-        ? "/participants/add"
-        : `/participants/edit/${participantId}`;
-
-    const bodyData = new URLSearchParams({
+    const commonBody = {
         participantEmail,
         participantFirstName,
         participantLastName,
@@ -1078,33 +1064,60 @@ fetch(`/participants/userinfo/${participantId}`)
         participantZip,
         participantSchoolOrEmployer,
         participantFieldOfInterest,
+        // 🔹 send login fields too (backend will use them for /edit)
         participantUsername,
         participantPassword,
         participantLevel
-    });
+    };
 
-    fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: bodyData
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        if (data.success) {
-            alert(`Participant ${mode === "add" ? "added" : "updated"} successfully!`);
-            window.location.reload();
-        } else {
-            alert("Error: " + (data.error || "An error occurred."));
-        }
-    })
-    .catch((error) => {
-        console.error("Error:", error);
-        alert("An error occurred. Please try again.");
-    });
+    if (mode === "add") {
+        fetch("/participants/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams(commonBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Participant added successfully! Refreshing page...");
+                window.location.reload();
+            } else {
+                alert("Error: " + (data.error || "Failed to add participant"));
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error adding participant. Please try again.");
+        });
+    } else if (mode === "edit") {
+        fetch(`/participants/edit/${participantId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams(commonBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Participant updated successfully! Refreshing page...");
+                window.location.reload();
+            } else {
+                alert("Error: " + (data.error || "Failed to update participant"));
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error updating participant. Please try again.");
+        });
+    }
 
     const modal = bootstrap.Modal.getInstance(document.getElementById("participantModal"));
     modal.hide();
 }
+
 
         <% } %>
     </script>
