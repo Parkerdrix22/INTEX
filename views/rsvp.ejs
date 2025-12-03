@@ -72,6 +72,57 @@
             border-left: 2px solid rgba(0, 0, 0, 0.1);
         }
 
+        /* Top bar for authentication links */
+        .top-bar {
+            background-color: var(--er-pink);
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .top-bar .container {
+            max-width: 1600px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .top-bar-links {
+            display: flex;
+            gap: 0;
+            align-items: center;
+            background-color: #ffffff;
+            border-radius: 50px;
+            padding: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar-link {
+            color: #000000;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-bar-link:hover {
+            color: var(--er-pink-dark);
+        }
+
+        .top-bar-link:not(:last-child) {
+            border-right: 1px solid var(--er-pink);
+        }
+
+        .top-bar-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
         /* Footer */
         footer {
             background-color: var(--er-pink);
@@ -198,6 +249,24 @@
     </style>
 </head>
 <body>
+    <!-- Top bar for authentication links -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-links">
+                <% if (!user) { %>
+                    <a href="/login" class="top-bar-link">Sign In / Create Account</a>
+                <% } else { %>
+                    <a href="/logout" class="top-bar-link">Logout</a>
+                    <a href="/profile" class="top-bar-link">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
     <!-- Light pink navbar with links -->
     <nav class="navbar navbar-expand-md navbar-light">
         <div class="container">
@@ -243,16 +312,7 @@
                     </li>
                     <% if (user && user.isManager) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
-                    </li>
-                    <% } %>
-                    <% if (!user) { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/login">Sign In / Create Account</a>
-                    </li>
-                    <% } else { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/logout">Logout</a>
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
                     </li>
                     <% } %>
                 </ul>

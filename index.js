@@ -177,7 +177,7 @@ async function getUserInfo(req) {
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
     // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/teapot' || req.path.startsWith('/api/')) {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -548,6 +548,105 @@ app.get("/milestones", async (req, res) => {
 app.get("/dashboard", async (req, res) => {
     const userInfo = await getUserInfo(req);
     res.render("dashboard", { user: userInfo });
+});
+
+// Profile route
+app.get("/profile", async (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect("/login");
+    }
+    
+    const userInfo = await getUserInfo(req);
+    
+    // Get user data from database
+    let userData = null;
+    let participantData = null;
+    
+    try {
+        // Get user data
+        userData = await knex('users')
+            .where('username', req.session.username)
+            .first();
+        
+        // Get participant data if participantid exists
+        if (req.session.participantid) {
+            participantData = await knex('participants')
+                .where('participantid', req.session.participantid)
+                .first();
+        }
+    } catch (err) {
+        console.error("Error fetching profile data:", err);
+    }
+    
+    res.render("profile", { 
+        user: userInfo,
+        userData: userData,
+        participantData: participantData
+    });
+});
+
+// Profile update route
+app.post("/profile/update", async (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const {
+        username,
+        password,
+        participantEmail,
+        participantFirstName,
+        participantLastName,
+        participantDOB,
+        participantPhone,
+        participantCity,
+        participantState,
+        participantZip,
+        participantSchoolOrEmployer,
+        participantFieldOfInterest
+    } = req.body;
+    
+    try {
+        // Update user data if username or password changed
+        if (username || password) {
+            const userUpdate = {};
+            if (username) userUpdate.username = username;
+            if (password) userUpdate.password = password;
+            
+            await knex('users')
+                .where('username', req.session.username)
+                .update(userUpdate);
+            
+            // Update session if username changed
+            if (username && username !== req.session.username) {
+                req.session.username = username;
+            }
+        }
+        
+        // Update participant data if participantid exists
+        if (req.session.participantid) {
+            const participantUpdate = {};
+            if (participantEmail) participantUpdate.participantemail = participantEmail;
+            if (participantFirstName !== undefined) participantUpdate.participantfirstname = participantFirstName;
+            if (participantLastName !== undefined) participantUpdate.participantlastname = participantLastName;
+            if (participantDOB !== undefined) participantUpdate.participantdob = participantDOB || null;
+            if (participantPhone !== undefined) participantUpdate.participantphone = participantPhone || null;
+            if (participantCity !== undefined) participantUpdate.participantcity = participantCity || null;
+            if (participantState !== undefined) participantUpdate.participantstate = participantState || null;
+            if (participantZip !== undefined) participantUpdate.participantzip = participantZip || null;
+            if (participantSchoolOrEmployer !== undefined) participantUpdate.participantschooloremployer = participantSchoolOrEmployer || null;
+            if (participantFieldOfInterest !== undefined) participantUpdate.participantfieldofinterest = participantFieldOfInterest || null;
+            
+            await knex('participants')
+                .where('participantid', req.session.participantid)
+                .update(participantUpdate);
+        }
+        
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (err) {
+        console.error("Error updating profile:", err);
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
 });
 
 // Personal Milestones route
