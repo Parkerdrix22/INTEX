@@ -133,7 +133,7 @@ async function getUserInfo(req) {
     if (!req.session.isLoggedIn) {
         return null;
     }
-    
+
     const userInfo = {
         username: req.session.username,
         level: req.session.level,
@@ -141,14 +141,14 @@ async function getUserInfo(req) {
         isUser: req.session.level === 'U',
         participantid: req.session.participantid || null
     };
-    
+
     // If user has a participantid, get participant data
     if (req.session.participantid) {
         try {
             const participant = await knex('participants')
                 .where('participantid', req.session.participantid)
                 .first();
-            
+
             if (participant) {
                 userInfo.first_name = participant.participantfirstname || '';
                 userInfo.last_name = participant.participantlastname || '';
@@ -169,7 +169,7 @@ async function getUserInfo(req) {
         userInfo.last_name = '';
         userInfo.full_name = req.session.username;
     }
-    
+
     return userInfo;
 }
 
@@ -177,7 +177,7 @@ async function getUserInfo(req) {
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
     // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -244,6 +244,8 @@ app.get("/", async (req, res) => {
     const userInfo = await getUserInfo(req);
     res.render("index", { user: userInfo });
 });
+
+
 
 // Events route
 app.get("/events", async (req, res) => {
@@ -709,7 +711,7 @@ app.get("/my-journey", async (req, res) => {
         if (req.session.participantid) {
             participant = await knex("participants").where("participantid", req.session.participantid).first();
         }
-        
+
         if (!participant) {
             // Fallback to email lookup
             participant = await knex("participants").where("participantemail", req.session.username).first();
@@ -745,10 +747,120 @@ app.get("/my-journey", async (req, res) => {
     });
 });
 
-// RSVP route
-app.get("/rsvp", async (req, res) => {
+// RSVP route - GET
+app.get("/rsvp/:id", async (req, res) => {
     const userInfo = await getUserInfo(req);
-    res.render("rsvp", { user: userInfo });
+
+    const eventId = req.params.id;
+
+    try {
+        // Fetch event details
+        const event = await knex('events')
+            .where('eventid', eventId)
+            .first();
+
+        if (!event) {
+            return res.status(404).render("rsvp", {
+                user: userInfo,
+                event: null,
+                occurrences: [],
+                error_message: "Event not found"
+            });
+        }
+
+        // Fetch occurrences for the event
+        const occurrences = await knex('eventoccurrence')
+            .where('eventid', eventId)
+            .orderBy('eventdatetimestart', 'asc');
+
+        res.render("rsvp", {
+            user: userInfo,
+            event: event,
+            occurrences: occurrences
+        });
+    } catch (err) {
+        console.error("Error fetching event for RSVP:", err.message);
+        res.render("rsvp", {
+            user: userInfo,
+            event: null,
+            occurrences: [],
+            error_message: `Database error: ${err.message}`
+        });
+    }
+});
+
+// RSVP route - POST
+app.post("/rsvp", async (req, res) => {
+    if (!req.session.isLoggedIn) {
+        return res.redirect("/login");
+    }
+
+    const { eventOccurrenceId } = req.body;
+    const userEmail = req.session.username; // Assuming username is email based on login logic
+
+    try {
+        let participantId = req.session.participantid;
+
+        // If participantId is not in session, try to find it by email
+        if (!participantId) {
+            const participant = await knex('participants')
+                .where('participantemail', userEmail)
+                .first();
+
+            if (participant) {
+                participantId = participant.participantid;
+            }
+        }
+
+        if (!participantId) {
+            return res.status(400).send("Participant record not found for your account. Please contact support.");
+        }
+
+        // Insert registration
+        try {
+            await knex('registration').insert({
+                registrationcreatedate: new Date(),
+                participantid: participantId,
+                eventoccurrenceid: eventOccurrenceId,
+                registrationstatus: null,
+                registrationattendedflag: null
+            });
+        } catch (err) {
+            // If duplicate key error (code 23505), ignore and proceed to success page
+            // This means the user has already RSVP'd for this event occurrence
+            if (err.code !== '23505') {
+                throw err;
+            }
+        }
+
+        // Fetch event details for the success page
+        const eventDetails = await knex('eventoccurrence')
+            .join('events', 'eventoccurrence.eventid', 'events.eventid')
+            .select('events.eventname', 'eventoccurrence.eventdatetimestart')
+            .where('eventoccurrence.eventoccurrenceid', eventOccurrenceId)
+            .first();
+
+        const userInfo = await getUserInfo(req);
+
+        if (eventDetails) {
+            const date = new Date(eventDetails.eventdatetimestart);
+            const eventDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const eventTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+            res.render("rsvp-success", {
+                user: userInfo,
+                eventName: eventDetails.eventname,
+                eventDate: eventDate,
+                eventTime: eventTime
+            });
+        } else {
+            res.redirect("/events");
+        }
+
+    } catch (err) {
+        console.error("Error processing RSVP:", err.message);
+        res.status(500).send(`Error processing RSVP: ${err.message}`);
+    }
 });
 
 // Survey route - GET (singular)
@@ -867,7 +979,7 @@ app.get("/surveys", async (req, res) => {
 app.post("/survey", (req, res) => {
     const { eventName, eventId, email, eventoccurrenceid, satisfactionScore, usefulnessScore, instructorScore, recommendationScore, comments } = req.body;
 
-            // Get or create participant ID from email
+    // Get or create participant ID from email
     knex.select('participantid')
         .from('participants')
         .where('participantemail', email)
@@ -875,12 +987,12 @@ app.post("/survey", (req, res) => {
         .then(participant => {
             if (participant) {
                 return participant.participantid;
-    } else {
+            } else {
                 // Create new participant if doesn't exist
                 // Try to get name from user's participant record if available
                 let firstName = '';
                 let lastName = '';
-                
+
                 if (req.session.participantid) {
                     return knex('participants')
                         .where('participantid', req.session.participantid)
@@ -1035,27 +1147,27 @@ app.post("/signup", (req, res) => {
     console.log("Request method:", req.method);
     console.log("Request URL:", req.url);
 
-    const { 
+    const {
         email,
-        username, 
-        password, 
-        participantFirstName, 
-        participantLastName, 
-        participantDOB, 
-        participantPhone, 
-        participantCity, 
-        participantState, 
-        participantZip, 
-        participantSchoolOrEmployer, 
-        participantFieldOfInterest 
+        username,
+        password,
+        participantFirstName,
+        participantLastName,
+        participantDOB,
+        participantPhone,
+        participantCity,
+        participantState,
+        participantZip,
+        participantSchoolOrEmployer,
+        participantFieldOfInterest
     } = req.body;
 
-    console.log("Signup attempt:", { 
-        email, 
-        username, 
-        participantFirstName, 
-        participantLastName, 
-        hasPassword: !!password 
+    console.log("Signup attempt:", {
+        email,
+        username,
+        participantFirstName,
+        participantLastName,
+        hasPassword: !!password
     });
 
     // Basic validation - email, username, password, first name, and last name are required
@@ -1103,7 +1215,7 @@ app.post("/signup", (req, res) => {
                         .returning('participantid')
                         .then(participantIds => {
                             const participantid = participantIds[0].participantid;
-                            
+
                             // Create new user with level 'U' (User) and link to participant
                             const newUser = {
                                 username,
@@ -1552,19 +1664,19 @@ app.post("/api/milestones", (req, res) => {
     if (date_achieved && date_achieved.trim() !== '') {
         const dateStr = date_achieved.trim();
         console.log("Processing date string:", dateStr);
-        
+
         // Parse the date string (format: YYYY-MM-DD) 
         // Add time component to avoid timezone issues - set to noon UTC to avoid date shifts
         const dateParts = dateStr.split('-');
         console.log("Date parts:", dateParts);
-        
+
         if (dateParts.length === 3) {
             const year = parseInt(dateParts[0], 10);
             const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
             const day = parseInt(dateParts[2], 10);
-            
+
             console.log("Parsed date components:", { year, month: month + 1, day });
-            
+
             // Create date at noon UTC to avoid timezone shifts
             milestoneDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
             console.log("Created Date object:", milestoneDate);
@@ -1574,7 +1686,7 @@ app.post("/api/milestones", (req, res) => {
             console.log("Date format unexpected, trying to parse as-is");
             milestoneDate = new Date(dateStr);
         }
-        
+
         // Ensure it's a valid date
         if (isNaN(milestoneDate.getTime())) {
             console.log("ERROR: Invalid date parsed, using today's date");
