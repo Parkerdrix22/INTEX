@@ -145,10 +145,31 @@
 
     .form-section {
       display: none;
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 0.5rem;
     }
 
     .form-section.active {
       display: block;
+    }
+    
+    .form-section::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .form-section::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    .form-section::-webkit-scrollbar-thumb {
+      background: var(--er-pink-dark);
+      border-radius: 3px;
+    }
+    
+    .form-section::-webkit-scrollbar-thumb:hover {
+      background: #ff8ab8;
     }
 
     .form-title {
@@ -320,22 +341,54 @@
       <!-- Sign Up Form -->
       <div id="signupForm" class="form-section">
         <h2 class="form-title">Create Account</h2>
-        <form action="/signup" method="POST">
+        <form action="/signup" method="POST" id="signupFormElement">
           <div class="form-group">
-            <label for="signup-first-name" class="form-label">First Name</label>
-            <input type="text" id="signup-first-name" name="first_name" class="form-control" required>
+            <label for="signup-email" class="form-label">Email <span style="color: red;">*</span></label>
+            <input type="email" id="signup-email" name="email" class="form-control" required>
           </div>
           <div class="form-group">
-            <label for="signup-last-name" class="form-label">Last Name</label>
-            <input type="text" id="signup-last-name" name="last_name" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="signup-username" class="form-label">Username</label>
+            <label for="signup-username" class="form-label">Username <span style="color: red;">*</span></label>
             <input type="text" id="signup-username" name="username" class="form-control" required>
           </div>
           <div class="form-group">
-            <label for="signup-password" class="form-label">Password</label>
+            <label for="signup-password" class="form-label">Password <span style="color: red;">*</span></label>
             <input type="password" id="signup-password" name="password" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-first-name" class="form-label">First Name <span style="color: red;">*</span></label>
+            <input type="text" id="signup-first-name" name="participantFirstName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-last-name" class="form-label">Last Name <span style="color: red;">*</span></label>
+            <input type="text" id="signup-last-name" name="participantLastName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="signup-dob" class="form-label">Date of Birth</label>
+            <input type="date" id="signup-dob" name="participantDOB" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="signup-phone" class="form-label">Phone</label>
+            <input type="tel" id="signup-phone" name="participantPhone" class="form-control" placeholder="e.g., 801-123-4567">
+          </div>
+          <div class="form-group">
+            <label for="signup-city" class="form-label">City</label>
+            <input type="text" id="signup-city" name="participantCity" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="signup-state" class="form-label">State</label>
+            <input type="text" id="signup-state" name="participantState" class="form-control" placeholder="e.g., UT">
+          </div>
+          <div class="form-group">
+            <label for="signup-zip" class="form-label">Zip Code</label>
+            <input type="text" id="signup-zip" name="participantZip" class="form-control" placeholder="e.g., 84105">
+          </div>
+          <div class="form-group">
+            <label for="signup-school" class="form-label">School/Employer</label>
+            <input type="text" id="signup-school" name="participantSchoolOrEmployer" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="signup-interest" class="form-label">Field of Interest</label>
+            <input type="text" id="signup-interest" name="participantFieldOfInterest" class="form-control" placeholder="e.g., STEM, Arts">
           </div>
           <button type="submit" class="btn">Sign Up</button>
         </form>

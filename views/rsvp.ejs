@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,12 @@
         }
 
         /* DM Serif Display for all titles and headers */
-        h1, h2, h3, h4, h5, h6,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
         .navbar-brand {
             font-family: 'DM Serif Display', serif;
         }
@@ -40,7 +46,7 @@
             max-width: 1600px;
             width: 100%;
         }
-        
+
         body .container {
             max-width: 1400px;
         }
@@ -72,11 +78,62 @@
             border-left: 2px solid rgba(0, 0, 0, 0.1);
         }
 
+        /* Top bar for authentication links */
+        .top-bar {
+            background-color: var(--er-pink);
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .top-bar .container {
+            max-width: 1600px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .top-bar-links {
+            display: flex;
+            gap: 0;
+            align-items: center;
+            background-color: #ffffff;
+            border-radius: 50px;
+            padding: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar-link {
+            color: #000000;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-bar-link:hover {
+            color: var(--er-pink-dark);
+        }
+
+        .top-bar-link:not(:last-child) {
+            border-right: 1px solid var(--er-pink);
+        }
+
+        .top-bar-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
         /* Footer */
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: 4rem;
+            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
@@ -197,7 +254,26 @@
         }
     </style>
 </head>
+
 <body>
+    <!-- Top bar for authentication links -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-links">
+                <% if (!user) { %>
+                    <a href="/login" class="top-bar-link">Sign In / Create Account</a>
+                <% } else { %>
+                    <a href="/logout" class="top-bar-link">Logout</a>
+                    <a href="/profile" class="top-bar-link">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
     <!-- Light pink navbar with links -->
     <nav class="navbar navbar-expand-md navbar-light">
         <div class="container">
@@ -205,65 +281,139 @@
                 <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                 <span>Ella Rises</span>
             </a>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navContent"
-                aria-controls="navContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+                aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/participants">Participants</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/events">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/survey">Event Feedback</a>
-                    </li>
-                    <% if (user && user.isUser) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
-                    </li>
-                    <% } %>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/milestones">Milestones</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
-                    </li>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
-                    </li>
-                    <% } %>
-                    <% if (!user) { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/login">Sign In</a>
-                    </li>
-                    <% } else { %>
-                    <li class="nav-item">
-                        <a class="nav-link sign-in-link" href="/logout">Logout</a>
-                    </li>
-                    <% } %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/participants">Participants</a>
+                        </li>
+                        <% } %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/events">Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/survey">Event Feedback</a>
+                            </li>
+                            <% if (user && user.isUser) { %>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                                </li>
+                                <% } %>
+                                    <% if (user && user.isManager) { %>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="/milestones">Milestones</a>
+                                        </li>
+                                        <% } %>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="https://givebutter.com/EllaRises"
+                                                    target="_blank">Donations</a>
+                                            </li>
+                                            <% if (user && user.isManager) { %>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="/">Dashboard</a>
+                                                </li>
+                                                <% } %>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- RSVP Content (to be filled in later) -->
-    <div style="min-height: 60vh; padding: 4rem 2rem; text-align: center;">
-        <h1>RSVP Page</h1>
-        <p>This page will be implemented later.</p>
+    <!-- RSVP Content -->
+    <div class="container py-5">
+        <% if (typeof error_message !=='undefined' && error_message) { %>
+            <div class="alert alert-danger" role="alert">
+                <%= error_message %>
+            </div>
+            <% } %>
+
+                <% if (typeof event !=='undefined' && event) { %>
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                                <% if (event.eventimage) { %>
+                                    <div style="height: 300px; overflow: hidden;">
+                                        <img src="<%= event.eventimage %>" alt="<%= event.eventname %>"
+                                            class="w-100 h-100 object-fit-cover">
+                                    </div>
+                                    <% } %>
+
+                                        <div class="card-body p-4 p-md-5">
+                                            <h1 class="mb-3" style="color: var(--er-text);">
+                                                <%= event.eventname %>
+                                            </h1>
+
+                                            <div class="d-flex gap-3 mb-4 text-muted">
+                                                <span class="badge bg-light text-dark border">
+                                                    <%= event.eventtype %>
+                                                </span>
+                                                <span>
+                                                    <%= event.eventrecurrencepattern %>
+                                                </span>
+                                            </div>
+
+                                            <p class="lead mb-4">
+                                                <%= event.eventdescription %>
+                                            </p>
+
+                                            <hr class="my-4">
+
+                                            <h3 class="mb-4">Select a Date to RSVP</h3>
+
+                                            <% if (occurrences && occurrences.length> 0) { %>
+                                                <form action="/rsvp" method="POST">
+                                                    <div class="list-group mb-4"
+                                                        style="max-height: 300px; overflow-y: auto;">
+                                                        <% occurrences.forEach((occ, index)=> {
+                                                            const date = new Date(occ.eventdatetimestart);
+                                                            const dateStr = date.toLocaleDateString('en-US', { weekday:
+                                                            'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                                            const timeStr = date.toLocaleTimeString('en-US', { hour:
+                                                            'numeric', minute: '2-digit' });
+                                                            %>
+                                                            <label
+                                                                class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-3">
+                                                                <input class="form-check-input flex-shrink-0"
+                                                                    type="radio" name="eventOccurrenceId"
+                                                                    value="<%= occ.eventoccurrenceid %>" required>
+                                                                <div class="d-flex flex-column">
+                                                                    <span class="fw-bold">
+                                                                        <%= dateStr %> at <%= timeStr %>
+                                                                    </span>
+                                                                    <span class="text-muted small">
+                                                                        <%= occ.eventlocation %>
+                                                                    </span>
+                                                                </div>
+                                                            </label>
+                                                            <% }); %>
+                                                    </div>
+
+                                                    <div class="d-grid">
+                                                        <button type="submit" class="btn btn-lg text-white"
+                                                            style="background-color: var(--er-pink-dark);">Confirm
+                                                            RSVP</button>
+                                                    </div>
+                                                </form>
+                                                <% } else { %>
+                                                    <div class="alert alert-info">
+                                                        No upcoming dates available for this event. Please check back
+                                                        later.
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% } else if (!typeof error_message !=='undefined' ) { %>
+                        <div class="text-center py-5">
+                            <h2>Event not found</h2>
+                            <p>The event you are looking for does not exist or has been removed.</p>
+                            <a href="/events" class="btn btn-outline-dark mt-3">Back to Events</a>
+                        </div>
+                        <% } %>
     </div>
 
     <!-- Footer -->
@@ -276,14 +426,14 @@
                         <span>Ella Rises</span>
                     </div>
                     <p>
-                        Empowering the rising generation of women to pursue higher education 
-                        and embrace their heritage through STEAM programs, mentoring, and 
+                        Empowering the rising generation of women to pursue higher education
+                        and embrace their heritage through STEAM programs, mentoring, and
                         leadership opportunities.
                     </p>
                 </div>
-                
+
                 <div class="footer-divider"></div>
-                
+
                 <div class="footer-right">
                     <h4>Contact</h4>
                     <p>Visit us at:</p>
@@ -291,20 +441,22 @@
                     <div class="social-links">
                         <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                             </svg>
                             <span>Instagram</span>
                         </a>
                         <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                             </svg>
                             <span>Facebook</span>
                         </a>
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2025 Ella Rises. All rights reserved.</p>
             </div>
@@ -314,5 +466,5 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
 
+</html>
