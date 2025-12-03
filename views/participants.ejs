@@ -752,6 +752,28 @@
                             <label for="participantFieldOfInterest" class="form-label">Field of Interest</label>
                             <input type="text" class="form-control" id="participantFieldOfInterest" placeholder="e.g., STEM, Arts">
                         </div>
+                        <hr class="my-4">
+
+<h5 style="font-family: 'DM Serif Display';">Login Information</h5>
+
+<div class="mb-3">
+    <label for="participantUsername" class="form-label">Username</label>
+    <input type="text" class="form-control" id="participantUsername">
+</div>
+
+<div class="mb-3">
+    <label for="participantPassword" class="form-label">Password</label>
+    <input type="password" class="form-control" id="participantPassword" placeholder="Leave blank to keep current password">
+</div>
+
+<div class="mb-3">
+    <label for="participantLevel" class="form-label">Account Level</label>
+    <select class="form-select" id="participantLevel">
+        <option value="U">User</option>
+        <option value="M">Admin</option>
+    </select>
+</div>
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Participant</button>
@@ -835,7 +857,24 @@
             
             document.getElementById('participantForm').setAttribute('data-mode', 'edit');
             document.getElementById('participantForm').setAttribute('data-participant-id', participantId);
-            
+            // Fetch user account info for this participant
+fetch(`/participants/userinfo/${participantId}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.user) {
+            document.getElementById("participantUsername").value = data.user.username || "";
+            document.getElementById("participantPassword").value = data.user.password || "";
+            document.getElementById("participantLevel").value = data.user.level || "U";
+        } else {
+            // No account found — clear the fields
+            document.getElementById("participantUsername").value = "";
+            document.getElementById("participantPassword").value = "";
+            document.getElementById("participantLevel").value = "U";
+        }
+    })
+    .catch(err => console.error("Error fetching user info:", err));
+
+
             const modal = new bootstrap.Modal(document.getElementById('participantModal'));
             modal.show();
         }
@@ -881,94 +920,82 @@
         }
         
         function handleParticipantSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const mode = form.getAttribute('data-mode');
-            const participantId = form.getAttribute('data-participant-id');
-            
-            const participantEmail = document.getElementById('participantEmail').value;
-            const participantFirstName = document.getElementById('participantFirstName').value;
-            const participantLastName = document.getElementById('participantLastName').value;
-            const participantDOB = document.getElementById('participantDOB').value;
-            const participantRole = document.getElementById('participantRole').value;
-            const participantPhone = document.getElementById('participantPhone').value;
-            const participantCity = document.getElementById('participantCity').value;
-            const participantState = document.getElementById('participantState').value;
-            const participantZip = document.getElementById('participantZip').value;
-            const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
-            const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
-            
-            if (mode === 'add') {
-                fetch('/participants/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        participantEmail: participantEmail,
-                        participantFirstName: participantFirstName,
-                        participantLastName: participantLastName,
-                        participantDOB: participantDOB,
-                        participantRole: participantRole,
-                        participantPhone: participantPhone,
-                        participantCity: participantCity,
-                        participantState: participantState,
-                        participantZip: participantZip,
-                        participantSchoolOrEmployer: participantSchoolOrEmployer,
-                        participantFieldOfInterest: participantFieldOfInterest
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Participant added successfully! Refreshing page...');
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to add participant'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error adding participant. Please try again.');
-                });
-            } else if (mode === 'edit') {
-                fetch(`/participants/edit/${participantId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        participantEmail: participantEmail,
-                        participantFirstName: participantFirstName,
-                        participantLastName: participantLastName,
-                        participantDOB: participantDOB,
-                        participantRole: participantRole,
-                        participantPhone: participantPhone,
-                        participantCity: participantCity,
-                        participantState: participantState,
-                        participantZip: participantZip,
-                        participantSchoolOrEmployer: participantSchoolOrEmployer,
-                        participantFieldOfInterest: participantFieldOfInterest
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Participant updated successfully! Refreshing page...');
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to update participant'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating participant. Please try again.');
-                });
-            }
-            
-            const modal = bootstrap.Modal.getInstance(document.getElementById('participantModal'));
-            modal.hide();
+    event.preventDefault();
+
+    const form = event.target;
+    const mode = form.getAttribute("data-mode");
+    const participantId = form.getAttribute("data-participant-id");
+
+    // Participant fields
+    const participantEmail = document.getElementById('participantEmail').value;
+    const participantFirstName = document.getElementById('participantFirstName').value;
+    const participantLastName = document.getElementById('participantLastName').value;
+    const participantDOB = document.getElementById('participantDOB').value;
+    const participantRole = document.getElementById('participantRole').value;
+    const participantPhone = document.getElementById('participantPhone').value;
+    const participantCity = document.getElementById('participantCity').value;
+    const participantState = document.getElementById('participantState').value;
+    const participantZip = document.getElementById('participantZip').value;
+    const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
+    const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
+
+    // NEW — Login fields
+    const participantUsername = document.getElementById('participantUsername').value;
+    const participantPassword = document.getElementById('participantPassword').value;
+    const participantLevel = document.getElementById('participantLevel').value;
+
+    // REQUIRED on ADD (Option B) 
+    if (mode === "add") {
+        if (!participantUsername || !participantPassword) {
+            alert("Username and Password are required to create a new participant login.");
+            return;
         }
+    }
+
+    const url = mode === "add"
+        ? "/participants/add"
+        : `/participants/edit/${participantId}`;
+
+    const bodyData = new URLSearchParams({
+        participantEmail,
+        participantFirstName,
+        participantLastName,
+        participantDOB,
+        participantRole,
+        participantPhone,
+        participantCity,
+        participantState,
+        participantZip,
+        participantSchoolOrEmployer,
+        participantFieldOfInterest,
+        participantUsername,
+        participantPassword,
+        participantLevel
+    });
+
+    fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: bodyData
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.success) {
+            alert(`Participant ${mode === "add" ? "added" : "updated"} successfully!`);
+            window.location.reload();
+        } else {
+            alert("Error: " + (data.error || "An error occurred."));
+        }
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+    });
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById("participantModal"));
+    modal.hide();
+}
+
         <% } %>
     </script>
     <script>
