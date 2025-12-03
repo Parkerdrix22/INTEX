@@ -177,7 +177,7 @@ async function getUserInfo(req) {
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
     // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path.startsWith('/reservations/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -745,6 +745,98 @@ app.get("/my-journey", async (req, res) => {
         participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : userInfo.full_name,
         participantEmail: participant ? participant.participantemail : req.session.username
     });
+});
+
+// Reservations route - GET (Manager only)
+app.get("/reservations/:id", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).redirect("/login");
+    }
+
+    const userInfo = await getUserInfo(req);
+    const eventId = req.params.id;
+
+    try {
+        // Fetch event details
+        const event = await knex('events')
+            .where('eventid', eventId)
+            .first();
+
+        if (!event) {
+            return res.status(404).render("reservations", {
+                user: userInfo,
+                event: null,
+                registrations: [],
+                futureOccurrences: [],
+                pastOccurrences: [],
+                firstFutureOccurrence: [],
+                error_message: "Event not found"
+            });
+        }
+
+        // Fetch all event occurrences for this event
+        const allOccurrences = await knex('eventoccurrence')
+            .where('eventid', eventId)
+            .select('eventoccurrenceid', 'eventid', 'eventdatetimestart', 'eventlocation')
+            .orderBy('eventdatetimestart', 'asc');
+
+        // Separate past and future occurrences
+        const now = new Date();
+        const futureOccurrences = allOccurrences.filter(occ => new Date(occ.eventdatetimestart) >= now);
+        const pastOccurrences = allOccurrences.filter(occ => new Date(occ.eventdatetimestart) < now);
+
+        // Get future occurrence IDs
+        const futureOccurrenceIds = futureOccurrences.map(occ => occ.eventoccurrenceid);
+
+        // Fetch registrations for future occurrences only (default view)
+        // Join with participants to get names and eventoccurrence to get occurrence details
+        let registrations = [];
+        if (futureOccurrenceIds.length > 0) {
+            registrations = await knex('registration')
+                .join('participants', 'registration.participantid', 'participants.participantid')
+                .join('eventoccurrence', 'registration.eventoccurrenceid', 'eventoccurrence.eventoccurrenceid')
+                .where('eventoccurrence.eventid', eventId)
+                .where('registration.registrationstatus', 'Signed Up')
+                .whereIn('registration.eventoccurrenceid', futureOccurrenceIds)
+                .select(
+                    'registration.participantid',
+                    'registration.eventoccurrenceid',
+                    'registration.registrationstatus',
+                    'registration.registrationcheckintime',
+                    'registration.registrationcreatedate',
+                    'participants.participantfirstname',
+                    'participants.participantlastname',
+                    'participants.participantemail',
+                    'eventoccurrence.eventdatetimestart'
+                )
+                .orderBy('participants.participantlastname', 'asc')
+                .orderBy('participants.participantfirstname', 'asc');
+        }
+
+        // Get the first future occurrence for displaying event details (date, time, location)
+        const firstFutureOccurrence = futureOccurrences.length > 0 ? futureOccurrences[0] : null;
+
+        res.render("reservations", {
+            user: userInfo,
+            event: event,
+            registrations: registrations,
+            futureOccurrences: futureOccurrences,
+            pastOccurrences: pastOccurrences,
+            firstFutureOccurrence: firstFutureOccurrence,
+            error_message: null
+        });
+    } catch (err) {
+        console.error("Error fetching reservations:", err.message);
+        res.render("reservations", {
+            user: userInfo,
+            event: null,
+            registrations: [],
+            futureOccurrences: [],
+            pastOccurrences: [],
+            error_message: `Database error: ${err.message}`
+        });
+    }
 });
 
 // RSVP route - GET
@@ -1715,6 +1807,165 @@ app.post("/api/milestones", (req, res) => {
             console.error("Error assigning milestone:", err);
             res.status(500).json({ error: "Database error" });
         });
+});
+
+// Update registration check-in time
+app.post("/api/registration/checkin", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { participantId, eventOccurrenceId, checkInTime } = req.body;
+
+    if (!participantId || !eventOccurrenceId) {
+        return res.status(400).json({ error: 'Participant ID and Event Occurrence ID are required' });
+    }
+
+    try {
+        // Parse the check-in time - format should be YYYY-MM-DDTHH:MM or similar
+        let checkInDateTime = null;
+        if (checkInTime && checkInTime.trim() !== '') {
+            // If only time is provided, combine with today's date
+            if (checkInTime.includes('T')) {
+                checkInDateTime = new Date(checkInTime);
+            } else {
+                // Assume it's just a time (HH:MM), combine with today's date
+                const today = new Date();
+                const [hours, minutes] = checkInTime.split(':');
+                checkInDateTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours, 10), parseInt(minutes, 10), 0);
+            }
+        }
+
+        await knex('registration')
+            .where({
+                participantid: participantId,
+                eventoccurrenceid: eventOccurrenceId
+            })
+            .update({
+                registrationcheckintime: checkInDateTime
+            });
+
+        res.json({ success: true, message: 'Check-in time updated successfully' });
+    } catch (err) {
+        console.error("Error updating check-in time:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// Update registration status
+app.post("/api/registration/status", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { participantId, eventOccurrenceId, status } = req.body;
+
+    if (!participantId || !eventOccurrenceId || !status) {
+        return res.status(400).json({ error: 'Participant ID, Event Occurrence ID, and status are required' });
+    }
+
+    // Validate status
+    const validStatuses = ['Attended', 'No-Show', 'Cancelled'];
+    if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    try {
+        await knex('registration')
+            .where({
+                participantid: participantId,
+                eventoccurrenceid: eventOccurrenceId
+            })
+            .update({
+                registrationstatus: status
+            });
+
+        res.json({ success: true, message: 'Registration status updated successfully' });
+    } catch (err) {
+        console.error("Error updating registration status:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// Get registrations for a specific event occurrence
+app.get("/api/reservations/:eventId/occurrence/:occurrenceId", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { eventId, occurrenceId } = req.params;
+
+    try {
+        // Fetch ALL registrations for the specific occurrence (not just "Signed Up")
+        const registrations = await knex('registration')
+            .join('participants', 'registration.participantid', 'participants.participantid')
+            .join('eventoccurrence', 'registration.eventoccurrenceid', 'eventoccurrence.eventoccurrenceid')
+            .where('eventoccurrence.eventid', eventId)
+            .where('registration.eventoccurrenceid', occurrenceId)
+            .select(
+                'registration.participantid',
+                'registration.eventoccurrenceid',
+                'registration.registrationstatus',
+                'registration.registrationcheckintime',
+                'registration.registrationcreatedate',
+                'participants.participantfirstname',
+                'participants.participantlastname',
+                'participants.participantemail',
+                'eventoccurrence.eventdatetimestart',
+                'eventoccurrence.eventlocation'
+            )
+            .orderBy('participants.participantlastname', 'asc')
+            .orderBy('participants.participantfirstname', 'asc');
+
+        // Get the occurrence details for the response
+        const occurrence = await knex('eventoccurrence')
+            .where('eventoccurrenceid', occurrenceId)
+            .first();
+
+        res.json({ 
+            success: true, 
+            registrations: registrations,
+            occurrence: occurrence || null
+        });
+    } catch (err) {
+        console.error("Error fetching occurrence registrations:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// Get milestone statistics
+app.get("/api/milestones/stats/:milestoneName", async (req, res) => {
+    const milestoneName = decodeURIComponent(req.params.milestoneName);
+
+    try {
+        // Count participants who have completed this milestone
+        const completedCount = await knex('milestones')
+            .where('milestonetitle', milestoneName)
+            .countDistinct('participantid as count')
+            .first();
+
+        // Count total number of participants
+        const totalCount = await knex('participants')
+            .count('participantid as count')
+            .first();
+
+        const completed = parseInt(completedCount.count) || 0;
+        const total = parseInt(totalCount.count) || 0;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        res.json({
+            success: true,
+            completed: completed,
+            total: total,
+            percentage: percentage
+        });
+    } catch (err) {
+        console.error("Error fetching milestone statistics:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
 });
 
 app.listen(port, () => {

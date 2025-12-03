@@ -235,7 +235,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
             transition: all 0.3s ease;
         }
 
@@ -245,7 +244,91 @@
 
         .participant-item:hover {
             background-color: var(--er-pink);
-            transform: translateX(5px);
+        }
+
+        .btn-see-milestones {
+            background-color: var(--er-pink-dark);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            color: #fff;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .btn-see-milestones:hover {
+            background-color: #ff8ab8;
+        }
+
+        /* Milestone Statistics */
+        .milestone-stats-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-card {
+            flex: 1;
+            max-width: 400px;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card-pink {
+            background-color: var(--er-pink);
+            border: 3px solid var(--er-pink-dark);
+        }
+
+        .stat-card-green {
+            background-color: #d4edda;
+            border: 3px solid #28a745;
+        }
+
+        .stat-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--er-text);
+        }
+
+        .stat-card-green .stat-label {
+            color: #155724;
+        }
+
+        .stat-number {
+            font-size: 5rem;
+            font-weight: 700;
+            font-family: 'DM Serif Display', serif;
+            color: var(--er-text);
+        }
+
+        .stat-card-green .stat-number {
+            color: #155724;
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                max-width: 100%;
+            }
+
+            .stat-number {
+                font-size: 4rem;
+            }
         }
 
         .participant-info {
@@ -274,7 +357,7 @@
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: 4rem;
+            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
@@ -491,16 +574,16 @@
     <!-- Search and Filter Section -->
     <div class="search-filter-section">
         <div class="search-filter-container">
-            <form id="milestoneForm" onsubmit="searchParticipants(event)">
+            <form id="milestoneForm" onsubmit="searchParticipants(event); return false;">
                 <div class="search-filter-row">
                     <div class="form-group">
                         <label for="participantSearch">Search Participant</label>
                         <input type="text" id="participantSearch" class="form-control"
-                            placeholder="Search by name or email..." oninput="filterParticipants()">
+                            placeholder="Search by name or email..." oninput="filterParticipants(); document.getElementById('milestoneSelect').value = '';">
                     </div>
                     <div class="form-group">
                         <label for="milestoneSelect">Milestone Description</label>
-                        <select id="milestoneSelect" class="form-select" required>
+                        <select id="milestoneSelect" class="form-select">
                             <option value="">Select a milestone...</option>
                             <option value="AA in Art & Design">AA in Art & Design</option>
                             <option value="AAS in Drafting & Design">AAS in Drafting & Design</option>
@@ -530,11 +613,22 @@
                             <option value="Web Development Certificate">Web Development Certificate</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-assign">Assign Milestone</button>
-                    </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Milestone Statistics Section -->
+    <div id="milestone-stats" class="milestone-stats-section" style="display: none;">
+        <div class="stats-container">
+            <div class="stat-card stat-card-pink">
+                <div class="stat-label">Completed</div>
+                <div id="stat-completed" class="stat-number">0</div>
+            </div>
+            <div class="stat-card stat-card-green">
+                <div class="stat-label">Percentage</div>
+                <div id="stat-percentage" class="stat-number">0%</div>
+            </div>
         </div>
     </div>
 
@@ -631,6 +725,18 @@
         const filterParticipants = debounce(async () => {
             const searchTerm = document.getElementById('participantSearch').value.trim();
             const resultsContainer = document.getElementById('participantResults');
+            const resultsSection = document.querySelector('.results-section');
+            const statsSection = document.getElementById('milestone-stats');
+
+            // Hide milestone stats when searching participants
+            if (statsSection) {
+                statsSection.style.display = 'none';
+            }
+
+            // Show results section when searching
+            if (resultsSection) {
+                resultsSection.style.display = 'block';
+            }
 
             if (searchTerm.length < 2) {
                 resultsContainer.innerHTML = '<div class="no-results">Type at least 2 characters to search...</div>';
@@ -647,11 +753,12 @@
                 }
 
                 resultsContainer.innerHTML = participants.map(p => `
-                    <div class="participant-item" onclick="selectParticipant(${p.id})">
+                    <div class="participant-item">
                         <div class="participant-info">
                             <div class="participant-name">${p.name}</div>
                             <div class="participant-email">${p.email}</div>
                         </div>
+                        <button class="btn-see-milestones" onclick="selectParticipant(${p.id})">See Personal Milestones</button>
                     </div>
                 `).join('');
             } catch (error) {
@@ -666,15 +773,64 @@
 
         async function searchParticipants(event) {
             event.preventDefault();
-            const milestone = document.getElementById('milestoneSelect').value;
-
-            // This function's original purpose was to assign milestones.
-            // With selectParticipant now redirecting, this form submission
-            // might need to be re-evaluated or removed depending on the new workflow.
-            // For now, keeping it as is, but it will no longer use selectedParticipantId
-            // or viewParticipantMilestones.
-            alert('Milestone assignment functionality has been moved or updated. Please navigate to the participant\'s personal milestones page.');
+            // Form submission disabled - milestone assignment is now done on personal milestones page
         }
+
+        // Handle milestone selection to show statistics
+        document.getElementById('milestoneSelect').addEventListener('change', async function() {
+            const milestoneName = this.value;
+            const statsSection = document.getElementById('milestone-stats');
+            const resultsSection = document.querySelector('.results-section');
+            const participantSearch = document.getElementById('participantSearch');
+
+            // Clear participant search when milestone is selected
+            if (participantSearch && milestoneName) {
+                participantSearch.value = '';
+                const resultsContainer = document.getElementById('participantResults');
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = '<div class="no-results">Start typing to search for participants...</div>';
+                }
+            }
+
+            if (!milestoneName) {
+                statsSection.style.display = 'none';
+                // Show results section when no milestone is selected
+                if (resultsSection) {
+                    resultsSection.style.display = 'block';
+                }
+                return;
+            }
+
+            // Hide participant results when showing milestone stats
+            if (resultsSection) {
+                resultsSection.style.display = 'none';
+            }
+
+            try {
+                const response = await fetch(`/api/milestones/stats/${encodeURIComponent(milestoneName)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('stat-completed').textContent = data.completed;
+                    document.getElementById('stat-percentage').textContent = data.percentage + '%';
+                    statsSection.style.display = 'block';
+                } else {
+                    console.error('Error fetching milestone statistics:', data.error);
+                    statsSection.style.display = 'none';
+                    // Show results section if stats failed
+                    if (resultsSection) {
+                        resultsSection.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                statsSection.style.display = 'none';
+                // Show results section if error occurred
+                if (resultsSection) {
+                    resultsSection.style.display = 'block';
+                }
+            }
+        });
     </script>
 </body>
 

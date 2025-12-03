@@ -149,6 +149,38 @@
             color: #666;
         }
 
+        /* Back Button */
+        .back-button {
+            margin: 1.5rem 0 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 2rem;
+        }
+
+        .back-button a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--er-pink);
+            color: var(--er-text);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .back-button a:hover {
+            background-color: var(--er-pink-dark);
+            color: #fff;
+        }
+
+        .back-button a::before {
+            content: '←';
+            font-size: 1.2rem;
+        }
+
         /* Year Navigation */
         .year-navigation {
             max-width: 1200px;
@@ -445,7 +477,7 @@
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: 4rem;
+            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
@@ -653,38 +685,45 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+
                     <% if (user && user.isManager) { %>
                         <li class="nav-item">
                             <a class="nav-link" href="/participants">Participants</a>
                         </li>
-                        <% } %>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/events">Events</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="/survey">Event Feedback</a>
-                            </li>
-                            <% if (user && user.isUser) { %>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
-                                </li>
-                                <% } %>
-                                    <% if (user && user.isManager) { %>
-                                        <li class="nav-item">
-                                            <a class="nav-link" href="/milestones">Milestones</a>
-                                        </li>
-                                        <% } %>
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="https://givebutter.com/EllaRises"
-                                                    target="_blank">Donations</a>
-                                            </li>
-                                            <% if (user && user.isManager) { %>
-                                                <li class="nav-item">
-                                                    <a class="nav-link" href="/dashboard">Dashboard</a>
-                                                </li>
-                                                <% } %>
-                                                    <% } %>
+                    <% } %>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="/events">Events</a>
+                    </li>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="/survey">Event Feedback</a>
+                    </li>
+                
+                    <% if (user && user.isUser) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                        </li>
+                    <% } %>
+                
+                    <% if (user && user.isManager) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/milestones">Milestones</a>
+                        </li>
+                    <% } %>
+                
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
+                    </li>
+                
+                    <% if (user && user.isManager) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
+                        </li>
+                    <% } %>
+                
                 </ul>
+                
             </div>
         </div>
     </nav>
@@ -695,6 +734,11 @@
         <div class="participant-name" id="participantName">
             <%= participantName || 'Participant' %>
         </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-button">
+        <a href="javascript:history.back()">Back</a>
     </div>
 
     <!-- Year Navigation -->

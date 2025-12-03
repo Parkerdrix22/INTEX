@@ -133,7 +133,7 @@
         footer {
             background-color: var(--er-pink);
             padding: 3rem 1rem 2rem;
-            margin-top: 4rem;
+            margin-top: auto;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
         }
 
@@ -317,17 +317,6 @@
                                                     <a class="nav-link" href="/">Dashboard</a>
                                                 </li>
                                                 <% } %>
-                                                    <% if (!user) { %>
-                                                        <li class="nav-item">
-                                                            <a class="nav-link sign-in-link" href="/login">Sign In /
-                                                                Create Account</a>
-                                                        </li>
-                                                        <% } else { %>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link sign-in-link"
-                                                                    href="/logout">Logout</a>
-                                                            </li>
-                                                            <% } %>
                 </ul>
             </div>
         </div>

@@ -769,17 +769,6 @@
                                                     <a class="nav-link" href="/dashboard">Dashboard</a>
                                                 </li>
                                                 <% } %>
-                                                    <% if (!user) { %>
-                                                        <li class="nav-item">
-                                                            <a class="nav-link sign-in-link" href="/login">Sign In /
-                                                                Create Account</a>
-                                                        </li>
-                                                        <% } else { %>
-                                                            <li class="nav-item">
-                                                                <a class="nav-link sign-in-link"
-                                                                    href="/logout">Logout</a>
-                                                            </li>
-                                                            <% } %>
                 </ul>
             </div>
         </div>
@@ -856,7 +845,7 @@
                                             onclick="confirmDeleteEvent(<%= event.eventid || index + 1 %>, '<%= escapedName %>')"
                                             title="Delete Event">×</button>
                                         <% } %>
-                                            <a href="/rsvp/<%= event.eventid %>" class="event-card">
+                                            <a href="<%= (user && user.isManager) ? '/reservations/' + event.eventid : '/rsvp/' + event.eventid %>" class="event-card">
                                                 <div class="event-image">
                                                     <% if (event.eventimage) { %>
                                                         <img src="<%= event.eventimage %>" alt="<%= event.eventname %>"
