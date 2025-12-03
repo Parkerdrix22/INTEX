@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,12 @@
         }
 
         /* DM Serif Display for all titles and headers */
-        h1, h2, h3, h4, h5, h6,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
         .navbar-brand {
             font-family: 'DM Serif Display', serif;
         }
@@ -40,7 +46,7 @@
             max-width: 1600px;
             width: 100%;
         }
-        
+
         body .container {
             max-width: 1400px;
         }
@@ -145,29 +151,29 @@
             padding: 0 2rem 4rem;
             position: relative;
         }
-        
+
         .table-wrapper {
             overflow-x: auto;
             overflow-y: auto;
             max-height: 70vh;
             position: relative;
         }
-        
+
         .table-wrapper::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         .table-wrapper::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 4px;
         }
-        
+
         .table-wrapper::-webkit-scrollbar-thumb {
             background: var(--er-pink-dark);
             border-radius: 4px;
         }
-        
+
         .table-wrapper::-webkit-scrollbar-thumb:hover {
             background: #ff8ab8;
         }
@@ -181,13 +187,13 @@
             align-items: center;
             gap: 1rem;
         }
-        
+
         .table-header-left {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
+
         .add-participant-btn {
             background-color: var(--er-pink-dark);
             color: #fff;
@@ -199,11 +205,11 @@
             transition: all 0.3s ease;
             font-size: 1rem;
         }
-        
+
         .add-participant-btn:hover {
             background-color: #ff8ab8;
         }
-        
+
         .participant-search {
             border: 2px solid #e0e0e0;
             border-radius: 0.5rem;
@@ -213,13 +219,13 @@
             transition: all 0.3s ease;
             background-color: #ffffff;
         }
-        
+
         .participant-search:focus {
             outline: none;
             border-color: var(--er-pink-dark);
             box-shadow: 0 0 0 0.2rem rgba(255, 159, 196, 0.25);
         }
-        
+
         .participant-search::placeholder {
             color: #999;
         }
@@ -283,12 +289,12 @@
             vertical-align: middle;
             white-space: nowrap;
         }
-        
+
         /* Fixed action buttons column */
         .table tbody tr {
             position: relative;
         }
-        
+
         .action-buttons-cell {
             position: sticky;
             right: 0;
@@ -298,77 +304,77 @@
             min-width: 150px;
             box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
         }
-        
-        
+
+
         .action-buttons {
             display: flex;
             gap: 0.5rem;
             justify-content: flex-end;
         }
-        
+
         .action-buttons .btn {
             min-width: 60px;
             padding: 0.375rem 0.75rem;
         }
-        
+
         .action-buttons .btn-primary {
             background-color: #9AB59D;
             border-color: #9AB59D;
             color: #fff;
         }
-        
+
         .action-buttons .btn-primary:hover {
             background-color: #7a9a7d;
             border-color: #7a9a7d;
         }
-        
+
         .action-buttons .btn-danger {
             background-color: var(--er-pink);
             border-color: var(--er-pink);
             color: var(--er-text);
         }
-        
+
         .action-buttons .btn-danger:hover {
             background-color: var(--er-pink-dark);
             border-color: var(--er-pink-dark);
             color: #fff;
         }
-        
+
         /* Modal Styles - Matching Event Modal */
         .participant-modal .modal-dialog {
             max-width: 700px;
             width: 90%;
         }
-        
+
         .participant-modal .modal-content {
             padding: 0;
         }
-        
+
         .participant-modal .modal-header {
             background-color: var(--er-pink);
             border-bottom: 2px solid var(--er-pink-dark);
             padding: 1.5rem 2rem;
         }
-        
+
         .participant-modal .modal-title {
             font-family: 'DM Serif Display', serif;
             color: var(--er-text);
             font-size: 1.75rem;
         }
-        
+
         .participant-modal .modal-body {
             padding: 2rem;
             max-height: 70vh;
             overflow-y: auto;
         }
-        
+
         .participant-modal .form-label {
             font-weight: 600;
             color: var(--er-text);
             margin-top: 1rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .participant-modal .form-control,
         .participant-modal .form-select {
             border: 2px solid #e0e0e0;
@@ -376,34 +382,34 @@
             padding: 0.875rem 1rem;
             font-size: 1rem;
         }
-        
+
         .participant-modal .form-control:focus,
         .participant-modal .form-select:focus {
             border-color: var(--er-pink-dark);
             outline: none;
             box-shadow: 0 0 0 0.2rem rgba(255, 159, 196, 0.25);
         }
-        
+
         .participant-modal .modal-footer {
             padding: 1.5rem 2rem;
             border-top: 1px solid #e0e0e0;
         }
-        
+
         .participant-modal .btn-primary {
             background-color: var(--er-pink-dark);
             border-color: var(--er-pink-dark);
             padding: 0.75rem 2rem;
         }
-        
+
         .participant-modal .btn-primary:hover {
             background-color: #ff8ab8;
             border-color: #ff8ab8;
         }
-        
+
         .participant-modal .btn-secondary {
             padding: 0.75rem 2rem;
         }
-        
+
         /* Fixed header for action column */
         .table thead th:last-child,
         .table thead th:nth-last-child(2) {
@@ -412,7 +418,7 @@
             z-index: 20;
             box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
         }
-        
+
         .table thead th:nth-last-child(2) {
             right: 75px;
         }
@@ -547,7 +553,7 @@
             .table-container {
                 padding: 0 1rem 3rem;
             }
-            
+
             .table-wrapper {
                 max-height: 60vh;
             }
@@ -560,24 +566,25 @@
             .table tbody td {
                 padding: 0.75rem 0.5rem;
             }
-            
+
             .action-buttons {
                 flex-direction: column;
                 gap: 0.25rem;
             }
-            
+
             .action-buttons .btn {
                 width: 100%;
                 min-width: auto;
                 font-size: 0.8rem;
             }
-            
+
             .action-buttons-cell {
                 min-width: 100px;
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Top bar for authentication links -->
     <div class="top-bar">
@@ -585,14 +592,15 @@
             <div class="top-bar-links">
                 <% if (!user) { %>
                     <a href="/login" class="top-bar-link">Sign In / Create Account</a>
-                <% } else { %>
-                    <a href="/logout" class="top-bar-link">Logout</a>
-                    <a href="/profile" class="top-bar-link">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                    </a>
-                <% } %>
+                    <% } else { %>
+                        <a href="/logout" class="top-bar-link">Logout</a>
+                        <a href="/profile" class="top-bar-link">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                            </svg>
+                        </a>
+                        <% } %>
             </div>
         </div>
     </div>
@@ -604,47 +612,42 @@
                 <img src="/images/ella_logo.avif" alt="Ella Rises Logo">
                 <span>Ella Rises</span>
             </a>
-            <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navContent"
-                aria-controls="navContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent"
+                aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
                     <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/participants">Participants</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/events">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/survey">Event Feedback</a>
-                    </li>
-                    <% if (user && user.isUser) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
-                    </li>
-                    <% } %>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/milestones">Milestones</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://givebutter.com/EllaRises" target="_blank">Donations</a>
-                    </li>
-                    <% if (user && user.isManager) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">Dashboard</a>
-                    </li>
-                    <% } %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/participants">Participants</a>
+                        </li>
+                        <% } %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/events">Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/survey">Event Feedback</a>
+                            </li>
+                            <% if (user && user.isUser) { %>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/my-journey">My Journey | Mi Camino</a>
+                                </li>
+                                <% } %>
+                                    <% if (user && user.isManager) { %>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="/milestones">Milestones</a>
+                                        </li>
+                                        <% } %>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="https://givebutter.com/EllaRises"
+                                                    target="_blank">Donations</a>
+                                            </li>
+                                            <% if (user && user.isManager) { %>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                                                </li>
+                                                <% } %>
                 </ul>
             </div>
         </div>
@@ -659,22 +662,19 @@
     <div class="table-header-section">
         <div class="table-header-left">
             <% if (user && user.isManager) { %>
-            <button class="add-participant-btn" onclick="openAddParticipantModal()">
-                + Add Participant
-            </button>
-            <% } %>
-            <!-- Search Bar -->
-            <input
-                type="text"
-                id="participantSearch"
-                class="participant-search"
-                placeholder="Search participants..."
-                onkeyup="filterParticipants()"
-            />
+                <button class="add-participant-btn" onclick="openAddParticipantModal()">
+                    + Add Participant
+                </button>
+                <% } %>
+                    <!-- Search Bar -->
+                    <input type="text" id="participantSearch" class="participant-search"
+                        placeholder="Search participants..." onkeyup="filterParticipants()" />
         </div>
 
         <div class="participant-count-box">
-            Number of Participants: <strong><%= participants ? participants.length : 0 %></strong>
+            Number of Participants: <strong>
+                <%= participants ? participants.length : 0 %>
+            </strong>
         </div>
     </div>
 
@@ -697,49 +697,79 @@
                         <th>School/Employer</th>
                         <th>Interest</th>
                         <% if (user && user.isManager) { %>
-                        <th style="min-width: 150px;">Actions</th>
-                        <% } %>
+                            <th style="min-width: 150px;">Actions</th>
+                            <% } %>
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (participants && participants.length > 0) { %>
-                        <% participants.forEach(p => { %>
-                        <tr class="clickable-row" data-participant-id="<%= p.participantid %>">
-                            <td><%= p.participantemail || '' %></td>
-                            <td><%= p.participantfirstname || '' %></td>
-                            <td><%= p.participantlastname || '' %></td>
-                            <td><%= p.participantdob ? new Date(p.participantdob).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '' %></td>
-                            <td><%= p.participantrole || '' %></td>
-                            <td><%= p.participantphone || '' %></td>
-                            <td><%= p.participantcity || '' %></td>
-                            <td><%= p.participantstate || '' %></td>
-                            <td><%= p.participantzip || '' %></td>
-                            <td><%= p.participantschooloremployer || '' %></td>
-                            <td><%= p.participantfieldofinterest || '' %></td>
-                            <% if (user && user.isManager) { %>
-                            <td class="action-buttons-cell" onclick="event.stopPropagation();">
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openEditParticipantModal(<%- p.participantid %>)" data-participant-id="<%- p.participantid %>">
-                                        Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); confirmDeleteParticipant(<%- p.participantid %>, '<%- (p.participantfirstname || '') + ' ' + (p.participantlastname || '') %>')" data-participant-id="<%- p.participantid %>">
-                                        Delete
-                                    </button>
-                                </div>
-                            </td>
-                            <% } %>
-                        </tr>
-                        <% }); %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="<%= user && user.isManager ? '12' : '11' %>" style="text-align: center; padding: 2rem; color: #666;">
-                                No participants found.
-                                <% if (error_message) { %>
-                                <p style="color: #d32f2f; margin-top: 1rem;"><%= error_message %></p>
-                                <% } %>
-                            </td>
-                        </tr>
-                    <% } %>
+                    <% if (participants && participants.length> 0) { %>
+                        <% participants.forEach(p=> { %>
+                            <tr class="clickable-row" data-participant-id="<%= p.participantid %>">
+                                <td>
+                                    <%= p.participantemail || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantfirstname || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantlastname || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantdob ? new Date(p.participantdob).toLocaleDateString('en-US', {
+                                        year: 'numeric' , month: '2-digit' , day: '2-digit' }) : '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantrole || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantphone || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantcity || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantstate || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantzip || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantschooloremployer || '' %>
+                                </td>
+                                <td>
+                                    <%= p.participantfieldofinterest || '' %>
+                                </td>
+                                <% if (user && user.isManager) { %>
+                                    <td class="action-buttons-cell" onclick="event.stopPropagation();">
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-primary"
+                                                onclick="event.stopPropagation(); openEditParticipantModal(<%- p.participantid %>)"
+                                                data-participant-id="<%- p.participantid %>">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger"
+                                                onclick="event.stopPropagation(); confirmDeleteParticipant(<%- p.participantid %>, '<%- (p.participantfirstname || '') + ' ' + (p.participantlastname || '') %>')"
+                                                data-participant-id="<%- p.participantid %>">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <% } %>
+                            </tr>
+                            <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="<%= user && user.isManager ? '12' : '11' %>"
+                                            style="text-align: center; padding: 2rem; color: #666;">
+                                            No participants found.
+                                            <% if (error_message) { %>
+                                                <p style="color: #d32f2f; margin-top: 1rem;">
+                                                    <%= error_message %>
+                                                </p>
+                                                <% } %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
                 </tbody>
             </table>
         </div>
@@ -755,14 +785,14 @@
                         <span>Ella Rises</span>
                     </div>
                     <p>
-                        Empowering the rising generation of women to pursue higher education 
-                        and embrace their heritage through STEAM programs, mentoring, and 
+                        Empowering the rising generation of women to pursue higher education
+                        and embrace their heritage through STEAM programs, mentoring, and
                         leadership opportunities.
                     </p>
                 </div>
-                
+
                 <div class="footer-divider"></div>
-                
+
                 <div class="footer-right">
                     <h4>Contact</h4>
                     <p>Visit us at:</p>
@@ -770,20 +800,22 @@
                     <div class="social-links">
                         <a href="https://www.instagram.com/ellarises/" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.98-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.98-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                             </svg>
                             <span>Instagram</span>
                         </a>
                         <a href="https://www.facebook.com/EllaRises" target="_blank" class="social-link">
                             <svg class="social-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                             </svg>
                             <span>Facebook</span>
                         </a>
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2025 Ella Rises. All rights reserved.</p>
             </div>
@@ -792,313 +824,320 @@
 
     <!-- Participant Modal -->
     <% if (user && user.isManager) { %>
-    <div class="modal fade participant-modal" id="participantModal" tabindex="-1" aria-labelledby="participantModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="participantModalTitle">Add New Participant</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="participantForm" onsubmit="handleParticipantSubmit(event)">
-                        <div class="mb-3">
-                            <label for="participantEmail" class="form-label">Email <span style="color: red;">*</span></label>
-                            <input type="email" class="form-control" id="participantEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantFirstName" class="form-label">First Name <span style="color: red;">*</span></label>
-                            <input type="text" class="form-control" id="participantFirstName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantLastName" class="form-label">Last Name <span style="color: red;">*</span></label>
-                            <input type="text" class="form-control" id="participantLastName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantDOB" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="participantDOB">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantRole" class="form-label">Role</label>
-                            <input type="text" class="form-control" id="participantRole" placeholder="e.g., participant">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantPhone" class="form-label">Phone</label>
-                            <input type="tel" class="form-control" id="participantPhone" placeholder="e.g., 801-123-4567">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantCity" class="form-label">City</label>
-                            <input type="text" class="form-control" id="participantCity">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantState" class="form-label">State</label>
-                            <input type="text" class="form-control" id="participantState" placeholder="e.g., UT">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantZip" class="form-label">Zip</label>
-                            <input type="text" class="form-control" id="participantZip" placeholder="e.g., 84105">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantSchoolOrEmployer" class="form-label">School/Employer</label>
-                            <input type="text" class="form-control" id="participantSchoolOrEmployer">
-                        </div>
-                        <div class="mb-3">
-                            <label for="participantFieldOfInterest" class="form-label">Field of Interest</label>
-                            <input type="text" class="form-control" id="participantFieldOfInterest" placeholder="e.g., STEM, Arts">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Participant</button>
-                        </div>
-                    </form>
+        <div class="modal fade participant-modal" id="participantModal" tabindex="-1"
+            aria-labelledby="participantModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="participantModalTitle">Add New Participant</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="participantForm" onsubmit="handleParticipantSubmit(event)">
+                            <div class="mb-3">
+                                <label for="participantEmail" class="form-label">Email <span
+                                        style="color: red;">*</span></label>
+                                <input type="email" class="form-control" id="participantEmail" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantFirstName" class="form-label">First Name <span
+                                        style="color: red;">*</span></label>
+                                <input type="text" class="form-control" id="participantFirstName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantLastName" class="form-label">Last Name <span
+                                        style="color: red;">*</span></label>
+                                <input type="text" class="form-control" id="participantLastName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantDOB" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="participantDOB">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantRole" class="form-label">Role</label>
+                                <input type="text" class="form-control" id="participantRole"
+                                    placeholder="e.g., participant">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantPhone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="participantPhone"
+                                    placeholder="e.g., 801-123-4567">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantCity" class="form-label">City</label>
+                                <input type="text" class="form-control" id="participantCity">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantState" class="form-label">State</label>
+                                <input type="text" class="form-control" id="participantState" placeholder="e.g., UT">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantZip" class="form-label">Zip</label>
+                                <input type="text" class="form-control" id="participantZip" placeholder="e.g., 84105">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantSchoolOrEmployer" class="form-label">School/Employer</label>
+                                <input type="text" class="form-control" id="participantSchoolOrEmployer">
+                            </div>
+                            <div class="mb-3">
+                                <label for="participantFieldOfInterest" class="form-label">Field of Interest</label>
+                                <input type="text" class="form-control" id="participantFieldOfInterest"
+                                    placeholder="e.g., STEM, Arts">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Participant</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <% } %>
+        <% } %>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Make table rows clickable to navigate to personal milestones
-        document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('.table tbody tr.clickable-row');
-            rows.forEach(row => {
-                row.addEventListener('click', function(e) {
-                    // Don't navigate if clicking on action buttons
-                    if (e.target.closest('.action-buttons-cell') || e.target.closest('button')) {
-                        return;
-                    }
-                    const participantId = this.getAttribute('data-participant-id');
-                    if (participantId) {
-                        window.location.href = `/personal-milestones?participantId=${participantId}`;
-                    }
+            <!-- Bootstrap JS -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+            <script>
+                // Make table rows clickable to navigate to personal milestones
+                document.addEventListener('DOMContentLoaded', function () {
+                    const rows = document.querySelectorAll('.table tbody tr.clickable-row');
+                    rows.forEach(row => {
+                        row.addEventListener('click', function (e) {
+                            // Don't navigate if clicking on action buttons
+                            if (e.target.closest('.action-buttons-cell') || e.target.closest('button')) {
+                                return;
+                            }
+                            const participantId = this.getAttribute('data-participant-id');
+                            if (participantId) {
+                                window.location.href = `/personal-milestones?participantId=${participantId}`;
+                            }
+                        });
+                    });
                 });
-            });
-        });
 
         <% if (user && user.isManager) { %>
-        // Manager Functions
-        function openAddParticipantModal() {
-            document.getElementById('participantModalTitle').textContent = 'Add New Participant';
-            document.getElementById('participantForm').reset();
-            document.getElementById('participantForm').setAttribute('data-mode', 'add');
-            document.getElementById('participantForm').removeAttribute('data-participant-id');
-            const modal = new bootstrap.Modal(document.getElementById('participantModal'));
-            modal.show();
-        }
-        
-        function openEditParticipantModal(participantId) {
-            // Find the row by looking for the edit button with this participant ID
-            const rows = document.querySelectorAll('.table tbody tr');
-            let targetRow = null;
-            rows.forEach(r => {
-                const editBtn = r.querySelector('button[onclick*="openEditParticipantModal"]');
-                if (editBtn && editBtn.getAttribute('onclick').includes(participantId.toString())) {
-                    targetRow = r;
-                }
-            });
-            if (!targetRow) {
-                alert('Could not find participant data');
-                return;
-            }
-            
-            const cells = targetRow.querySelectorAll('td');
-            const dataStartIndex = 0;
-            const expectedCells = 11; // Email through Interest
-            
-            if (cells.length < expectedCells) {
-                alert('Invalid table structure');
-                return;
-            }
-            
-            // Populate form
-            document.getElementById('participantModalTitle').textContent = 'Edit Participant';
-            document.getElementById('participantEmail').value = cells[dataStartIndex].textContent.trim();
-            document.getElementById('participantFirstName').value = cells[dataStartIndex + 1].textContent.trim();
-            document.getElementById('participantLastName').value = cells[dataStartIndex + 2].textContent.trim();
-            
-            // Parse date from formatted string
-            const dobText = cells[dataStartIndex + 3].textContent.trim();
-            if (dobText) {
-                let dobDate = null;
-                if (dobText.includes('/')) {
-                    const parts = dobText.split('/');
-                    if (parts.length === 3) {
-                        dobDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                    // Manager Functions
+                    function openAddParticipantModal() {
+                        document.getElementById('participantModalTitle').textContent = 'Add New Participant';
+                        document.getElementById('participantForm').reset();
+                        document.getElementById('participantForm').setAttribute('data-mode', 'add');
+                        document.getElementById('participantForm').removeAttribute('data-participant-id');
+                        const modal = new bootstrap.Modal(document.getElementById('participantModal'));
+                        modal.show();
                     }
-                } else if (dobText.includes('-')) {
-                    dobDate = new Date(dobText);
-                }
-                if (dobDate && !isNaN(dobDate.getTime())) {
-                    document.getElementById('participantDOB').value = dobDate.toISOString().split('T')[0];
-                }
-            }
-            
-            document.getElementById('participantRole').value = cells[dataStartIndex + 4].textContent.trim();
-            document.getElementById('participantPhone').value = cells[dataStartIndex + 5].textContent.trim();
-            document.getElementById('participantCity').value = cells[dataStartIndex + 6].textContent.trim();
-            document.getElementById('participantState').value = cells[dataStartIndex + 7].textContent.trim();
-            document.getElementById('participantZip').value = cells[dataStartIndex + 8].textContent.trim();
-            document.getElementById('participantSchoolOrEmployer').value = cells[dataStartIndex + 9].textContent.trim();
-            document.getElementById('participantFieldOfInterest').value = cells[dataStartIndex + 10].textContent.trim();
-            
-            document.getElementById('participantForm').setAttribute('data-mode', 'edit');
-            document.getElementById('participantForm').setAttribute('data-participant-id', participantId);
-            
-            const modal = new bootstrap.Modal(document.getElementById('participantModal'));
-            modal.show();
-        }
-        
-        function confirmDeleteParticipant(participantId, participantName) {
-            if (confirm(`Are you sure you want to delete "${participantName}"?\n\nThis action cannot be undone.`)) {
-                deleteParticipant(participantId);
-            }
-        }
-        
-        function deleteParticipant(participantId) {
-            fetch(`/participants/delete/${participantId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const rows = document.querySelectorAll('.table tbody tr');
-                    rows.forEach(row => {
-                        const deleteBtn = row.querySelector(`button[onclick*="confirmDeleteParticipant(${participantId}"]`);
-                        if (deleteBtn) {
-                            row.style.transition = 'opacity 0.3s';
-                            row.style.opacity = '0';
-                            setTimeout(() => {
-                                row.remove();
-                                const remainingRows = document.querySelectorAll('.table tbody tr');
-                                document.querySelector('.participant-count-box strong').textContent = remainingRows.length;
-                                alert('Participant deleted successfully!');
-                            }, 300);
+
+                    function openEditParticipantModal(participantId) {
+                        // Find the row by looking for the edit button with this participant ID
+                        const rows = document.querySelectorAll('.table tbody tr');
+                        let targetRow = null;
+                        rows.forEach(r => {
+                            const editBtn = r.querySelector('button[onclick*="openEditParticipantModal"]');
+                            if (editBtn && editBtn.getAttribute('onclick').includes(participantId.toString())) {
+                                targetRow = r;
+                            }
+                        });
+                        if (!targetRow) {
+                            alert('Could not find participant data');
+                            return;
                         }
-                    });
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to delete participant'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error deleting participant. Please try again.');
-            });
-        }
-        
-        function handleParticipantSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const mode = form.getAttribute('data-mode');
-            const participantId = form.getAttribute('data-participant-id');
-            
-            const participantEmail = document.getElementById('participantEmail').value;
-            const participantFirstName = document.getElementById('participantFirstName').value;
-            const participantLastName = document.getElementById('participantLastName').value;
-            const participantDOB = document.getElementById('participantDOB').value;
-            const participantRole = document.getElementById('participantRole').value;
-            const participantPhone = document.getElementById('participantPhone').value;
-            const participantCity = document.getElementById('participantCity').value;
-            const participantState = document.getElementById('participantState').value;
-            const participantZip = document.getElementById('participantZip').value;
-            const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
-            const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
-            
-            if (mode === 'add') {
-                fetch('/participants/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        participantEmail: participantEmail,
-                        participantFirstName: participantFirstName,
-                        participantLastName: participantLastName,
-                        participantDOB: participantDOB,
-                        participantRole: participantRole,
-                        participantPhone: participantPhone,
-                        participantCity: participantCity,
-                        participantState: participantState,
-                        participantZip: participantZip,
-                        participantSchoolOrEmployer: participantSchoolOrEmployer,
-                        participantFieldOfInterest: participantFieldOfInterest
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Participant added successfully! Refreshing page...');
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to add participant'));
+
+                        const cells = targetRow.querySelectorAll('td');
+                        const dataStartIndex = 0;
+                        const expectedCells = 11; // Email through Interest
+
+                        if (cells.length < expectedCells) {
+                            alert('Invalid table structure');
+                            return;
+                        }
+
+                        // Populate form
+                        document.getElementById('participantModalTitle').textContent = 'Edit Participant';
+                        document.getElementById('participantEmail').value = cells[dataStartIndex].textContent.trim();
+                        document.getElementById('participantFirstName').value = cells[dataStartIndex + 1].textContent.trim();
+                        document.getElementById('participantLastName').value = cells[dataStartIndex + 2].textContent.trim();
+
+                        // Parse date from formatted string
+                        const dobText = cells[dataStartIndex + 3].textContent.trim();
+                        if (dobText) {
+                            let dobDate = null;
+                            if (dobText.includes('/')) {
+                                const parts = dobText.split('/');
+                                if (parts.length === 3) {
+                                    dobDate = new Date(parts[2], parts[0] - 1, parts[1]);
+                                }
+                            } else if (dobText.includes('-')) {
+                                dobDate = new Date(dobText);
+                            }
+                            if (dobDate && !isNaN(dobDate.getTime())) {
+                                document.getElementById('participantDOB').value = dobDate.toISOString().split('T')[0];
+                            }
+                        }
+
+                        document.getElementById('participantRole').value = cells[dataStartIndex + 4].textContent.trim();
+                        document.getElementById('participantPhone').value = cells[dataStartIndex + 5].textContent.trim();
+                        document.getElementById('participantCity').value = cells[dataStartIndex + 6].textContent.trim();
+                        document.getElementById('participantState').value = cells[dataStartIndex + 7].textContent.trim();
+                        document.getElementById('participantZip').value = cells[dataStartIndex + 8].textContent.trim();
+                        document.getElementById('participantSchoolOrEmployer').value = cells[dataStartIndex + 9].textContent.trim();
+                        document.getElementById('participantFieldOfInterest').value = cells[dataStartIndex + 10].textContent.trim();
+
+                        document.getElementById('participantForm').setAttribute('data-mode', 'edit');
+                        document.getElementById('participantForm').setAttribute('data-participant-id', participantId);
+
+                        const modal = new bootstrap.Modal(document.getElementById('participantModal'));
+                        modal.show();
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error adding participant. Please try again.');
-                });
-            } else if (mode === 'edit') {
-                fetch(`/participants/edit/${participantId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        participantEmail: participantEmail,
-                        participantFirstName: participantFirstName,
-                        participantLastName: participantLastName,
-                        participantDOB: participantDOB,
-                        participantRole: participantRole,
-                        participantPhone: participantPhone,
-                        participantCity: participantCity,
-                        participantState: participantState,
-                        participantZip: participantZip,
-                        participantSchoolOrEmployer: participantSchoolOrEmployer,
-                        participantFieldOfInterest: participantFieldOfInterest
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Participant updated successfully! Refreshing page...');
-                        window.location.reload();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to update participant'));
+
+                    function confirmDeleteParticipant(participantId, participantName) {
+                        if (confirm(`Are you sure you want to delete "${participantName}"?\n\nThis action cannot be undone.`)) {
+                            deleteParticipant(participantId);
+                        }
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error updating participant. Please try again.');
-                });
-            }
-            
-            const modal = bootstrap.Modal.getInstance(document.getElementById('participantModal'));
-            modal.hide();
-        }
+
+                    function deleteParticipant(participantId) {
+                        fetch(`/participants/delete/${participantId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    const rows = document.querySelectorAll('.table tbody tr');
+                                    rows.forEach(row => {
+                                        const deleteBtn = row.querySelector(`button[onclick*="confirmDeleteParticipant(${participantId}"]`);
+                                        if (deleteBtn) {
+                                            row.style.transition = 'opacity 0.3s';
+                                            row.style.opacity = '0';
+                                            setTimeout(() => {
+                                                row.remove();
+                                                const remainingRows = document.querySelectorAll('.table tbody tr');
+                                                document.querySelector('.participant-count-box strong').textContent = remainingRows.length;
+                                                alert('Participant deleted successfully!');
+                                            }, 300);
+                                        }
+                                    });
+                                } else {
+                                    alert('Error: ' + (data.error || 'Failed to delete participant'));
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Error deleting participant. Please try again.');
+                            });
+                    }
+
+                    function handleParticipantSubmit(event) {
+                        event.preventDefault();
+                        const form = event.target;
+                        const mode = form.getAttribute('data-mode');
+                        const participantId = form.getAttribute('data-participant-id');
+
+                        const participantEmail = document.getElementById('participantEmail').value;
+                        const participantFirstName = document.getElementById('participantFirstName').value;
+                        const participantLastName = document.getElementById('participantLastName').value;
+                        const participantDOB = document.getElementById('participantDOB').value;
+                        const participantRole = document.getElementById('participantRole').value;
+                        const participantPhone = document.getElementById('participantPhone').value;
+                        const participantCity = document.getElementById('participantCity').value;
+                        const participantState = document.getElementById('participantState').value;
+                        const participantZip = document.getElementById('participantZip').value;
+                        const participantSchoolOrEmployer = document.getElementById('participantSchoolOrEmployer').value;
+                        const participantFieldOfInterest = document.getElementById('participantFieldOfInterest').value;
+
+                        if (mode === 'add') {
+                            fetch('/participants/add', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({
+                                    participantEmail: participantEmail,
+                                    participantFirstName: participantFirstName,
+                                    participantLastName: participantLastName,
+                                    participantDOB: participantDOB,
+                                    participantRole: participantRole,
+                                    participantPhone: participantPhone,
+                                    participantCity: participantCity,
+                                    participantState: participantState,
+                                    participantZip: participantZip,
+                                    participantSchoolOrEmployer: participantSchoolOrEmployer,
+                                    participantFieldOfInterest: participantFieldOfInterest
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Participant added successfully! Refreshing page...');
+                                        window.location.reload();
+                                    } else {
+                                        alert('Error: ' + (data.error || 'Failed to add participant'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error adding participant. Please try again.');
+                                });
+                        } else if (mode === 'edit') {
+                            fetch(`/participants/edit/${participantId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: new URLSearchParams({
+                                    participantEmail: participantEmail,
+                                    participantFirstName: participantFirstName,
+                                    participantLastName: participantLastName,
+                                    participantDOB: participantDOB,
+                                    participantRole: participantRole,
+                                    participantPhone: participantPhone,
+                                    participantCity: participantCity,
+                                    participantState: participantState,
+                                    participantZip: participantZip,
+                                    participantSchoolOrEmployer: participantSchoolOrEmployer,
+                                    participantFieldOfInterest: participantFieldOfInterest
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Participant updated successfully! Refreshing page...');
+                                        window.location.reload();
+                                    } else {
+                                        alert('Error: ' + (data.error || 'Failed to update participant'));
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('Error updating participant. Please try again.');
+                                });
+                        }
+
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('participantModal'));
+                        modal.hide();
+                    }
         <% } %>
-    </script>
-    <script>
-function filterParticipants() {
-    const searchValue = document.getElementById("participantSearch").value.toLowerCase();
-    const rows = document.querySelectorAll(".table tbody tr");
+            </script>
+            <script>
+                    function filterParticipants() {
+                        const searchValue = document.getElementById("participantSearch").value.toLowerCase();
+                        const rows = document.querySelectorAll(".table tbody tr");
 
-    rows.forEach(row => {
-        const firstName = row.children[1]?.textContent.toLowerCase() || "";
-        const lastName = row.children[2]?.textContent.toLowerCase() || "";
+                        rows.forEach(row => {
+                            const firstName = row.children[1]?.textContent.toLowerCase() || "";
+                            const lastName = row.children[2]?.textContent.toLowerCase() || "";
 
-        if (firstName.includes(searchValue) || lastName.includes(searchValue)) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
-    });
-}
-</script>
+                            if (firstName.includes(searchValue) || lastName.includes(searchValue)) {
+                                row.style.display = "";
+                            } else {
+                                row.style.display = "none";
+                            }
+                        });
+                    }
+            </script>
 
 </body>
-</html>
 
+</html>
