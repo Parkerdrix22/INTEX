@@ -166,9 +166,13 @@
         }
 
         .table-wrapper {
-            overflow-x: auto;
+            overflow-x: scroll;
             overflow-y: auto;
             max-height: 70vh;
+            position: relative;
+        }
+
+        .table {
             position: relative;
         }
 
@@ -199,12 +203,23 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .table-header-left {
             display: flex;
             align-items: center;
             gap: 1rem;
+            justify-content: flex-start;
+            flex: 0 0 auto;
+        }
+
+        .table-header-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 0 0 auto;
         }
 
         .add-participant-btn {
@@ -228,7 +243,8 @@
             border-radius: 0.5rem;
             padding: 0.75rem 1rem;
             font-size: 1rem;
-            width: 300px;
+            min-width: 300px;
+            max-width: 300px;
             transition: all 0.3s ease;
             background-color: #ffffff;
         }
@@ -262,7 +278,7 @@
         .table {
             background-color: #fff;
             border-radius: 0.75rem;
-            overflow: hidden;
+            overflow: visible;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
@@ -283,9 +299,6 @@
 
         .table tbody tr {
             border-bottom: 1px solid #e0e0e0;
-        }
-
-        .table tbody tr {
             transition: background-color 0.2s ease;
         }
 
@@ -307,22 +320,6 @@
             white-space: nowrap;
         }
 
-        /* Fixed action buttons column */
-        .table tbody tr {
-            position: relative;
-        }
-
-        .action-buttons-cell {
-            position: sticky;
-            right: 0;
-            background-color: #fff;
-            z-index: 10;
-            padding: 1rem 0.75rem !important;
-            min-width: 150px;
-            box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
-        }
-
-
         .action-buttons {
             display: flex;
             gap: 0.5rem;
@@ -330,31 +327,41 @@
         }
 
         .action-buttons .btn {
-            min-width: 60px;
-            padding: 0.375rem 0.75rem;
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
         }
 
         .action-buttons .btn-primary {
-            background-color: #9AB59D;
-            border-color: #9AB59D;
-            color: #fff;
+            color: #9AB59D;
         }
 
         .action-buttons .btn-primary:hover {
-            background-color: #7a9a7d;
-            border-color: #7a9a7d;
+            background-color: #9AB59D;
+            color: #fff;
         }
 
         .action-buttons .btn-danger {
-            background-color: var(--er-pink);
-            border-color: var(--er-pink);
-            color: var(--er-text);
+            color: var(--er-pink-dark);
         }
 
         .action-buttons .btn-danger:hover {
             background-color: var(--er-pink-dark);
-            border-color: var(--er-pink-dark);
             color: #fff;
+        }
+
+        .action-buttons .btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
         }
 
         /* Modal Styles - Matching Event Modal */
@@ -427,18 +434,6 @@
             padding: 0.75rem 2rem;
         }
 
-        /* Fixed header for action column */
-        .table thead th:last-child,
-        .table thead th:nth-last-child(2) {
-            position: sticky;
-            right: 0;
-            z-index: 20;
-            box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .table thead th:nth-last-child(2) {
-            right: 75px;
-        }
 
         /* Footer */
         footer {
@@ -595,9 +590,6 @@
                 font-size: 0.8rem;
             }
 
-            .action-buttons-cell {
-                min-width: 100px;
-            }
         }
     </style>
 </head>
@@ -636,7 +628,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
+                    <% if (user) { %>
                     <li class="nav-item">
                         <a class="nav-link" href="/participants">Participants</a>
                     </li>
@@ -682,16 +674,18 @@
                 <button class="add-participant-btn" onclick="openAddParticipantModal()">
                     + Add Participant
                 </button>
-                <% } %>
-                    <!-- Search Bar -->
-                    <input type="text" id="participantSearch" class="participant-search"
-                        placeholder="Search participants..." onkeyup="filterParticipants()" />
+            <% } %>
+            <!-- Search Bar -->
+            <input type="text" id="participantSearch" class="participant-search"
+                placeholder="Search participants..." onkeyup="filterParticipants()" />
         </div>
 
-        <div class="participant-count-box">
-            Number of Participants: <strong>
-                <%= participants ? participants.length : 0 %>
-            </strong>
+        <div class="table-header-right">
+            <div class="participant-count-box">
+                Number of Participants: <strong>
+                    <%= participants ? participants.length : 0 %>
+                </strong>
+            </div>
         </div>
     </div>
 
@@ -713,12 +707,12 @@
                         <th>Zip</th>
                         <th>School/Employer</th>
                         <th>Interest</th>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>Level</th>
                         <% if (user && user.isManager) { %>
-                            <th style="min-width: 150px;">Actions</th>
-                            <% } %>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Level</th>
+                            <th style="min-width: 100px;"></th>
+                        <% } %>
                     </tr>
                 </thead>
                 <tbody>
@@ -759,36 +753,42 @@
                                 <td>
                                     <%= p.participantfieldofinterest || '' %>
                                 </td>
-                                <td>
-                                    <%= p.username || '' %>
-                                </td>
-                                <td>
-                                    <%= p.password || '' %>
-                                </td>
-                                <td>
-                                    <%= p.level || '' %>
-                                </td>
                                 <% if (user && user.isManager) { %>
-                                    <td class="action-buttons-cell" onclick="event.stopPropagation();">
+                                    <td>
+                                        <%= p.username || '' %>
+                                    </td>
+                                    <td>
+                                        <%= p.password || '' %>
+                                    </td>
+                                    <td>
+                                        <%= p.level || '' %>
+                                    </td>
+                                    <td onclick="event.stopPropagation();">
                                         <div class="action-buttons">
-                                            <button class="btn btn-sm btn-primary"
+                                            <button class="btn btn-primary"
                                                 onclick="event.stopPropagation(); openEditParticipantModal(<%- p.participantid %>)"
-                                                data-participant-id="<%- p.participantid %>">
-                                                Edit
+                                                data-participant-id="<%- p.participantid %>"
+                                                title="Edit participant">
+                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                                </svg>
                                             </button>
-                                            <button class="btn btn-sm btn-danger"
+                                            <button class="btn btn-danger"
                                                 onclick="event.stopPropagation(); confirmDeleteParticipant(<%- p.participantid %>, '<%- (p.participantfirstname || '') + ' ' + (p.participantlastname || '') %>')"
-                                                data-participant-id="<%- p.participantid %>">
-                                                Delete
+                                                data-participant-id="<%- p.participantid %>"
+                                                title="Delete participant">
+                                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                                </svg>
                                             </button>
                                         </div>
                                     </td>
-                                    <% } %>
+                                <% } %>
                             </tr>
                             <% }); %>
                                 <% } else { %>
                                     <tr>
-                                        <td colspan="<%= user && user.isManager ? '15' : '14' %>"
+                                        <td colspan="<%= user && user.isManager ? '15' : '11' %>"
                                             style="text-align: center; padding: 2rem; color: #666;">
                                             No participants found.
                                             <% if (error_message) { %>
@@ -957,7 +957,7 @@
                         rows.forEach(row => {
                             row.addEventListener('click', function (e) {
                                 // Don't navigate if clicking on action buttons
-                                if (e.target.closest('.action-buttons-cell') || e.target.closest('button')) {
+                                if (e.target.closest('button') || e.target.closest('.action-buttons')) {
                                     return;
                                 }
                                 const participantId = this.getAttribute('data-participant-id');

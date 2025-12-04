@@ -212,6 +212,21 @@
             overflow-x: hidden;
         }
 
+        /* Search Input */
+        .event-search-input {
+            border: 2px solid var(--er-pink);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .event-search-input:focus {
+            outline: none;
+            border-color: var(--er-pink-dark);
+            box-shadow: 0 0 0 3px rgba(255, 216, 209, 0.3);
+        }
+
         /* Dropdown with arrow icon */
         .form-control.select-dropdown {
             appearance: none;
@@ -277,6 +292,90 @@
 
         .event-item {
             position: relative;
+        }
+
+        .event-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .event-item-content {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .event-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .event-action-btn {
+            padding: 0.5rem;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
+        }
+
+        .event-action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .event-action-btn.edit-btn {
+            color: #9AB59D;
+        }
+
+        .event-action-btn.edit-btn:hover {
+            background-color: #9AB59D;
+            color: #fff;
+        }
+
+        .event-action-btn.delete-btn {
+            color: var(--er-pink-dark);
+        }
+
+        .event-action-btn.delete-btn:hover {
+            background-color: var(--er-pink-dark);
+            color: #fff;
+        }
+
+        .event-action-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .add-event-survey-btn {
+            background-color: var(--er-pink-dark);
+            color: #fff;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-event-survey-btn:hover {
+            background-color: #ff8ab8;
+        }
+
+        .add-event-survey-message {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+            font-style: italic;
         }
 
         /* Question Editor Styles */
@@ -575,7 +674,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
+                    <% if (user) { %>
                     <li class="nav-item">
                         <a class="nav-link" href="/participants">Participants</a>
                     </li>
@@ -623,6 +722,24 @@
         <div class="events-list-divider"></div>
         <div class="events-list-container">
             <h2 class="mb-4" style="font-weight: 600;">Select an event you attended:</h2>
+            
+            <% if (user && user.isManager) { %>
+                <div class="mb-4">
+                    <button class="add-event-survey-btn" onclick="handleAddEventSurvey()">
+                        + Add Event Survey
+                    </button>
+                    <div class="add-event-survey-message">
+                        Note: You must create a new event to create a new survey.
+                    </div>
+                </div>
+            <% } %>
+            
+            <!-- Search Bar -->
+            <div class="mb-4">
+                <input type="text" id="event-search" class="form-control event-search-input" 
+                       placeholder="Search by event name..." 
+                       style="max-width: 100%; min-width: 250px;">
+            </div>
 
             <% if (events && events.length> 0) { %>
                 <% events.forEach((event, index)=> { 
@@ -634,11 +751,31 @@
                     <div class="event-item" data-event-name="<%= event.eventname || 'Untitled Event' %>"
                         data-event-id="<%= eventId %>"
                         data-event-occurrence-id="<%= eventOccurrenceId || '' %>">
-                        <div
-                            onclick="openSurvey('<%= escapedName %>', <%= eventId %>, <%= eventOccurrenceId !== null ? eventOccurrenceId : 'null' %>)">
-                            <h3>
-                                <%= event.eventname || 'Untitled Event' %>
-                            </h3>
+                        <div class="event-item-header">
+                            <div class="event-item-content"
+                                onclick="openSurvey('<%= escapedName %>', <%= eventId %>, <%= eventOccurrenceId !== null ? eventOccurrenceId : 'null' %>)">
+                                <h3>
+                                    <%= event.eventname || 'Untitled Event' %>
+                                </h3>
+                            </div>
+                            <% if (user && user.isManager) { %>
+                                <div class="event-item-actions" onclick="event.stopPropagation();">
+                                    <button class="event-action-btn edit-btn" 
+                                        onclick="event.stopPropagation(); openEditSurveyModal(<%= eventId %>, '<%= escapedName %>')"
+                                        title="Edit survey questions">
+                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="event-action-btn delete-btn" 
+                                        onclick="event.stopPropagation(); confirmDeleteEvent(<%= eventId %>, '<%= escapedName %>')"
+                                        title="Delete event">
+                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                     <% }); %>
@@ -797,6 +934,34 @@
         </div>
     </div>
 
+    <!-- Edit Survey Questions Modal (Admin Only) -->
+    <% if (user && user.isManager) { %>
+        <div class="modal fade" id="editSurveyModal" tabindex="-1" aria-labelledby="editSurveyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="editSurveyModalTitle">Edit Survey Questions</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="editSurveyFormContainer">
+                        <form id="editSurveyForm">
+                            <input type="hidden" id="editEventId" name="eventId" value="">
+                            <div id="questionsContainer">
+                                <!-- Questions will be dynamically added here -->
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-secondary" onclick="addQuestion()">+ Add Question</button>
+                            </div>
+                            <div class="mt-4">
+                                <button type="submit" class="btn-submit">Save Survey Questions</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -872,7 +1037,7 @@
             });
         }
 
-        function openSurvey(eventName, eventId, eventOccurrenceId) {
+        async function openSurvey(eventName, eventId, eventOccurrenceId) {
             // Use provided parameters or get from DOM
             if (!eventId) {
                 const eventItem = document.querySelector(`[data-event-name="${eventName}"]`);
@@ -891,8 +1056,17 @@
             // Get occurrences for this event - try both string and numeric keys
             const occurrences = occurrencesByEvent[numericEventId] || occurrencesByEvent[eventId] || [];
 
-            // Build survey form dynamically using default questions
-            const questions = defaultQuestions;
+            // Load custom questions for this event, or use defaults
+            let questions = defaultQuestions;
+            try {
+                const response = await fetch(`/api/survey/questions/${eventId}`);
+                const data = await response.json();
+                if (data.success && data.questions && data.questions.length > 0) {
+                    questions = data.questions;
+                }
+            } catch (error) {
+                console.error('Error loading custom questions, using defaults:', error);
+            }
             const formContainer = document.getElementById('surveyFormContainer');
 
             let formHTML = `
@@ -1002,6 +1176,218 @@
                 alert('Error opening survey form. Please refresh the page and try again.');
             }
         }
+
+        <% if (user && user.isManager) { %>
+        // Handle Add Event Survey button click
+        function handleAddEventSurvey() {
+            alert('Add an event first to create a new survey.');
+            window.location.href = '/events';
+        }
+
+        // Admin functions for editing surveys
+        async function openEditSurveyModal(eventId, eventName) {
+            document.getElementById('editEventId').value = eventId;
+            document.getElementById('editSurveyModalTitle').textContent = `Edit Survey Questions: ${eventName}`;
+            
+            const questionsContainer = document.getElementById('questionsContainer');
+            questionsContainer.innerHTML = '<p>Loading questions...</p>';
+            
+            // Load current questions for this event from API
+            try {
+                const response = await fetch(`/api/survey/questions/${eventId}`);
+                const data = await response.json();
+                
+                questionsContainer.innerHTML = '';
+                
+                if (data.success && data.questions && data.questions.length > 0) {
+                    // Use custom questions
+                    data.questions.forEach((q, index) => {
+                        addQuestionToEditor(q, index);
+                    });
+                } else {
+                    // Use default questions if none found
+                    defaultQuestions.forEach((q, index) => {
+                        addQuestionToEditor(q, index);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                questionsContainer.innerHTML = '';
+                // Fall back to default questions
+                defaultQuestions.forEach((q, index) => {
+                    addQuestionToEditor(q, index);
+                });
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('editSurveyModal'));
+            modal.show();
+        }
+
+        function addQuestionToEditor(question, index) {
+            const questionsContainer = document.getElementById('questionsContainer');
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-item mb-3 p-3';
+            questionDiv.setAttribute('data-question-index', index);
+            
+            let questionHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5>Question ${index + 1}</h5>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Delete</button>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Question Type</label>
+                    <select class="form-control question-type" onchange="updateQuestionType(this)">
+                        <option value="rating" ${question.type === 'rating' ? 'selected' : ''}>Rating (1-5)</option>
+                        <option value="textarea" ${question.type === 'textarea' ? 'selected' : ''}>Text Area</option>
+                        <option value="text" ${question.type === 'text' ? 'selected' : ''}>Text Input</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Question Label</label>
+                    <input type="text" class="form-control question-label" value="${question.label || ''}" placeholder="Enter question text">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Question Name (for form submission)</label>
+                    <input type="text" class="form-control question-name" value="${question.name || ''}" placeholder="e.g., satisfactionScore">
+                </div>
+                <div class="mb-2">
+                    <label>
+                        <input type="checkbox" class="question-required" ${question.required ? 'checked' : ''}> Required
+                    </label>
+                </div>
+            `;
+            
+            questionDiv.innerHTML = questionHTML;
+            questionsContainer.appendChild(questionDiv);
+        }
+
+        function addQuestion() {
+            const questionsContainer = document.getElementById('questionsContainer');
+            const index = questionsContainer.children.length;
+            const newQuestion = {
+                type: 'rating',
+                label: '',
+                name: '',
+                required: false
+            };
+            addQuestionToEditor(newQuestion, index);
+        }
+
+        function removeQuestion(button) {
+            if (confirm('Are you sure you want to remove this question?')) {
+                button.closest('.question-item').remove();
+                // Renumber questions
+                const questions = document.querySelectorAll('.question-item');
+                questions.forEach((q, index) => {
+                    q.querySelector('h5').textContent = `Question ${index + 1}`;
+                });
+            }
+        }
+
+        function updateQuestionType(select) {
+            // Could add logic here to update the question display based on type
+        }
+
+        function confirmDeleteEvent(eventId, eventName) {
+            if (confirm(`Are you sure you want to delete the event "${eventName}"?\n\nThis will also delete all associated survey responses. This action cannot be undone.`)) {
+                deleteEventFromSurvey(eventId);
+            }
+        }
+
+        function deleteEventFromSurvey(eventId) {
+            fetch(`/events/delete/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Event deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to delete event'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting event. Please try again.');
+            });
+        }
+
+        // Handle edit survey form submission
+        document.getElementById('editSurveyForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const eventId = document.getElementById('editEventId').value;
+            const questions = [];
+            const questionItems = document.querySelectorAll('#questionsContainer .question-item');
+            
+            questionItems.forEach((item, index) => {
+                const type = item.querySelector('.question-type').value;
+                const label = item.querySelector('.question-label').value;
+                const name = item.querySelector('.question-name').value;
+                const required = item.querySelector('.question-required').checked;
+                
+                if (label && name) {
+                    questions.push({
+                        type: type,
+                        label: label,
+                        name: name,
+                        required: required
+                    });
+                }
+            });
+            
+            // Save questions to backend
+            fetch(`/api/survey/questions/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ questions: questions })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Survey questions saved successfully!');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editSurveyModal'));
+                    modal.hide();
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to save questions'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving survey questions. Please try again.');
+            });
+        });
+        <% } %>
+
+        // Event search functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const eventSearchInput = document.getElementById('event-search');
+            const eventItems = document.querySelectorAll('.event-item');
+
+            if (eventSearchInput && eventItems.length > 0) {
+                eventSearchInput.addEventListener('input', function () {
+                    const searchValue = this.value.trim().toLowerCase();
+
+                    eventItems.forEach(item => {
+                        const eventNameElement = item.querySelector('h3');
+                        const eventName = eventNameElement ? eventNameElement.textContent.trim().toLowerCase() : '';
+
+                        if (searchValue === '' || eventName.includes(searchValue)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
 
     </script>
 </body>

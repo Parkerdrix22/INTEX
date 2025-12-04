@@ -403,6 +403,133 @@
             font-family: 'DM Serif Display', serif;
         }
 
+        /* Donation Search Results */
+        .donation-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .donation-item:last-child {
+            border-bottom: none;
+        }
+
+        .donation-date {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .donation-amount {
+            font-weight: 600;
+            color: var(--er-pink-dark);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .donation-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .donation-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: color 0.2s;
+        }
+
+        .donation-action-btn:hover {
+            color: var(--er-pink-dark);
+        }
+
+        .donation-action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .donations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .add-donation-btn {
+            background-color: var(--er-pink);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .add-donation-btn:hover {
+            background-color: var(--er-pink-dark);
+        }
+
+        .no-donations {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .participant-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--er-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .participant-email {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Participant Dropdown */
+        .participant-dropdown-item {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .participant-dropdown-item:hover {
+            background-color: var(--er-pink);
+        }
+
+        .participant-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .participant-dropdown-name {
+            font-weight: 600;
+            color: var(--er-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .participant-dropdown-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .no-results {
+            padding: 1rem;
+            text-align: center;
+            color: #666;
+        }
+
         @media (max-width: 767px) {
             .page-header {
                 padding: 3rem 1.5rem;
@@ -484,10 +611,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/participants">Participants</a>
-                        </li>
+                    <% if (user) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/participants">Participants</a>
+                    </li>
                     <% } %>
                     <li class="nav-item">
                         <a class="nav-link" href="/events">Events</a>
@@ -543,6 +670,51 @@
                     <div class="stat-card">
                         <div class="stat-label">Total Amount</div>
                         <div class="stat-number" id="totalAmount">$0.00</div>
+                    </div>
+                </div>
+
+                <!-- Participant Search Section -->
+                <div style="max-width: 800px; margin: 3rem auto 0;">
+                    <h3 style="font-family: 'DM Serif Display', serif; text-align: center; margin-bottom: 1.5rem;">Search Participant Donations</h3>
+                    <div style="position: relative; margin-bottom: 2rem;">
+                        <input type="text" id="participantSearch" class="form-control" placeholder="Type to search by first name or last name..." style="width: 100%;">
+                        <div id="participantDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background-color: #fff; border: 2px solid var(--er-pink); border-top: none; border-radius: 0 0 0.5rem 0.5rem; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"></div>
+                    </div>
+                    
+                    <!-- Search Results -->
+                    <div id="donationSearchResults" style="display: none;">
+                        <div id="participantInfo" style="background-color: #fff; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+                        <div id="donationsList" style="background-color: #fff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"></div>
+                    </div>
+                    
+                    <!-- Add/Edit Donation Modal -->
+                    <div class="modal fade" id="donationModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="donationModalTitle">Add Donation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="donationFormModal">
+                                        <input type="hidden" id="modalDonationId" value="">
+                                        <input type="hidden" id="modalParticipantId" value="">
+                                        <div class="mb-3">
+                                            <label for="modalDonationAmount" class="form-label">Donation Amount ($)</label>
+                                            <input type="number" class="form-control" id="modalDonationAmount" step="0.01" min="0.01" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="modalDonationDate" class="form-label">Donation Date</label>
+                                            <input type="date" class="form-control" id="modalDonationDate" required>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" id="saveDonationBtn">Save</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -775,9 +947,594 @@
             }
         }
 
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Search participants as user types
+        async function searchParticipants(searchTerm) {
+            const dropdown = document.getElementById('participantDropdown');
+            
+            if (!searchTerm || searchTerm.trim().length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/donations/search-participants?name=${encodeURIComponent(searchTerm)}`);
+                const result = await response.json();
+
+                if (result.success && result.participants && result.participants.length > 0) {
+                    let dropdownHTML = '';
+                    result.participants.forEach(participant => {
+                        dropdownHTML += `
+                            <div class="participant-dropdown-item" onclick="selectParticipant(${participant.participantid}, '${(participant.participantfirstname || '').replace(/'/g, "\\'")}', '${(participant.participantlastname || '').replace(/'/g, "\\'")}', '${(participant.participantemail || '').replace(/'/g, "\\'")}')">
+                                <div class="participant-dropdown-name">${participant.participantfirstname || ''} ${participant.participantlastname || ''}</div>
+                                <div class="participant-dropdown-email">${participant.participantemail || ''}</div>
+                            </div>
+                        `;
+                    });
+                    dropdown.innerHTML = dropdownHTML;
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.innerHTML = '<div class="no-results">No participants found</div>';
+                    dropdown.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error searching participants:', error);
+                dropdown.innerHTML = '<div class="no-results">Error searching participants</div>';
+                dropdown.style.display = 'block';
+            }
+        }
+
+        // Select a participant and show their donations
+        async function selectParticipant(participantId, firstName, lastName, email) {
+            // Hide dropdown and update search input
+            document.getElementById('participantDropdown').style.display = 'none';
+            document.getElementById('participantSearch').value = `${firstName} ${lastName}`;
+
+            try {
+                const response = await fetch(`/api/donations/participant/${participantId}`);
+                const result = await response.json();
+
+                const resultsDiv = document.getElementById('donationSearchResults');
+                const participantInfoDiv = document.getElementById('participantInfo');
+                const donationsListDiv = document.getElementById('donationsList');
+
+                if (result.success) {
+                    // Display participant info
+                    participantInfoDiv.innerHTML = `
+                        <div class="participant-name">${firstName} ${lastName}</div>
+                        <div class="participant-email">${email}</div>
+                    `;
+
+                    // Display donations
+                    if (result.donations && result.donations.length > 0) {
+                        let donationsHTML = `
+                            <div class="donations-header">
+                                <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                    + Add Donation
+                                </button>
+                            </div>
+                        `;
+                        result.donations.forEach(donation => {
+                            // Handle VARCHAR date format - could be "YYYY-MM-DD" or "UNKNOWN_DATE"
+                            let formattedDate = 'Unknown Date';
+                            const dateStr = donation.donationdate;
+                            
+                            if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                // Try to parse YYYY-MM-DD format
+                                const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                if (dateMatch) {
+                                    const year = parseInt(dateMatch[1], 10);
+                                    const month = parseInt(dateMatch[2], 10) - 1;
+                                    const day = parseInt(dateMatch[3], 10);
+                                    const date = new Date(year, month, day);
+                                    if (!isNaN(date.getTime())) {
+                                        formattedDate = date.toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        });
+                                    } else {
+                                        formattedDate = dateStr;
+                                    }
+                                } else {
+                                    // Try parsing as-is
+                                    const date = new Date(dateStr);
+                                    if (!isNaN(date.getTime())) {
+                                        formattedDate = date.toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        });
+                                    } else {
+                                        formattedDate = dateStr;
+                                    }
+                                }
+                            } else if (dateStr === 'UNKNOWN_DATE') {
+                                formattedDate = 'Unknown Date';
+                            }
+                            
+                            const formattedAmount = parseFloat(donation.donationamount || 0).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 2
+                            });
+                            // Format date for input field (YYYY-MM-DD)
+                            let inputDate = 'UNKNOWN_DATE';
+                            if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                if (dateMatch) {
+                                    inputDate = dateStr.substring(0, 10);
+                                } else {
+                                    const date = new Date(dateStr);
+                                    if (!isNaN(date.getTime())) {
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+                                        inputDate = `${year}-${month}-${day}`;
+                                    }
+                                }
+                            }
+                            
+                            donationsHTML += `
+                                <div class="donation-item">
+                                    <div>
+                                        <div class="donation-date">${formattedDate}</div>
+                                    </div>
+                                    <div class="donation-amount">
+                                        ${formattedAmount}
+                                        <div class="donation-actions">
+                                            <button type="button" class="donation-action-btn" onclick="editDonation(${donation.donationid}, ${participantId}, ${donation.donationamount}, '${inputDate}')" title="Edit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button type="button" class="donation-action-btn" onclick="deleteDonation(${donation.donationid}, ${participantId})" title="Delete">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        donationsListDiv.innerHTML = donationsHTML;
+                    } else {
+                        donationsListDiv.innerHTML = `
+                            <div class="donations-header">
+                                <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                    + Add Donation
+                                </button>
+                            </div>
+                            <div class="no-donations">No donations found for this participant.</div>
+                        `;
+                    }
+
+                    resultsDiv.style.display = 'block';
+                } else {
+                    alert('Error loading donations for this participant.');
+                }
+            } catch (error) {
+                console.error('Error loading participant donations:', error);
+                alert('Error loading donations. Please try again.');
+            }
+        }
+
+        // Set up search input with debouncing
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('participantSearch');
+            if (searchInput) {
+                const debouncedSearch = debounce(searchParticipants, 300);
+                
+                searchInput.addEventListener('input', function(e) {
+                    debouncedSearch(e.target.value);
+                });
+
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    const dropdown = document.getElementById('participantDropdown');
+                    if (dropdown && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+        });
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadDonationData();
+        });
+
+        // Store current participant ID for donation operations
+        let currentParticipantId = null;
+
+        // Open add donation modal
+        function openAddDonationModal(participantId) {
+            currentParticipantId = participantId;
+            document.getElementById('donationModalTitle').textContent = 'Add Donation';
+            document.getElementById('modalDonationId').value = '';
+            document.getElementById('modalParticipantId').value = participantId;
+            document.getElementById('modalDonationAmount').value = '';
+            
+            // Set today's date
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('modalDonationDate').value = `${year}-${month}-${day}`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('donationModal'));
+            modal.show();
+        }
+
+        // Edit donation
+        function editDonation(donationId, participantId, amount, date) {
+            currentParticipantId = participantId;
+            document.getElementById('donationModalTitle').textContent = 'Edit Donation';
+            document.getElementById('modalDonationId').value = donationId;
+            document.getElementById('modalParticipantId').value = participantId;
+            document.getElementById('modalDonationAmount').value = amount;
+            document.getElementById('modalDonationDate').value = date === 'UNKNOWN_DATE' ? '' : date;
+            
+            const modal = new bootstrap.Modal(document.getElementById('donationModal'));
+            modal.show();
+        }
+
+        // Delete donation
+        async function deleteDonation(donationId, participantId) {
+            if (!confirm('Are you sure you want to delete this donation?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/donations/${donationId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update total donations and total amount
+                    loadDonationData();
+                    
+                    // Reload donations for this participant
+                    // Get participant info from the displayed info
+                    const participantInfoDiv = document.getElementById('participantInfo');
+                    if (participantInfoDiv && participantInfoDiv.innerHTML) {
+                        const participantName = participantInfoDiv.querySelector('.participant-name')?.textContent || '';
+                        const participantEmail = participantInfoDiv.querySelector('.participant-email')?.textContent || '';
+                        
+                        if (participantName && participantEmail) {
+                            const nameParts = participantName.trim().split(/\s+/);
+                            const firstName = nameParts[0] || '';
+                            const lastName = nameParts.slice(1).join(' ') || '';
+                            await selectParticipant(participantId, firstName, lastName, participantEmail);
+                        } else {
+                            // Fallback: just reload donations without participant info
+                            const response = await fetch(`/api/donations/participant/${participantId}`);
+                            const result = await response.json();
+                            if (result.success) {
+                                const donationsListDiv = document.getElementById('donationsList');
+                                // Reuse the display logic from selectParticipant
+                                if (result.donations && result.donations.length > 0) {
+                                    let donationsHTML = `
+                                        <div class="donations-header">
+                                            <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                            <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                                + Add Donation
+                                            </button>
+                                        </div>
+                                    `;
+                                    result.donations.forEach(donation => {
+                                        // Format date and amount (reuse logic from selectParticipant)
+                                        let formattedDate = 'Unknown Date';
+                                        const dateStr = donation.donationdate;
+                                        if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                            const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                            if (dateMatch) {
+                                                const year = parseInt(dateMatch[1], 10);
+                                                const month = parseInt(dateMatch[2], 10) - 1;
+                                                const day = parseInt(dateMatch[3], 10);
+                                                const date = new Date(year, month, day);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedDate = date.toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    });
+                                                } else {
+                                                    formattedDate = dateStr;
+                                                }
+                                            } else {
+                                                const date = new Date(dateStr);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedDate = date.toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    });
+                                                } else {
+                                                    formattedDate = dateStr;
+                                                }
+                                            }
+                                        } else if (dateStr === 'UNKNOWN_DATE') {
+                                            formattedDate = 'Unknown Date';
+                                        }
+                                        
+                                        const formattedAmount = parseFloat(donation.donationamount || 0).toLocaleString('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD',
+                                            minimumFractionDigits: 2
+                                        });
+                                        
+                                        let inputDate = 'UNKNOWN_DATE';
+                                        if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                            const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                            if (dateMatch) {
+                                                inputDate = dateStr.substring(0, 10);
+                                            } else {
+                                                const date = new Date(dateStr);
+                                                if (!isNaN(date.getTime())) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    inputDate = `${year}-${month}-${day}`;
+                                                }
+                                            }
+                                        }
+                                        
+                                        donationsHTML += `
+                                            <div class="donation-item">
+                                                <div>
+                                                    <div class="donation-date">${formattedDate}</div>
+                                                </div>
+                                                <div class="donation-amount">
+                                                    ${formattedAmount}
+                                                    <div class="donation-actions">
+                                                        <button type="button" class="donation-action-btn" onclick="editDonation(${donation.donationid}, ${participantId}, ${donation.donationamount}, '${inputDate}')" title="Edit">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button type="button" class="donation-action-btn" onclick="deleteDonation(${donation.donationid}, ${participantId})" title="Delete">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                    donationsListDiv.innerHTML = donationsHTML;
+                                } else {
+                                    donationsListDiv.innerHTML = `
+                                        <div class="donations-header">
+                                            <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                            <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                                + Add Donation
+                                            </button>
+                                        </div>
+                                        <div class="no-donations">No donations found for this participant.</div>
+                                    `;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to delete donation.'));
+                }
+            } catch (error) {
+                console.error('Error deleting donation:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Save donation (add or edit)
+        document.getElementById('saveDonationBtn').addEventListener('click', async function() {
+            const donationId = document.getElementById('modalDonationId').value;
+            const participantId = document.getElementById('modalParticipantId').value;
+            const amount = document.getElementById('modalDonationAmount').value;
+            const date = document.getElementById('modalDonationDate').value;
+
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid donation amount.');
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a donation date.');
+                return;
+            }
+
+            try {
+                let response;
+                if (donationId) {
+                    // Edit existing donation
+                    response = await fetch(`/api/donations/${donationId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            donationAmount: amount,
+                            donationDate: date
+                        })
+                    });
+                } else {
+                    // Add new donation
+                    response = await fetch('/api/donations/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            participantId: participantId,
+                            donationAmount: amount,
+                            donationDate: date
+                        })
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update total donations and total amount
+                    loadDonationData();
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('donationModal'));
+                    modal.hide();
+                    
+                    // Reload donations for this participant
+                    // Get participant info from the displayed info
+                    const participantInfoDiv = document.getElementById('participantInfo');
+                    if (participantInfoDiv && participantInfoDiv.innerHTML) {
+                        const participantName = participantInfoDiv.querySelector('.participant-name')?.textContent || '';
+                        const participantEmail = participantInfoDiv.querySelector('.participant-email')?.textContent || '';
+                        
+                        if (participantName && participantEmail) {
+                            const nameParts = participantName.trim().split(/\s+/);
+                            const firstName = nameParts[0] || '';
+                            const lastName = nameParts.slice(1).join(' ') || '';
+                            await selectParticipant(participantId, firstName, lastName, participantEmail);
+                        } else {
+                            // If we don't have the info, just reload the donations
+                            const response = await fetch(`/api/donations/participant/${participantId}`);
+                            const result = await response.json();
+                            if (result.success) {
+                                // Re-display donations
+                                const donationsListDiv = document.getElementById('donationsList');
+                                if (result.donations && result.donations.length > 0) {
+                                    // Use the same display logic as selectParticipant
+                                    let donationsHTML = `
+                                        <div class="donations-header">
+                                            <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                            <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                                + Add Donation
+                                            </button>
+                                        </div>
+                                    `;
+                                    result.donations.forEach(donation => {
+                                        // Format date and amount (same logic as before)
+                                        let formattedDate = 'Unknown Date';
+                                        const dateStr = donation.donationdate;
+                                        if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                            const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                            if (dateMatch) {
+                                                const year = parseInt(dateMatch[1], 10);
+                                                const month = parseInt(dateMatch[2], 10) - 1;
+                                                const day = parseInt(dateMatch[3], 10);
+                                                const date = new Date(year, month, day);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedDate = date.toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    });
+                                                } else {
+                                                    formattedDate = dateStr;
+                                                }
+                                            } else {
+                                                const date = new Date(dateStr);
+                                                if (!isNaN(date.getTime())) {
+                                                    formattedDate = date.toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    });
+                                                } else {
+                                                    formattedDate = dateStr;
+                                                }
+                                            }
+                                        } else if (dateStr === 'UNKNOWN_DATE') {
+                                            formattedDate = 'Unknown Date';
+                                        }
+                                        
+                                        const formattedAmount = parseFloat(donation.donationamount || 0).toLocaleString('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD',
+                                            minimumFractionDigits: 2
+                                        });
+                                        
+                                        let inputDate = 'UNKNOWN_DATE';
+                                        if (dateStr && dateStr !== 'UNKNOWN_DATE' && dateStr.trim() !== '') {
+                                            const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                                            if (dateMatch) {
+                                                inputDate = dateStr.substring(0, 10);
+                                            } else {
+                                                const date = new Date(dateStr);
+                                                if (!isNaN(date.getTime())) {
+                                                    const year = date.getFullYear();
+                                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(date.getDate()).padStart(2, '0');
+                                                    inputDate = `${year}-${month}-${day}`;
+                                                }
+                                            }
+                                        }
+                                        
+                                        donationsHTML += `
+                                            <div class="donation-item">
+                                                <div>
+                                                    <div class="donation-date">${formattedDate}</div>
+                                                </div>
+                                                <div class="donation-amount">
+                                                    ${formattedAmount}
+                                                    <div class="donation-actions">
+                                                        <button type="button" class="donation-action-btn" onclick="editDonation(${donation.donationid}, ${participantId}, ${donation.donationamount}, '${inputDate}')" title="Edit">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button type="button" class="donation-action-btn" onclick="deleteDonation(${donation.donationid}, ${participantId})" title="Delete">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                    donationsListDiv.innerHTML = donationsHTML;
+                                } else {
+                                    donationsListDiv.innerHTML = `
+                                        <div class="donations-header">
+                                            <h4 style="margin: 0; font-weight: 600;">Donations:</h4>
+                                            <button type="button" class="add-donation-btn" onclick="openAddDonationModal(${participantId})">
+                                                + Add Donation
+                                            </button>
+                                        </div>
+                                        <div class="no-donations">No donations found for this participant.</div>
+                                    `;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to save donation.'));
+                }
+            } catch (error) {
+                console.error('Error saving donation:', error);
+                alert('An error occurred. Please try again.');
+            }
         });
         <% } %>
     </script>

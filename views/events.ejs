@@ -324,7 +324,7 @@
 
         /* Events Filters */
         .events-filters {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto 2rem;
             padding: 2rem;
             background-color: #fff;
@@ -373,6 +373,10 @@
             min-width: 180px;
         }
 
+        .filter-group input[type="text"] {
+            min-width: 250px;
+        }
+
         .filter-group select:hover,
         .filter-group select:focus,
         .filter-group input:hover,
@@ -410,12 +414,13 @@
 
         /* Manager Controls */
         .manager-controls {
-            max-width: 1200px;
-            margin: 0 auto 2rem;
+            width: 100%;
+            margin: 0 0 2rem 0;
             padding: 0 2rem;
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
+            align-items: center;
         }
 
         .manager-btn {
@@ -698,7 +703,7 @@
 
             .manager-controls {
                 padding: 0 1rem;
-                justify-content: center;
+                justify-content: flex-end;
             }
 
             .manager-btn {
@@ -754,11 +759,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
+                    <% if (user) { %>
                         <li class="nav-item">
                             <a class="nav-link" href="/participants">Participants</a>
                         </li>
-                        <% } %>
+                    <% } %>
                             <li class="nav-item">
                                 <a class="nav-link" href="/events">Events</a>
                             </li>
@@ -800,6 +805,10 @@
         <div class="filters-title">Filter Events</div>
         <div class="filters-row">
             <div class="filter-group">
+                <label for="event-search">Search Event Name</label>
+                <input type="text" id="event-search" class="event-filter" placeholder="Search by event name...">
+            </div>
+            <div class="filter-group">
                 <label for="event-type">Event Type</label>
                 <select id="event-type" class="event-filter">
                     <option value="all">All Event Types</option>
@@ -820,18 +829,14 @@
             </div>
             <div class="filter-buttons">
                 <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
+                <% if (user && user.isManager) { %>
+                    <button class="manager-btn manager-btn-add" onclick="openAddEventModal()">
+                        + Add Event
+                    </button>
+                <% } %>
             </div>
         </div>
     </div>
-
-    <!-- Manager Controls -->
-    <% if (user && user.isManager) { %>
-        <div class="manager-controls">
-            <button class="manager-btn manager-btn-add" onclick="openAddEventModal()">
-                + Add Event
-            </button>
-        </div>
-        <% } %>
 
             <!-- Events Grid -->
             <div class="events-container">
@@ -1113,19 +1118,30 @@
                             // Clear old localStorage data to prevent conflicts
                             localStorage.removeItem('eventsData');
 
+                            const eventSearchInput = document.getElementById('event-search');
                             const eventTypeFilter = document.getElementById('event-type');
                             const eventRecurrenceFilter = document.getElementById('event-recurrence');
                             const eventCardWrappers = document.querySelectorAll('.event-card-wrapper');
 
                             function filterEvents() {
+                                const searchValue = (eventSearchInput ? eventSearchInput.value : '').trim().toLowerCase();
                                 const typeValue = eventTypeFilter.value.trim();
                                 const recurrenceValue = eventRecurrenceFilter.value.trim();
 
                                 eventCardWrappers.forEach(wrapper => {
                                     const cardType = (wrapper.getAttribute('data-event-type') || '').trim();
                                     const cardRecurrence = (wrapper.getAttribute('data-event-recurrence') || '').trim();
+                                    const eventNameElement = wrapper.querySelector('.event-name');
+                                    const cardName = eventNameElement ? eventNameElement.textContent.trim().toLowerCase() : '';
 
                                     let showCard = true;
+
+                                    // Filter by event name (case-insensitive search)
+                                    if (searchValue) {
+                                        if (!cardName.includes(searchValue)) {
+                                            showCard = false;
+                                        }
+                                    }
 
                                     // Filter by event type (exact match, case-sensitive)
                                     // Values must be: Leadership, STEM, Arts, Annual Conference
@@ -1153,11 +1169,17 @@
                             }
 
                             // Add event listeners
+                            if (eventSearchInput) {
+                                eventSearchInput.addEventListener('input', filterEvents);
+                            }
                             eventTypeFilter.addEventListener('change', filterEvents);
                             eventRecurrenceFilter.addEventListener('change', filterEvents);
 
                             // Clear filters function
                             window.clearFilters = function () {
+                                if (eventSearchInput) {
+                                    eventSearchInput.value = '';
+                                }
                                 eventTypeFilter.value = 'all';
                                 eventRecurrenceFilter.value = 'all';
                                 filterEvents();

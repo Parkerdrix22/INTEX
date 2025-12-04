@@ -552,10 +552,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/participants">Participants</a>
-                        </li>
+                    <% if (user) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/participants">Participants</a>
+                    </li>
                     <% } %>
                     <li class="nav-item">
                         <a class="nav-link" href="/events">Events</a>
@@ -573,11 +573,11 @@
                             <a class="nav-link" href="/milestones">Milestones</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/dashboard">Impact Dashboard</a>
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
                         </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/donations">Donate</a>
+                        <a class="nav-link" href="/donations">Donations</a>
                     </li>
                 </ul>
             </div>

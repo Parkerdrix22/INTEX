@@ -103,11 +103,11 @@ app.use((req, res, next) => {
         'Content-Security-Policy',
         "default-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
         "connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://public.tableau.com; " +
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
         "img-src 'self' data: https:; " +
         "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; " +
-        "frame-src 'self' https://app.powerbi.com;"
+        "frame-src 'self' https://public.tableau.com;"
     );
     next();
 });
@@ -285,6 +285,103 @@ app.get("/api/donations/data", async (req, res) => {
     }
 });
 
+// API route - Search participants by name (returns list of matching participants)
+app.get("/api/donations/search-participants", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { name } = req.query;
+
+    if (!name || name.trim() === '') {
+        return res.json({
+            success: true,
+            participants: []
+        });
+    }
+
+    try {
+        const searchTerm = name.trim().toLowerCase();
+
+        // Search for participants by first name or last name (limit to 50 results)
+        // Use OR conditions to match any part of the name
+        const participants = await knex('participants')
+            .where(function() {
+                this.whereRaw('LOWER(COALESCE(participantfirstname, \'\')) LIKE ?', [`%${searchTerm}%`])
+                    .orWhereRaw('LOWER(COALESCE(participantlastname, \'\')) LIKE ?', [`%${searchTerm}%`])
+                    .orWhereRaw('LOWER(CONCAT(COALESCE(participantfirstname, \'\'), \' \', COALESCE(participantlastname, \'\'))) LIKE ?', [`%${searchTerm}%`]);
+            })
+            .select('participantid', 'participantfirstname', 'participantlastname', 'participantemail')
+            .limit(50)
+            .orderBy('participantlastname', 'asc')
+            .orderBy('participantfirstname', 'asc');
+
+        res.json({
+            success: true,
+            participants: participants
+        });
+    } catch (err) {
+        console.error("Error searching participants:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Get donations for a specific participant
+app.get("/api/donations/participant/:participantId", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const participantId = req.params.participantId;
+
+    try {
+        // Convert participantId to integer to ensure type matching
+        const participantIdInt = parseInt(participantId, 10);
+        
+        if (isNaN(participantIdInt)) {
+            return res.status(400).json({ error: 'Invalid participant ID' });
+        }
+
+        // Get all donations for this participant
+        // Since donationdate is VARCHAR, we need to handle it as text
+        // Try both integer and string for participantid to handle type mismatches
+        let donations = await knex('donations')
+            .where('participantid', participantIdInt)
+            .orderByRaw('CASE WHEN donationdate = \'UNKNOWN_DATE\' OR donationdate IS NULL THEN 0 ELSE 1 END DESC, donationdate DESC NULLS LAST')
+            .select('donationid', 'donationamount', 'donationdate');
+
+        // If no results with integer, try as string
+        if (donations.length === 0) {
+            donations = await knex('donations')
+                .where('participantid', participantId.toString())
+                .orderByRaw('CASE WHEN donationdate = \'UNKNOWN_DATE\' OR donationdate IS NULL THEN 0 ELSE 1 END DESC, donationdate DESC NULLS LAST')
+                .select('donationid', 'donationamount', 'donationdate');
+        }
+
+        console.log(`Found ${donations.length} donations for participant ${participantIdInt}`);
+        if (donations.length > 0) {
+            console.log('Sample donation:', JSON.stringify(donations[0]));
+        } else {
+            // Debug: check if participant exists and has any donations
+            const allDonations = await knex('donations')
+                .where('participantid', participantIdInt)
+                .select('donationamount', 'donationdate');
+            console.log(`Total donations for participant ${participantIdInt}: ${allDonations.length}`);
+            if (allDonations.length > 0) {
+                console.log('All donations:', JSON.stringify(allDonations));
+            }
+        }
+
+        res.json({
+            success: true,
+            donations: donations
+        });
+    } catch (err) {
+        console.error("Error fetching participant donations:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
 // Donations submit route - save donation to database
 app.post("/donations/submit", async (req, res) => {
     // Check if user is logged in
@@ -345,7 +442,155 @@ app.post("/donations/submit", async (req, res) => {
     }
 });
 
+// API route - Add donation (manager only)
+app.post("/api/donations/add", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
 
+    const { participantId, donationAmount, donationDate } = req.body;
+
+    try {
+        // Validate inputs
+        if (!participantId || !donationAmount || !donationDate) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const participantIdInt = parseInt(participantId, 10);
+        if (isNaN(participantIdInt)) {
+            return res.status(400).json({ error: 'Invalid participant ID' });
+        }
+
+        const amount = parseFloat(donationAmount);
+        if (isNaN(amount) || amount <= 0) {
+            return res.status(400).json({ error: 'Invalid donation amount' });
+        }
+
+        // Format date as YYYY-MM-DD
+        let formattedDate = donationDate;
+        if (donationDate && donationDate !== 'UNKNOWN_DATE') {
+            const date = new Date(donationDate);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                formattedDate = `${year}-${month}-${day}`;
+            }
+        }
+
+        // Insert donation
+        const [newDonation] = await knex('donations')
+            .insert({
+                participantid: participantIdInt,
+                donationdate: formattedDate,
+                donationamount: amount
+            })
+            .returning('*');
+
+        res.json({
+            success: true,
+            donation: newDonation
+        });
+    } catch (err) {
+        console.error("Error adding donation:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Edit donation (manager only)
+app.put("/api/donations/:donationId", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const donationId = req.params.donationId;
+    const { donationAmount, donationDate } = req.body;
+
+    try {
+        const donationIdInt = parseInt(donationId, 10);
+        if (isNaN(donationIdInt)) {
+            return res.status(400).json({ error: 'Invalid donation ID' });
+        }
+
+        const updateData = {};
+
+        if (donationAmount !== undefined) {
+            const amount = parseFloat(donationAmount);
+            if (isNaN(amount) || amount <= 0) {
+                return res.status(400).json({ error: 'Invalid donation amount' });
+            }
+            updateData.donationamount = amount;
+        }
+
+        if (donationDate !== undefined) {
+            // Format date as YYYY-MM-DD
+            let formattedDate = donationDate;
+            if (donationDate && donationDate !== 'UNKNOWN_DATE') {
+                const date = new Date(donationDate);
+                if (!isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    formattedDate = `${year}-${month}-${day}`;
+                }
+            }
+            updateData.donationdate = formattedDate;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        const [updatedDonation] = await knex('donations')
+            .where('donationid', donationIdInt)
+            .update(updateData)
+            .returning('*');
+
+        if (!updatedDonation) {
+            return res.status(404).json({ error: 'Donation not found' });
+        }
+
+        res.json({
+            success: true,
+            donation: updatedDonation
+        });
+    } catch (err) {
+        console.error("Error updating donation:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Delete donation (manager only)
+app.delete("/api/donations/:donationId", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const donationId = req.params.donationId;
+
+    try {
+        const donationIdInt = parseInt(donationId, 10);
+        if (isNaN(donationIdInt)) {
+            return res.status(400).json({ error: 'Invalid donation ID' });
+        }
+
+        const deleted = await knex('donations')
+            .where('donationid', donationIdInt)
+            .del();
+
+        if (deleted === 0) {
+            return res.status(404).json({ error: 'Donation not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Donation deleted successfully'
+        });
+    } catch (err) {
+        console.error("Error deleting donation:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
 
 // Events route
 app.get("/events", async (req, res) => {
@@ -865,7 +1110,8 @@ app.get("/personal-milestones", async (req, res) => {
             milestones = await knex("milestones")
                 .where("participantid", participant.participantid)
                 .orderBy("milestonedate", "desc")
-                .select("milestonetitle", "milestonedate");
+                .select("*");
+            
         }
     } catch (err) {
         console.error("Error fetching participant/milestones:", err);
@@ -879,10 +1125,12 @@ app.get("/personal-milestones", async (req, res) => {
             email: participant.participantemail
         } : null,
         milestonesJson: JSON.stringify(milestones.map(m => ({
+            participant_id: m.participantid,
             milestone_name: m.milestonetitle,
             date_achieved: m.milestonedate
         }))),
         milestones: milestones.map(m => ({
+            participant_id: m.participantid,
             milestone_name: m.milestonetitle,
             date_achieved: m.milestonedate
         })),
@@ -916,7 +1164,7 @@ app.get("/my-journey", async (req, res) => {
             milestones = await knex("milestones")
                 .where("participantid", participant.participantid)
                 .orderBy("milestonedate", "desc")
-                .select("milestonetitle", "milestonedate");
+                .select("*");
         }
     } catch (err) {
         console.error("Error fetching my journey:", err);
@@ -930,10 +1178,12 @@ app.get("/my-journey", async (req, res) => {
             email: participant.participantemail
         } : null,
         milestonesJson: JSON.stringify(milestones.map(m => ({
+            participant_id: m.participantid,
             milestone_name: m.milestonetitle,
             date_achieved: m.milestonedate
         }))),
         milestones: milestones.map(m => ({
+            participant_id: m.participantid,
             milestone_name: m.milestonetitle,
             date_achieved: m.milestonedate
         })),
@@ -1263,8 +1513,54 @@ app.get("/surveys", async (req, res) => {
 });
 
 // Survey route - POST (save survey responses to database)
-app.post("/survey", (req, res) => {
-    const { eventName, eventId, email, eventoccurrenceid, satisfactionScore, usefulnessScore, instructorScore, recommendationScore, comments } = req.body;
+app.post("/survey", async (req, res) => {
+    const { eventName, eventId, email, eventoccurrenceid } = req.body;
+    
+    // Get custom questions for this event to know what fields to expect
+    let customQuestions = [];
+    if (eventId) {
+        try {
+            const tableExists = await knex.schema.hasTable('surveyquestions');
+            if (tableExists) {
+                const surveyQuestions = await knex('surveyquestions')
+                    .where('eventid', eventId)
+                    .first();
+                if (surveyQuestions && surveyQuestions.questions) {
+                    customQuestions = typeof surveyQuestions.questions === 'string' 
+                        ? JSON.parse(surveyQuestions.questions) 
+                        : surveyQuestions.questions;
+                }
+            }
+        } catch (err) {
+            console.error("Error loading custom questions:", err.message);
+        }
+    }
+    
+    // If no custom questions, use default questions
+    if (customQuestions.length === 0) {
+        customQuestions = [
+            { type: 'rating', label: 'How satisfied were you with this event? (1-5)', name: 'satisfactionScore', required: true },
+            { type: 'rating', label: 'How useful was this event? (1-5)', name: 'usefulnessScore', required: true },
+            { type: 'rating', label: 'How would you rate the instructor(s)? (1-5)', name: 'instructorScore', required: true },
+            { type: 'rating', label: 'How likely are you to recommend this event to others? (1-5)', name: 'recommendationScore', required: true },
+            { type: 'textarea', label: 'Additional Comments', name: 'comments', required: false }
+        ];
+    }
+    
+    // Extract all question responses from req.body dynamically
+    const questionResponses = {};
+    customQuestions.forEach(q => {
+        if (req.body[q.name] !== undefined) {
+            questionResponses[q.name] = req.body[q.name];
+        }
+    });
+    
+    // Keep backward compatibility with hardcoded field names
+    const satisfactionScore = questionResponses['satisfactionScore'] || req.body.satisfactionScore;
+    const usefulnessScore = questionResponses['usefulnessScore'] || req.body.usefulnessScore;
+    const instructorScore = questionResponses['instructorScore'] || req.body.instructorScore;
+    const recommendationScore = questionResponses['recommendationScore'] || req.body.recommendationScore;
+    const comments = questionResponses['comments'] || req.body.comments;
 
     // Get or create participant ID from email
     knex.select('participantid')
@@ -1314,22 +1610,38 @@ app.post("/survey", (req, res) => {
             // Get eventoccurrenceid if not provided
             let eventOccurrenceId = eventoccurrenceid;
             if (!eventOccurrenceId && eventId) {
+                // Get the most recent occurrence for this event
                 return knex.select('eventoccurrenceid')
                     .from('eventoccurrence')
                     .where('eventid', eventId)
+                    .orderBy('eventdatetimestart', 'desc')
                     .first()
                     .then(occurrence => {
                         if (occurrence) {
                             eventOccurrenceId = occurrence.eventoccurrenceid;
+                            return { participantId, eventOccurrenceId, eventId };
+                        } else {
+                            // No occurrence exists, create one with current date/time
+                            return knex('eventoccurrence')
+                                .insert({
+                                    eventid: eventId,
+                                    eventdatetimestart: new Date(),
+                                    eventlocation: null
+                                })
+                                .returning('eventoccurrenceid')
+                                .then(result => {
+                                    eventOccurrenceId = result[0].eventoccurrenceid;
+                                    console.log(`Created new event occurrence ${eventOccurrenceId} for event ${eventId}`);
+                                    return { participantId, eventOccurrenceId, eventId };
+                                });
                         }
-                        return { participantId, eventOccurrenceId };
                     });
             }
-            return { participantId, eventOccurrenceId };
+            return { participantId, eventOccurrenceId, eventId };
         })
-        .then(({ participantId, eventOccurrenceId }) => {
+        .then(({ participantId, eventOccurrenceId, eventId }) => {
             if (!eventOccurrenceId) {
-                throw new Error('Event occurrence ID not found');
+                throw new Error('Event occurrence ID not found and could not be created');
             }
 
             // Calculate OverallScore as average of rating scores
@@ -1364,16 +1676,45 @@ app.post("/survey", (req, res) => {
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
             // Insert survey responses - one row per question
-            const surveyResponses = [
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'SatisfactionScore', surveyanswer: satisfactionScore },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'UsefulnessScore', surveyanswer: usefulnessScore },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'InstructorScore', surveyanswer: instructorScore },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'RecommendationScore', surveyanswer: recommendationScore },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'OverallScore', surveyanswer: overallScore },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'NPSBucket', surveyanswer: npsBucket },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'Comments', surveyanswer: comments || '' },
-                { participantid: participantId, eventoccurrenceid: eventOccurrenceId, surveyquestion: 'SubmissionDate', surveyanswer: formattedDate }
-            ];
+            const surveyResponses = [];
+            
+            // Add all custom question responses
+            customQuestions.forEach(q => {
+                const answer = questionResponses[q.name];
+                if (answer !== undefined && answer !== null && answer !== '') {
+                    surveyResponses.push({
+                        participantid: participantId,
+                        eventoccurrenceid: eventOccurrenceId,
+                        surveyquestion: q.name,
+                        surveyanswer: answer
+                    });
+                }
+            });
+            
+            // Add calculated fields (OverallScore, NPSBucket) if we have rating scores
+            if (satisfactionScore || usefulnessScore || instructorScore || recommendationScore) {
+                surveyResponses.push({
+                    participantid: participantId,
+                    eventoccurrenceid: eventOccurrenceId,
+                    surveyquestion: 'OverallScore',
+                    surveyanswer: overallScore
+                });
+                
+                surveyResponses.push({
+                    participantid: participantId,
+                    eventoccurrenceid: eventOccurrenceId,
+                    surveyquestion: 'NPSBucket',
+                    surveyanswer: npsBucket
+                });
+            }
+            
+            // Add submission date
+            surveyResponses.push({
+                participantid: participantId,
+                eventoccurrenceid: eventOccurrenceId,
+                surveyquestion: 'SubmissionDate',
+                surveyanswer: formattedDate
+            });
 
             return knex('surveyresponses').insert(surveyResponses);
         })
@@ -1385,6 +1726,118 @@ app.post("/survey", (req, res) => {
             console.error("Survey submission error:", err);
             res.redirect("/survey?error=" + encodeURIComponent(err.message));
         });
+});
+
+// API route - Save survey questions for an event (Manager only)
+app.post("/api/survey/questions/:eventId", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const eventId = req.params.eventId;
+    const { questions } = req.body;
+
+    if (!questions || !Array.isArray(questions)) {
+        return res.status(400).json({ error: 'Invalid questions data' });
+    }
+
+    try {
+        // Check if event exists
+        const event = await knex('events').where('eventid', eventId).first();
+        if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        // Check if surveyquestions table exists, create if not
+        const tableExists = await knex.schema.hasTable('surveyquestions');
+        
+        if (!tableExists) {
+            // Create the surveyquestions table using the recommended method
+            await knex.schema.createTable('surveyquestions', function(table) {
+                table.integer('eventid').primary();
+                table.json('questions');
+                table.timestamps(true, true);
+            });
+            console.log('Created surveyquestions table');
+        }
+
+        // Insert or update survey questions in the surveyquestions table
+        const existing = await knex('surveyquestions')
+            .where('eventid', eventId)
+            .first();
+
+        if (existing) {
+            // Update existing
+            await knex('surveyquestions')
+                .where('eventid', eventId)
+                .update({
+                    questions: JSON.stringify(questions),
+                    updated_at: knex.fn.now()
+                });
+        } else {
+            // Insert new
+            await knex('surveyquestions')
+                .insert({
+                    eventid: eventId,
+                    questions: JSON.stringify(questions)
+                });
+        }
+
+        console.log(`Survey questions saved for event ${eventId}`);
+        res.json({ success: true, message: 'Survey questions saved successfully' });
+    } catch (err) {
+        console.error("Error saving survey questions:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Get survey questions for an event
+app.get("/api/survey/questions/:eventId", async (req, res) => {
+    const eventId = req.params.eventId;
+
+    try {
+        // Check if surveyquestions table exists, create if not
+        const tableExists = await knex.schema.hasTable('surveyquestions');
+        
+        if (!tableExists) {
+            // Create the surveyquestions table
+            await knex.schema.createTable('surveyquestions', function(table) {
+                table.integer('eventid').primary();
+                table.json('questions');
+                table.timestamps(true, true);
+            });
+            console.log('Created surveyquestions table');
+        }
+
+        // Get survey questions from surveyquestions table
+        const surveyQuestions = await knex('surveyquestions')
+            .where('eventid', eventId)
+            .first();
+
+        if (surveyQuestions && surveyQuestions.questions) {
+            return res.json({ 
+                success: true, 
+                questions: typeof surveyQuestions.questions === 'string' 
+                    ? JSON.parse(surveyQuestions.questions) 
+                    : surveyQuestions.questions 
+            });
+        }
+
+        // Return default questions if none found
+        res.json({ 
+            success: true, 
+            questions: [
+                { type: 'rating', label: 'How satisfied were you with this event? (1-5)', name: 'satisfactionScore', required: true },
+                { type: 'rating', label: 'How useful was this event? (1-5)', name: 'usefulnessScore', required: true },
+                { type: 'rating', label: 'How would you rate the instructor(s)? (1-5)', name: 'instructorScore', required: true },
+                { type: 'rating', label: 'How likely are you to recommend this event to others? (1-5)', name: 'recommendationScore', required: true },
+                { type: 'textarea', label: 'Additional Comments', name: 'comments', required: false }
+            ]
+        });
+    } catch (err) {
+        console.error("Error fetching survey questions:", err.message);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
 });
 
 // Survey route - POST (plural - redirects to singular)
@@ -2162,6 +2615,127 @@ app.get("/api/reservations/:eventId/occurrence/:occurrenceId", async (req, res) 
 });
 
 // Get milestone statistics
+// Delete milestone (Manager only)
+app.delete("/api/milestones", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { participant_id, milestone_name, date_achieved } = req.body;
+
+    if (!participant_id || !milestone_name || !date_achieved) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Parse the date to match the format in the database
+        let milestoneDate;
+        if (date_achieved && date_achieved.trim() !== '') {
+            const dateStr = date_achieved.trim();
+            const dateParts = dateStr.split('-');
+
+            if (dateParts.length === 3) {
+                const year = parseInt(dateParts[0], 10);
+                const month = parseInt(dateParts[1], 10) - 1;
+                const day = parseInt(dateParts[2], 10);
+                milestoneDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+            } else {
+                milestoneDate = new Date(dateStr);
+            }
+
+            if (isNaN(milestoneDate.getTime())) {
+                milestoneDate = new Date(dateStr);
+            }
+        } else {
+            return res.status(400).json({ error: 'Date is required' });
+        }
+
+        const result = await knex("milestones")
+            .where({
+                participantid: participant_id,
+                milestonetitle: milestone_name,
+                milestonedate: milestoneDate
+            })
+            .del();
+
+        if (result === 0) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        res.json({ success: true, message: 'Milestone deleted successfully' });
+    } catch (err) {
+        console.error("Error deleting milestone:", err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+// Update milestone (Manager only)
+app.put("/api/milestones", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const { participant_id, old_milestone_name, old_date_achieved, milestone_name, date_achieved } = req.body;
+
+    if (!participant_id || !old_milestone_name || !old_date_achieved || !milestone_name || !date_achieved) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+        // Parse the old date to find the milestone
+        let oldMilestoneDate;
+        const oldDateStr = old_date_achieved.trim();
+        const oldDateParts = oldDateStr.split('-');
+        if (oldDateParts.length === 3) {
+            const year = parseInt(oldDateParts[0], 10);
+            const month = parseInt(oldDateParts[1], 10) - 1;
+            const day = parseInt(oldDateParts[2], 10);
+            oldMilestoneDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+        } else {
+            oldMilestoneDate = new Date(oldDateStr);
+        }
+        if (isNaN(oldMilestoneDate.getTime())) {
+            oldMilestoneDate = new Date(oldDateStr);
+        }
+
+        // Parse the new date
+        let milestoneDate;
+        const dateStr = date_achieved.trim();
+        const dateParts = dateStr.split('-');
+        if (dateParts.length === 3) {
+            const year = parseInt(dateParts[0], 10);
+            const month = parseInt(dateParts[1], 10) - 1;
+            const day = parseInt(dateParts[2], 10);
+            milestoneDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+        } else {
+            milestoneDate = new Date(dateStr);
+        }
+        if (isNaN(milestoneDate.getTime())) {
+            milestoneDate = new Date();
+        }
+
+        const result = await knex("milestones")
+            .where({
+                participantid: participant_id,
+                milestonetitle: old_milestone_name,
+                milestonedate: oldMilestoneDate
+            })
+            .update({
+                milestonetitle: milestone_name,
+                milestonedate: milestoneDate
+            });
+
+        if (result === 0) {
+            return res.status(404).json({ error: 'Milestone not found' });
+        }
+
+        res.json({ success: true, message: 'Milestone updated successfully' });
+    } catch (err) {
+        console.error("Error updating milestone:", err);
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
 app.get("/api/milestones/stats/:milestoneName", async (req, res) => {
     const milestoneName = decodeURIComponent(req.params.milestoneName);
 

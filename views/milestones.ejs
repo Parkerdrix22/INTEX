@@ -34,6 +34,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         /* DM Serif Display for all titles and headers */
@@ -62,6 +63,13 @@
 
         body .container {
             max-width: 1400px;
+        }
+        
+        /* Override Bootstrap container max-width for wider sections */
+        .search-filter-section,
+        .results-section,
+        .milestone-stats-section {
+            max-width: 1600px !important;
         }
 
         .navbar-brand {
@@ -166,9 +174,11 @@
 
         /* Search and Filter Section */
         .search-filter-section {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1600px;
             margin: 0 auto 2rem;
             padding: 0 2rem;
+            box-sizing: border-box;
         }
 
         .search-filter-container {
@@ -230,9 +240,11 @@
 
         /* Results Section */
         .results-section {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 2rem 4rem;
+            box-sizing: border-box;
         }
 
         .participant-results {
@@ -277,9 +289,11 @@
 
         /* Milestone Statistics */
         .milestone-stats-section {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1600px;
             margin: 2rem auto;
             padding: 0 2rem;
+            box-sizing: border-box;
         }
 
         .stats-container {
@@ -291,7 +305,7 @@
 
         .stat-card {
             flex: 1;
-            max-width: 400px;
+            max-width: 500px;
             padding: 3rem 2rem;
             border-radius: 1rem;
             text-align: center;
@@ -544,11 +558,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user && user.isManager) { %>
+                    <% if (user) { %>
                         <li class="nav-item">
                             <a class="nav-link" href="/participants">Participants</a>
                         </li>
-                        <% } %>
+                    <% } %>
                             <li class="nav-item">
                                 <a class="nav-link" href="/events">Events</a>
                             </li>
@@ -581,7 +595,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <h1>Milestones</h1>
-        <p>Assign milestones to participants to track their achievements and progress.</p>
+        <p>Search for participants to view their personal milestones, or select a milestone to see completion statistics across all participants.</p>
     </div>
 
     <!-- Search and Filter Section -->

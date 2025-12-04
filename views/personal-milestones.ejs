@@ -34,6 +34,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: 100%;
+            position: relative;
         }
 
         /* DM Serif Display for all titles and headers */
@@ -62,6 +64,14 @@
 
         body .container {
             max-width: 1400px;
+        }
+        
+        /* Override Bootstrap container max-width for wider sections */
+        .timeline-container,
+        .add-milestone-section,
+        .milestones-list-section,
+        .year-navigation {
+            max-width: 1400px !important;
         }
 
         .navbar-brand {
@@ -164,11 +174,9 @@
 
         /* Back Button */
         .back-button {
-            margin: 1.5rem 0 2rem;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 0 2rem 0;
             padding: 0 2rem;
+            text-align: left;
         }
 
         .back-button a {
@@ -196,13 +204,15 @@
 
         /* Year Navigation */
         .year-navigation {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1400px;
             margin: 0 auto 2rem;
             padding: 0 2rem;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 2rem;
+            box-sizing: border-box;
         }
 
         .year-nav-btn {
@@ -234,11 +244,13 @@
 
         /* Timeline Container */
         .timeline-container {
+            width: 100%;
             max-width: 1400px;
             margin: 0 auto 3rem;
             padding: 0 2rem;
             overflow-x: auto;
             overflow-y: visible;
+            box-sizing: border-box;
         }
 
         .timeline-wrapper {
@@ -370,9 +382,11 @@
 
         /* Add Milestone Section */
         .add-milestone-section {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1400px;
             margin: 0 auto 3rem;
             padding: 0 2rem;
+            box-sizing: border-box;
         }
 
         .add-milestone-container {
@@ -434,9 +448,11 @@
 
         /* Milestones List */
         .milestones-list-section {
-            max-width: 1200px;
+            width: 100%;
+            max-width: 1400px;
             margin: 0 auto 4rem;
             padding: 0 2rem;
+            box-sizing: border-box;
         }
 
         .milestones-list-container {
@@ -477,6 +493,42 @@
         .milestone-list-date {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        .milestone-list-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .milestone-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border-radius: 0.25rem;
+        }
+
+        .milestone-action-btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .milestone-action-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--er-text);
+        }
+
+        .milestone-action-btn.edit-btn:hover svg {
+            fill: #007bff;
+        }
+
+        .milestone-action-btn.delete-btn:hover svg {
+            fill: #dc3545;
         }
 
         .no-milestones {
@@ -700,7 +752,7 @@
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
 
-                    <% if (user && user.isManager) { %>
+                    <% if (user) { %>
                         <li class="nav-item">
                             <a class="nav-link" href="/participants">Participants</a>
                         </li>
@@ -899,9 +951,10 @@
         // Current year
         let currentYear = new Date().getFullYear();
 
-        // Map server format (milestone_name, date_achieved) to frontend format (name, date)
+        // Map server format to frontend format
         let milestonesData = JSON.parse('<%- milestonesJson %>');
         let milestones = milestonesData.map(m => ({
+            participant_id: m.participant_id,
             name: m.milestone_name,
             date: m.date_achieved
         }));
@@ -1076,6 +1129,7 @@
 
                 if (result.success) {
                     const newMilestone = {
+                        participant_id: participantId,
                         name: milestoneName,
                         date: milestoneDate
                     };
@@ -1101,6 +1155,7 @@
         // Update milestones list
         function updateMilestonesList() {
             const listContainer = document.getElementById('milestonesList');
+            const isManager = <%= user && user.isManager ? 'true' : 'false' %>;
 
             if (milestones.length === 0) {
                 listContainer.innerHTML = '<div class="no-milestones">No milestones added yet.</div>';
@@ -1113,13 +1168,105 @@
             listContainer.innerHTML = sortedMilestones.map(m => {
                 const date = new Date(m.date);
                 const formattedDate = `${fullMonths[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+                const actionsHTML = isManager ? `
+                    <div class="milestone-list-actions">
+                        <button class="milestone-action-btn edit-btn" onclick="editMilestone('${m.participant_id}', '${m.name.replace(/'/g, "\\'")}', '${m.date}', '${m.date}')" title="Edit milestone">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                            </svg>
+                        </button>
+                        <button class="milestone-action-btn delete-btn" onclick="deleteMilestone('${m.participant_id}', '${m.name.replace(/'/g, "\\'")}', '${m.date}')" title="Delete milestone">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            </svg>
+                        </button>
+                    </div>
+                ` : '';
                 return `
                     <div class="milestone-list-item">
-                        <div class="milestone-list-name">${m.name}</div>
-                        <div class="milestone-list-date">${formattedDate}</div>
+                        <div style="flex: 1;">
+                            <div class="milestone-list-name">${m.name}</div>
+                            <div class="milestone-list-date">${formattedDate}</div>
+                        </div>
+                        ${actionsHTML}
                     </div>
                 `;
             }).join('');
+        }
+
+        // Edit milestone
+        async function editMilestone(participantId, currentName, currentDate, currentDateForPrompt) {
+            const newName = prompt('Enter new milestone name:', currentName);
+            if (!newName || newName.trim() === '') {
+                return;
+            }
+
+            const dateForPrompt = currentDateForPrompt ? currentDateForPrompt.split('T')[0] : currentDate.split('T')[0];
+            const newDate = prompt('Enter new date (YYYY-MM-DD):', dateForPrompt);
+            if (!newDate) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/milestones`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        participant_id: participantId,
+                        old_milestone_name: currentName,
+                        old_date_achieved: currentDate,
+                        milestone_name: newName.trim(),
+                        date_achieved: newDate
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Milestone updated successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error updating milestone: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error updating milestone:', error);
+                alert('Error updating milestone. Please try again.');
+            }
+        }
+
+        // Delete milestone
+        async function deleteMilestone(participantId, milestoneName, milestoneDate) {
+            if (!confirm(`Are you sure you want to delete "${milestoneName}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/milestones`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        participant_id: participantId,
+                        milestone_name: milestoneName,
+                        date_achieved: milestoneDate
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Milestone deleted successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error deleting milestone: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error deleting milestone:', error);
+                alert('Error deleting milestone. Please try again.');
+            }
         }
 
         // Initialize on page load
