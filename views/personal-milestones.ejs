@@ -204,28 +204,24 @@
 
         /* Year Navigation */
         .year-navigation {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto 2rem;
-            padding: 0 2rem;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
-            gap: 2rem;
-            box-sizing: border-box;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
 
         .year-nav-btn {
             background-color: var(--er-pink-dark);
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -236,9 +232,9 @@
         }
 
         .year-display {
-            font-size: 2rem;
+            font-size: 1.3rem;
             font-weight: 700;
-            min-width: 120px;
+            min-width: 80px;
             text-align: center;
         }
 
@@ -248,10 +244,29 @@
             max-width: 1400px;
             margin: 0 auto 3rem;
             padding: 0 2rem;
-            overflow-x: auto;
-            overflow-y: visible;
             box-sizing: border-box;
         }
+
+        .timeline-container-wrapper {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+
+        .timeline-container-wrapper .timeline-wrapper {
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+
+        .timeline-section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--er-text);
+        }
+
 
         .timeline-wrapper {
             position: relative;
@@ -493,6 +508,107 @@
         .milestone-list-date {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        /* Event Attendance Section */
+        .event-attendance-section {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+            box-sizing: border-box;
+        }
+
+        .event-attendance-container {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .event-attendance-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--er-text);
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 40px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--er-pink) 0%, var(--er-pink-dark) 100%);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .progress-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            color: var(--er-text);
+            z-index: 1;
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .star {
+            font-size: 2rem;
+            color: #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .star.active {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            to {
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6);
+            }
+        }
+
+        .attendance-info {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0.5rem;
         }
 
         .milestone-list-actions {
@@ -807,21 +923,52 @@
         <a href="javascript:history.back()">Back</a>
     </div>
 
-    <!-- Year Navigation -->
-    <div class="year-navigation">
-        <button class="year-nav-btn" onclick="changeYear(-1)">‹</button>
-        <div class="year-display" id="currentYear">2025</div>
-        <button class="year-nav-btn" onclick="changeYear(1)">›</button>
+    <!-- Event Attendance Section -->
+    <% if (participant && participant.id) { %>
+    <div class="event-attendance-section">
+        <div class="event-attendance-container">
+            <h3 class="event-attendance-title">Event Attendance</h3>
+            <div class="progress-container">
+                <div class="progress-wrapper">
+                    <div class="progress-bar-container">
+                        <div class="progress-label" id="progressLabel">0 / 3</div>
+                        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="stars-container">
+                    <span class="star" id="star1">★</span>
+                    <span class="star" id="star2">★</span>
+                    <span class="star" id="star3">★</span>
+                </div>
+            </div>
+            <div class="attendance-info" id="attendanceInfo">
+                Keep attending events to earn stars!
+            </div>
+            <div class="attendance-note" style="margin-top: 1rem; padding: 1rem; background-color: var(--er-pink); border-radius: 0.5rem; font-size: 0.95rem; color: var(--er-text); line-height: 1.6;">
+                <strong>About Stars:</strong> Earn stars by attending events! 1 star at 3 events, 2 stars at 5 events, and 3 stars at 10 events. Talk to a volunteer to redeem prizes based on your star count!
+            </div>
+        </div>
     </div>
+    <% } %>
 
     <!-- Timeline Container -->
     <div class="timeline-container">
-        <div class="timeline-wrapper">
-            <div class="milestones-container" id="milestonesContainer">
-                <!-- Milestones will be dynamically generated here -->
+        <div class="timeline-container-wrapper">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="timeline-section-title" style="margin: 0;">Milestones Timeline</h3>
+                <div class="year-navigation">
+                    <button class="year-nav-btn" onclick="changeYear(-1)">‹</button>
+                    <div class="year-display" id="currentYear">2025</div>
+                    <button class="year-nav-btn" onclick="changeYear(1)">›</button>
+                </div>
             </div>
-            <div class="timeline-months" id="timelineMonths">
-                <!-- Months will be dynamically generated -->
+            <div class="timeline-wrapper">
+                <div class="milestones-container" id="milestonesContainer">
+                    <!-- Milestones will be dynamically generated here -->
+                </div>
+                <div class="timeline-months" id="timelineMonths">
+                    <!-- Months will be dynamically generated -->
+                </div>
             </div>
         </div>
     </div>
@@ -947,6 +1094,7 @@
         const participantId = <%= participant && participant.id ? participant.id : 'null' %>;
         const participantEmail = '<%= participantEmail %>';
         const participantName = '<%= participantName %>';
+        const attendanceCount = <%= typeof attendanceCount !== 'undefined' ? attendanceCount : 0 %>;
 
         // Current year
         let currentYear = new Date().getFullYear();
@@ -1269,9 +1417,68 @@
             }
         }
 
+        // Update event attendance progress bar and stars
+        function updateEventAttendance() {
+            if (!participantId) return;
+            
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressLabel = document.getElementById('progressLabel');
+            const attendanceInfo = document.getElementById('attendanceInfo');
+            const star1 = document.getElementById('star1');
+            const star2 = document.getElementById('star2');
+            const star3 = document.getElementById('star3');
+            
+            if (!progressBarFill || !progressLabel || !attendanceInfo) return;
+            
+            let maxGoal = 3;
+            let starsEarned = 0;
+            let percentage = 0;
+            
+            if (attendanceCount >= 10) {
+                maxGoal = 10;
+                starsEarned = 3;
+                percentage = 100;
+            } else if (attendanceCount >= 5) {
+                maxGoal = 10;
+                starsEarned = 2;
+                percentage = (attendanceCount / 10) * 100;
+            } else if (attendanceCount >= 3) {
+                maxGoal = 5;
+                starsEarned = 1;
+                percentage = (attendanceCount / 5) * 100;
+            } else {
+                maxGoal = 3;
+                starsEarned = 0;
+                percentage = (attendanceCount / 3) * 100;
+            }
+            
+            // Update progress bar
+            progressBarFill.style.width = percentage + '%';
+            progressLabel.textContent = `${attendanceCount} / ${maxGoal}`;
+            
+            // Update stars
+            if (star1) star1.classList.toggle('active', starsEarned >= 1);
+            if (star2) star2.classList.toggle('active', starsEarned >= 2);
+            if (star3) star3.classList.toggle('active', starsEarned >= 3);
+            
+            // Update info text
+            if (attendanceCount === 0) {
+                attendanceInfo.textContent = 'Keep attending events to earn stars!';
+            } else if (attendanceCount < 3) {
+                attendanceInfo.textContent = `You've attended ${attendanceCount} event${attendanceCount !== 1 ? 's' : ''}. ${3 - attendanceCount} more to earn your first star!`;
+            } else if (attendanceCount < 5) {
+                attendanceInfo.textContent = `Great job! You've earned 1 star. ${5 - attendanceCount} more event${5 - attendanceCount !== 1 ? 's' : ''} to earn your second star!`;
+            } else if (attendanceCount < 10) {
+                attendanceInfo.textContent = `Amazing! You've earned 2 stars. ${10 - attendanceCount} more event${10 - attendanceCount !== 1 ? 's' : ''} to earn your third star!`;
+            } else {
+                attendanceInfo.textContent = 'Outstanding! You\'ve reached the maximum goal and earned all 3 stars!';
+            }
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function () {
             updateYearDisplay();
+            updateEventAttendance();
 
             // Clear custom input when dropdown is selected and vice versa
             const milestoneSelect = document.getElementById('milestoneSelect');

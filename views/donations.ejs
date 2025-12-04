@@ -842,28 +842,26 @@
             donationForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Check if user is logged in
-            <% if (!user) { %>
-                // User is not logged in - redirect to login page
-                const amount = customAmountInput.value || selectedAmount;
-                if (amount && parseFloat(amount) > 0) {
-                    // Store the donation amount in sessionStorage to restore after login
-                    sessionStorage.setItem('pendingDonationAmount', amount);
-                    sessionStorage.setItem('pendingDonationReturnUrl', '/donations');
-                }
-                alert('Please sign in or create an account to continue with your donation.');
-                window.location.href = '/login';
-                return;
-            <% } %>
-            
-            // Get the selected amount
+            // Get the selected amount first
             const amount = customAmountInput.value || selectedAmount;
             
             if (!amount || parseFloat(amount) <= 0) {
                 alert('Please select or enter a donation amount.');
                 return;
             }
-
+            
+            // Check if user is logged in
+            <% if (!user) { %>
+                // User is not logged in - redirect to login page
+                // Store the donation amount in sessionStorage to restore after login
+                sessionStorage.setItem('pendingDonationAmount', amount);
+                sessionStorage.setItem('pendingDonationReturnUrl', '/donations');
+                alert('Please sign in or create an account to continue with your donation.');
+                window.location.href = '/login';
+                return;
+            <% } %>
+            
+            // User is logged in - proceed with donation
             // Format amount for display
             const formattedAmount = parseFloat(amount).toLocaleString('en-US', {
                 style: 'currency',

@@ -178,7 +178,7 @@ async function getUserInfo(req) {
 app.use((req, res, next) => {
     // Skip authentication for login routes, signup, events, and survey
     // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
-    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path.startsWith('/reservations/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
+    if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path.startsWith('/reservations/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/donations' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
         //continue with the request path
         return next();
     }
@@ -1112,6 +1112,35 @@ app.get("/personal-milestones", async (req, res) => {
                 .orderBy("milestonedate", "desc")
                 .select("*");
             
+            // Get event attendance count - check registrationattendedflag = 1
+            const attendanceCount = await knex("registration")
+                .where("participantid", participant.participantid)
+                .where("registrationattendedflag", 1)
+                .count("* as count")
+                .first();
+            
+            res.render("personal-milestones", {
+                user: userInfo,
+                participant: {
+                    id: participant.participantid,
+                    name: `${participant.participantfirstname} ${participant.participantlastname}`,
+                    email: participant.participantemail
+                },
+                milestonesJson: JSON.stringify(milestones.map(m => ({
+                    participant_id: m.participantid,
+                    milestone_name: m.milestonetitle,
+                    date_achieved: m.milestonedate
+                }))),
+                milestones: milestones.map(m => ({
+                    participant_id: m.participantid,
+                    milestone_name: m.milestonetitle,
+                    date_achieved: m.milestonedate
+                })),
+                participantName: `${participant.participantfirstname} ${participant.participantlastname}`,
+                participantEmail: participant.participantemail,
+                attendanceCount: parseInt(attendanceCount?.count || 0)
+            });
+            return;
         }
     } catch (err) {
         console.error("Error fetching participant/milestones:", err);
@@ -1135,7 +1164,8 @@ app.get("/personal-milestones", async (req, res) => {
             date_achieved: m.milestonedate
         })),
         participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : (req.query.name || 'Participant'),
-        participantEmail: participant ? participant.participantemail : (req.query.email || '')
+        participantEmail: participant ? participant.participantemail : (req.query.email || ''),
+        attendanceCount: 0
     });
 });
 
@@ -1165,6 +1195,36 @@ app.get("/my-journey", async (req, res) => {
                 .where("participantid", participant.participantid)
                 .orderBy("milestonedate", "desc")
                 .select("*");
+            
+            // Get event attendance count - check registrationattendedflag = 1
+            const attendanceCount = await knex("registration")
+                .where("participantid", participant.participantid)
+                .where("registrationattendedflag", 1)
+                .count("* as count")
+                .first();
+            
+            res.render("personal-milestones", {
+                user: userInfo,
+                participant: participant ? {
+                    id: participant.participantid,
+                    name: `${participant.participantfirstname} ${participant.participantlastname}`,
+                    email: participant.participantemail
+                } : null,
+                milestonesJson: JSON.stringify(milestones.map(m => ({
+                    participant_id: m.participantid,
+                    milestone_name: m.milestonetitle,
+                    date_achieved: m.milestonedate
+                }))),
+                milestones: milestones.map(m => ({
+                    participant_id: m.participantid,
+                    milestone_name: m.milestonetitle,
+                    date_achieved: m.milestonedate
+                })),
+                participantName: participant ? `${participant.participantfirstname} ${participant.participantlastname}` : (req.query.name || 'Participant'),
+                participantEmail: participant ? participant.participantemail : (req.query.email || ''),
+                attendanceCount: parseInt(attendanceCount?.count || 0)
+            });
+            return;
         }
     } catch (err) {
         console.error("Error fetching my journey:", err);
@@ -1305,10 +1365,40 @@ app.get("/rsvp/:id", async (req, res) => {
             });
         }
 
-        // Fetch occurrences for the event
+        // Fetch only future occurrences for the event
+        const now = new Date();
         const occurrences = await knex('eventoccurrence')
             .where('eventid', eventId)
+            .where('eventdatetimestart', '>', now)
             .orderBy('eventdatetimestart', 'asc');
+
+        // If user is signed in, check if they're already registered for any future occurrence
+        if (userInfo && userInfo.participantid && occurrences.length > 0) {
+            const occurrenceIds = occurrences.map(occ => occ.eventoccurrenceid);
+            
+            const existingRegistration = await knex('registration')
+                .where('participantid', userInfo.participantid)
+                .whereIn('eventoccurrenceid', occurrenceIds)
+                .first();
+
+            if (existingRegistration) {
+                // User is already registered - show success page
+                const registeredOccurrence = occurrences.find(occ => occ.eventoccurrenceid === existingRegistration.eventoccurrenceid);
+                
+                if (registeredOccurrence) {
+                    const date = new Date(registeredOccurrence.eventdatetimestart);
+                    const eventDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    const eventTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+                    return res.render("rsvp-success", {
+                        user: userInfo,
+                        eventName: event.eventname,
+                        eventDate: eventDate,
+                        eventTime: eventTime
+                    });
+                }
+            }
+        }
 
         res.render("rsvp", {
             user: userInfo,
@@ -1353,19 +1443,23 @@ app.post("/rsvp", async (req, res) => {
             return res.status(400).send("Participant record not found for your account. Please contact support.");
         }
 
-        // Insert registration
+        // Insert registration with 'Signed Up' status
         try {
             await knex('registration').insert({
                 registrationcreatedate: new Date(),
                 participantid: participantId,
                 eventoccurrenceid: eventOccurrenceId,
-                registrationstatus: null,
+                registrationstatus: 'Signed Up',
                 registrationattendedflag: null
             });
         } catch (err) {
-            // If duplicate key error (code 23505), ignore and proceed to success page
-            // This means the user has already RSVP'd for this event occurrence
-            if (err.code !== '23505') {
+            // If duplicate key error (code 23505), update the status to 'Signed Up' if it's not already set
+            if (err.code === '23505') {
+                await knex('registration')
+                    .where('participantid', participantId)
+                    .where('eventoccurrenceid', eventOccurrenceId)
+                    .update({ registrationstatus: 'Signed Up' });
+            } else {
                 throw err;
             }
         }
@@ -2763,6 +2857,110 @@ app.get("/api/milestones/stats/:milestoneName", async (req, res) => {
         });
     } catch (err) {
         console.error("Error fetching milestone statistics:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Get milestone completions over time
+app.get("/api/milestones/timeline/:milestoneName", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    const milestoneName = decodeURIComponent(req.params.milestoneName);
+
+    try {
+        // Get all milestone completions for this milestone, ordered by date
+        const milestones = await knex('milestones')
+            .where('milestonetitle', milestoneName)
+            .select('milestonedate')
+            .orderBy('milestonedate', 'asc');
+
+        // Group by month/year and count cumulative completions
+        const timelineData = {};
+        let cumulativeCount = 0;
+
+        milestones.forEach(milestone => {
+            const date = new Date(milestone.milestonedate);
+            const year = date.getFullYear();
+            const month = date.getMonth(); // 0-11
+            const monthYear = `${year}-${String(month + 1).padStart(2, '0')}`;
+            const monthYearLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+
+            if (!timelineData[monthYear]) {
+                timelineData[monthYear] = {
+                    label: monthYearLabel,
+                    count: 0,
+                    cumulative: 0
+                };
+            }
+            cumulativeCount++;
+            timelineData[monthYear].count++;
+            timelineData[monthYear].cumulative = cumulativeCount;
+        });
+
+        // Convert to arrays for chart
+        const labels = Object.keys(timelineData).sort().map(key => timelineData[key].label);
+        const data = Object.keys(timelineData).sort().map(key => timelineData[key].cumulative);
+
+        res.json({
+            success: true,
+            labels: labels,
+            data: data
+        });
+    } catch (err) {
+        console.error("Error fetching milestone timeline:", err);
+        res.status(500).json({ error: `Database error: ${err.message}` });
+    }
+});
+
+// API route - Get all milestone completions over time (general overview)
+app.get("/api/milestones/overview/timeline", async (req, res) => {
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
+    }
+
+    try {
+        // Get all milestone completions, ordered by date
+        const milestones = await knex('milestones')
+            .select('milestonedate')
+            .orderBy('milestonedate', 'asc');
+
+        // Group by month/year and count cumulative completions
+        const timelineData = {};
+        let cumulativeCount = 0;
+
+        milestones.forEach(milestone => {
+            const date = new Date(milestone.milestonedate);
+            const year = date.getFullYear();
+            const month = date.getMonth(); // 0-11
+            const monthYear = `${year}-${String(month + 1).padStart(2, '0')}`;
+            const monthYearLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+
+            if (!timelineData[monthYear]) {
+                timelineData[monthYear] = {
+                    label: monthYearLabel,
+                    count: 0,
+                    cumulative: 0
+                };
+            }
+            cumulativeCount++;
+            timelineData[monthYear].count++;
+            timelineData[monthYear].cumulative = cumulativeCount;
+        });
+
+        // Convert to arrays for chart
+        const labels = Object.keys(timelineData).sort().map(key => timelineData[key].label);
+        const data = Object.keys(timelineData).sort().map(key => timelineData[key].cumulative);
+
+        res.json({
+            success: true,
+            labels: labels,
+            data: data,
+            totalMilestones: cumulativeCount
+        });
+    } catch (err) {
+        console.error("Error fetching milestone overview timeline:", err);
         res.status(500).json({ error: `Database error: ${err.message}` });
     }
 });

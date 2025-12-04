@@ -238,6 +238,25 @@
             background-color: #ff8ab8;
         }
 
+        .btn-show-totals {
+            background-color: var(--er-pink);
+            border: 2px solid var(--er-pink-dark);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            color: var(--er-text);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            cursor: pointer;
+            height: fit-content;
+        }
+
+        .btn-show-totals:hover {
+            background-color: var(--er-pink-dark);
+            color: #fff;
+        }
+
         /* Results Section */
         .results-section {
             width: 100%;
@@ -608,37 +627,40 @@
                         <input type="text" id="participantSearch" class="form-control"
                             placeholder="Search by name or email..." oninput="filterParticipants(); document.getElementById('milestoneSelect').value = '';">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="position: relative;">
                         <label for="milestoneSelect">Milestone Description</label>
-                        <select id="milestoneSelect" class="form-select">
-                            <option value="">Select a milestone...</option>
-                            <option value="AA in Art & Design">AA in Art & Design</option>
-                            <option value="AAS in Drafting & Design">AAS in Drafting & Design</option>
-                            <option value="BA in Studio Arts">BA in Studio Arts</option>
-                            <option value="BS in Information Systems">BS in Information Systems</option>
-                            <option value="BS in Mechanical Engineering">BS in Mechanical Engineering</option>
-                            <option value="Camp Counselor">Camp Counselor</option>
-                            <option value="Clinical Data Coordinator">Clinical Data Coordinator</option>
-                            <option value="Competition Award">Competition Award</option>
-                            <option value="Customer Support Rep">Customer Support Rep</option>
-                            <option value="Data Analytics Certificate">Data Analytics Certificate</option>
-                            <option value="Digital Illustration Certificate">Digital Illustration Certificate</option>
-                            <option value="High School Diploma">High School Diploma</option>
-                            <option value="Internship">Internship</option>
-                            <option value="IT Help Desk Trainee">IT Help Desk Trainee</option>
-                            <option value="Junior QA Tester">Junior QA Tester</option>
-                            <option value="Lifeguard">Lifeguard</option>
-                            <option value="MBA">MBA</option>
-                            <option value="Mentorship Program">Mentorship Program</option>
-                            <option value="Middle School Diploma">Middle School Diploma</option>
-                            <option value="MFA in Studio Arts">MFA in Studio Arts</option>
-                            <option value="Product Designer">Product Designer</option>
-                            <option value="Published Project">Published Project</option>
-                            <option value="Retail Assistant">Retail Assistant</option>
-                            <option value="Studio Assistant">Studio Assistant</option>
-                            <option value="Systems Analyst">Systems Analyst</option>
-                            <option value="Web Development Certificate">Web Development Certificate</option>
-                        </select>
+                        <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                            <select id="milestoneSelect" class="form-select" style="flex: 1;">
+                                <option value="">Select a milestone...</option>
+                                <option value="AA in Art & Design">AA in Art & Design</option>
+                                <option value="AAS in Drafting & Design">AAS in Drafting & Design</option>
+                                <option value="BA in Studio Arts">BA in Studio Arts</option>
+                                <option value="BS in Information Systems">BS in Information Systems</option>
+                                <option value="BS in Mechanical Engineering">BS in Mechanical Engineering</option>
+                                <option value="Camp Counselor">Camp Counselor</option>
+                                <option value="Clinical Data Coordinator">Clinical Data Coordinator</option>
+                                <option value="Competition Award">Competition Award</option>
+                                <option value="Customer Support Rep">Customer Support Rep</option>
+                                <option value="Data Analytics Certificate">Data Analytics Certificate</option>
+                                <option value="Digital Illustration Certificate">Digital Illustration Certificate</option>
+                                <option value="High School Diploma">High School Diploma</option>
+                                <option value="Internship">Internship</option>
+                                <option value="IT Help Desk Trainee">IT Help Desk Trainee</option>
+                                <option value="Junior QA Tester">Junior QA Tester</option>
+                                <option value="Lifeguard">Lifeguard</option>
+                                <option value="MBA">MBA</option>
+                                <option value="Mentorship Program">Mentorship Program</option>
+                                <option value="Middle School Diploma">Middle School Diploma</option>
+                                <option value="MFA in Studio Arts">MFA in Studio Arts</option>
+                                <option value="Product Designer">Product Designer</option>
+                                <option value="Published Project">Published Project</option>
+                                <option value="Retail Assistant">Retail Assistant</option>
+                                <option value="Studio Assistant">Studio Assistant</option>
+                                <option value="Systems Analyst">Systems Analyst</option>
+                                <option value="Web Development Certificate">Web Development Certificate</option>
+                            </select>
+                            <button type="button" id="showTotalsBtn" class="btn-show-totals" style="display: none;">Show Totals</button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -657,6 +679,11 @@
                 <div id="stat-percentage" class="stat-number">0%</div>
             </div>
         </div>
+        <!-- Line Graph Container -->
+        <div style="margin-top: 2rem; background-color: #fff; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <h4 style="font-family: 'DM Serif Display', serif; margin-bottom: 1.5rem; color: var(--er-text);">Milestone Completions Over Time</h4>
+            <canvas id="milestoneTimelineChart" style="max-height: 400px;"></canvas>
+        </div>
     </div>
 
     <!-- Results Section -->
@@ -664,6 +691,14 @@
         <div class="participant-results" id="participantResults">
             <!-- Participant list will be populated here -->
             <div class="no-results">Start typing to search for participants...</div>
+        </div>
+    </div>
+
+    <!-- Total Milestones Overview Graph -->
+    <div id="total-milestones-overview" class="milestone-overview-section" style="width: 100%; max-width: 1600px; margin: 0 auto 3rem; padding: 0 2rem; box-sizing: border-box;">
+        <div style="background-color: #fff; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <h3 style="font-family: 'DM Serif Display', serif; margin-bottom: 1.5rem; color: var(--er-text);">Total Milestones Achieved Over Time</h3>
+            <canvas id="totalMilestonesChart" style="max-height: 400px;"></canvas>
         </div>
     </div>
 
@@ -739,8 +774,106 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script>
+        // Chart instance for total milestones overview
+        let totalMilestonesChart = null;
+
+        // Load total milestones overview graph on page load
+        async function loadTotalMilestonesOverview() {
+            try {
+                const response = await fetch('/api/milestones/overview/timeline');
+                const data = await response.json();
+
+                if (data.success && data.labels && data.labels.length > 0) {
+                    const ctx = document.getElementById('totalMilestonesChart').getContext('2d');
+                    totalMilestonesChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Total Milestones',
+                                data: data.data,
+                                borderColor: '#ff9fc4',
+                                backgroundColor: 'rgba(255, 159, 196, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                                pointBackgroundColor: '#ff9fc4',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            size: 14,
+                                            weight: '600'
+                                        },
+                                        color: '#222222'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    bodyFont: {
+                                        size: 13
+                                    },
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Total Milestones: ' + context.parsed.y;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        font: {
+                                            size: 12
+                                        },
+                                        color: '#666'
+                                    },
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 12
+                                        },
+                                        color: '#666'
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading total milestones overview:', error);
+            }
+        }
+
         // Debounce function to limit API calls
         function debounce(func, wait) {
             let timeout;
@@ -764,6 +897,12 @@
             // Show results section when searching
             if (resultsSection) {
                 resultsSection.style.display = 'block';
+            }
+
+            // Show total milestones overview when searching participants
+            const totalOverview = document.getElementById('total-milestones-overview');
+            if (totalOverview) {
+                totalOverview.style.display = 'block';
             }
 
             if (searchTerm.length < 2) {
@@ -804,12 +943,30 @@
             // Form submission disabled - milestone assignment is now done on personal milestones page
         }
 
+        // Chart instance for milestone timeline
+        let milestoneChart = null;
+
+        // Handle "Show Totals" button click
+        document.getElementById('showTotalsBtn').addEventListener('click', function() {
+            const milestoneSelect = document.getElementById('milestoneSelect');
+            milestoneSelect.value = '';
+            milestoneSelect.dispatchEvent(new Event('change'));
+        });
+
+        // Handle "Show Totals" button click
+        document.getElementById('showTotalsBtn').addEventListener('click', function() {
+            const milestoneSelect = document.getElementById('milestoneSelect');
+            milestoneSelect.value = '';
+            milestoneSelect.dispatchEvent(new Event('change'));
+        });
+
         // Handle milestone selection to show statistics
         document.getElementById('milestoneSelect').addEventListener('change', async function() {
             const milestoneName = this.value;
             const statsSection = document.getElementById('milestone-stats');
             const resultsSection = document.querySelector('.results-section');
             const participantSearch = document.getElementById('participantSearch');
+            const showTotalsBtn = document.getElementById('showTotalsBtn');
 
             // Clear participant search when milestone is selected
             if (participantSearch && milestoneName) {
@@ -822,9 +979,23 @@
 
             if (!milestoneName) {
                 statsSection.style.display = 'none';
+                // Destroy chart if it exists
+                if (milestoneChart) {
+                    milestoneChart.destroy();
+                    milestoneChart = null;
+                }
                 // Show results section when no milestone is selected
                 if (resultsSection) {
                     resultsSection.style.display = 'block';
+                }
+                // Show total milestones overview when no milestone is selected
+                const totalOverview = document.getElementById('total-milestones-overview');
+                if (totalOverview) {
+                    totalOverview.style.display = 'block';
+                }
+                // Hide "Show Totals" button when no milestone is selected
+                if (showTotalsBtn) {
+                    showTotalsBtn.style.display = 'none';
                 }
                 return;
             }
@@ -834,14 +1005,132 @@
                 resultsSection.style.display = 'none';
             }
 
+            // Show "Show Totals" button when a milestone is selected
+            if (showTotalsBtn) {
+                showTotalsBtn.style.display = 'block';
+            }
+
+            // Hide total milestones overview when a specific milestone is selected
+            const totalOverview = document.getElementById('total-milestones-overview');
+            if (totalOverview) {
+                totalOverview.style.display = 'none';
+            }
+
             try {
                 const response = await fetch(`/api/milestones/stats/${encodeURIComponent(milestoneName)}`);
                 const data = await response.json();
 
                 if (data.success) {
+                    // Update statistics
                     document.getElementById('stat-completed').textContent = data.completed;
                     document.getElementById('stat-percentage').textContent = data.percentage + '%';
                     statsSection.style.display = 'block';
+
+                    // Fetch and display timeline data
+                    try {
+                        const timelineResponse = await fetch(`/api/milestones/timeline/${encodeURIComponent(milestoneName)}`);
+                        const timelineData = await timelineResponse.json();
+
+                        if (timelineData.success && timelineData.labels && timelineData.labels.length > 0) {
+                            // Destroy existing chart if it exists
+                            if (milestoneChart) {
+                                milestoneChart.destroy();
+                            }
+
+                            const ctx = document.getElementById('milestoneTimelineChart').getContext('2d');
+                            milestoneChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: timelineData.labels,
+                                    datasets: [{
+                                        label: 'Cumulative Completions',
+                                        data: timelineData.data,
+                                        borderColor: '#ff9fc4',
+                                        backgroundColor: 'rgba(255, 159, 196, 0.1)',
+                                        borderWidth: 3,
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointRadius: 5,
+                                        pointHoverRadius: 7,
+                                        pointBackgroundColor: '#ff9fc4',
+                                        pointBorderColor: '#fff',
+                                        pointBorderWidth: 2
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    plugins: {
+                                        legend: {
+                                            display: true,
+                                            position: 'top',
+                                            labels: {
+                                                font: {
+                                                    size: 14,
+                                                    weight: '600'
+                                                },
+                                                color: '#222222'
+                                            }
+                                        },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                            padding: 12,
+                                            titleFont: {
+                                                size: 14,
+                                                weight: 'bold'
+                                            },
+                                            bodyFont: {
+                                                size: 13
+                                            },
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return 'Completions: ' + context.parsed.y;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            ticks: {
+                                                stepSize: 1,
+                                                font: {
+                                                    size: 12
+                                                },
+                                                color: '#666'
+                                            },
+                                            grid: {
+                                                color: 'rgba(0, 0, 0, 0.05)'
+                                            }
+                                        },
+                                        x: {
+                                            ticks: {
+                                                font: {
+                                                    size: 12
+                                                },
+                                                color: '#666'
+                                            },
+                                            grid: {
+                                                display: false
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        } else {
+                            // No data to display
+                            if (milestoneChart) {
+                                milestoneChart.destroy();
+                                milestoneChart = null;
+                            }
+                        }
+                    } catch (timelineError) {
+                        console.error('Error fetching timeline data:', timelineError);
+                        if (milestoneChart) {
+                            milestoneChart.destroy();
+                            milestoneChart = null;
+                        }
+                    }
                 } else {
                     console.error('Error fetching milestone statistics:', data.error);
                     statsSection.style.display = 'none';
@@ -859,8 +1148,12 @@
                 }
             }
         });
+
+        // Load overview graph on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTotalMilestonesOverview();
+        });
     </script>
 </body>
 
 </html>
-```
