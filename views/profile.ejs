@@ -405,7 +405,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <% if (user) { %>
+                    <% if (user && user.isManager) { %>
                     <li class="nav-item">
                         <a class="nav-link" href="/participants">Participants</a>
                     </li>

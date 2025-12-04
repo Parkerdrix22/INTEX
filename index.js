@@ -102,12 +102,13 @@ app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
         "default-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
-        "connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:*; " +
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://public.tableau.com; " +
+        "connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:* https://public.tableau.com https://*.tableau.com http://public.tableau.com http://*.tableau.com; " +
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://public.tableau.com https://*.tableau.com http://public.tableau.com http://*.tableau.com; " +
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; " +
         "img-src 'self' data: https:; " +
         "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; " +
-        "frame-src 'self' https://public.tableau.com;"
+        "frame-src 'self' https://public.tableau.com https://*.tableau.com http://public.tableau.com http://*.tableau.com; " +
+        "object-src 'self' https://public.tableau.com https://*.tableau.com http://public.tableau.com http://*.tableau.com;"
     );
     next();
 });
@@ -734,6 +735,11 @@ app.post("/events/delete/:id", (req, res) => {
 
 // Participants route
 app.get("/participants", async (req, res) => {
+    // Check if user is logged in as manager
+    if (!req.session.isLoggedIn || req.session.level !== 'M') {
+        return res.status(403).redirect("/login");
+    }
+
     const userInfo = await getUserInfo(req);
 
     // Query to get all participants from database with user account info
