@@ -1,9 +1,23 @@
+/*
+ * Ella Rises Website - Main Server File
+ * 
+ * Developers:
+ * - Parker Hendrix
+ * - Brandon Price
+ * - Isaac Johnson
+ * - Zach Hada
+ * 
+ * This is the main server file that handles all the routes and database connections.
+ * It uses Express.js to handle HTTP requests and EJS templates to render pages.
+ * We use Knex.js to talk to our PostgreSQL database.
+ */
+
 //npm install dotenv - explain
 //npm install express-session - explain
 //create the .env file
 
 // Load environment variables from .env file into memory
-// Allows you to use process.env
+// This lets us use things like database passwords without putting them in the code
 require('dotenv').config();
 
 const express = require("express");
@@ -131,31 +145,37 @@ const knex = require("knex")({
 app.use(express.urlencoded({ extended: true }));
 
 // Helper function to get user info with participant data
+// We use this a lot to check if someone is logged in and what their role is
 async function getUserInfo(req) {
+    // If they're not logged in, just return null
     if (!req.session.isLoggedIn) {
         return null;
     }
 
+    // Build the user info object with what we know from the session
     const userInfo = {
         username: req.session.username,
-        level: req.session.level,
-        isManager: req.session.level === 'M',
+        level: req.session.level,  // 'M' for manager, 'U' for regular user
+        isManager: req.session.level === 'M',  // Makes it easier to check in templates
         isUser: req.session.level === 'U',
         participantid: req.session.participantid || null
     };
 
-    // If user has a participantid, get participant data
+    // If the user has a participantid, we can get their full name from the participants table
     if (req.session.participantid) {
         try {
+            // Look up the participant in the database
             const participant = await knex('participants')
                 .where('participantid', req.session.participantid)
                 .first();
 
             if (participant) {
+                // If we found them, add their name to the user info
                 userInfo.first_name = participant.participantfirstname || '';
                 userInfo.last_name = participant.participantlastname || '';
                 userInfo.full_name = `${participant.participantfirstname || ''} ${participant.participantlastname || ''}`.trim() || req.session.username;
             } else {
+                // If we didn't find them, just use the username
                 userInfo.first_name = '';
                 userInfo.last_name = '';
                 userInfo.full_name = req.session.username;
@@ -176,29 +196,31 @@ async function getUserInfo(req) {
 }
 
 // Global authentication middleware - runs on EVERY request
+// This checks if someone is logged in before letting them access pages
 app.use((req, res, next) => {
-    // Skip authentication for login routes, signup, events, and survey
-    // Note: /events/add, /events/edit/:id, /events/delete/:id, /participants/add, /participants/edit/:id, /participants/delete/:id require manager authentication (checked in route handlers)
+    // These pages don't need login - anyone can access them
+    // Some of these (like /participants) check for manager access inside the route itself
     if (req.path === '/' || req.path === '/login' || req.path === '/logout' || req.path === '/signup' || req.path === '/events' || req.path.startsWith('/events/') || req.path === '/rsvp' || req.path.startsWith('/rsvp/') || req.path.startsWith('/reservations/') || req.path === '/survey' || req.path === '/surveys' || req.path === '/participants' || req.path.startsWith('/participants/') || req.path === '/milestones' || req.path === '/personal-milestones' || req.path === '/donations' || req.path === '/dashboard' || req.path === '/profile' || req.path.startsWith('/profile/') || req.path === '/teapot' || req.path.startsWith('/api/')) {
-        //continue with the request path
+        // Let them through without checking login
         return next();
     }
 
-    // My Journey requires authentication
+    // My Journey page needs login
     if (req.path === '/my-journey') {
         if (req.session.isLoggedIn) {
             return next();
         } else {
+            // Not logged in, send them to login page
             return res.render("login", { error_message: "Please log in to access this page" });
         }
     }
 
-    // Check if user is logged in for all other routes
+    // For everything else, check if they're logged in
     if (req.session.isLoggedIn) {
-        //notice no return because nothing below it
-        next(); // User is logged in, continue
+        next(); // They're logged in, let them through
     }
     else {
+        // Not logged in, send them to login
         res.render("login", { error_message: "Please log in to access this page" });
     }
 });
@@ -240,6 +262,10 @@ app.get("/users", (req, res) => {
     }
 });
 
+// ============================================
+// HOMEPAGE
+// ============================================
+
 app.get("/", async (req, res) => {
     // Always show the homepage (index.ejs)
     // Pass user info if logged in
@@ -247,32 +273,45 @@ app.get("/", async (req, res) => {
     res.render("index", { user: userInfo });
 });
 
+// ============================================
+// DONATIONS PAGE
+// ============================================
+
 // Donations route
 app.get("/donations", async (req, res) => {
     const userInfo = await getUserInfo(req);
     res.render("donations", { user: userInfo });
 });
 
+// ============================================
+// API ROUTES (for AJAX calls from frontend)
+// ============================================
+
 // Donations data API for managers
+// This gets called by JavaScript on the donations page to show totals
+// The frontend makes an AJAX call to this route to get the data
 app.get("/api/donations/data", async (req, res) => {
-    // Check if user is logged in as manager
+    // Only managers can see donation analytics
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
     }
 
     try {
-        // Get all donations and calculate totals
+        // Get all donations from the database
         const donations = await knex('donations')
             .select('donations.donationamount');
 
+        // Count them up and add up the total amount
         let totalDonations = 0;
         let totalAmount = 0;
 
         donations.forEach(donation => {
             totalDonations++;
+            // Parse the amount as a number and add it to the total
             totalAmount += parseFloat(donation.donationamount || 0);
         });
 
+        // Send back the totals as JSON
         res.json({
             success: true,
             data: {
@@ -593,6 +632,10 @@ app.delete("/api/donations/:donationId", async (req, res) => {
     }
 });
 
+// ============================================
+// EVENTS PAGE
+// ============================================
+
 // Events route
 app.get("/events", async (req, res) => {
     const userInfo = await getUserInfo(req);
@@ -733,25 +776,33 @@ app.post("/events/delete/:id", (req, res) => {
         });
 });
 
+// ============================================
+// PARTICIPANTS PAGE
+// ============================================
+
 // Participants route
+// This page shows all participants - only managers can see it
 app.get("/participants", async (req, res) => {
     // Check if user is logged in as manager
+    // If not, redirect them to login
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).redirect("/login");
     }
 
     const userInfo = await getUserInfo(req);
 
-    // Query to get all participants from database with user account info
+    // Get all participants from the database
+    // We use leftJoin because not every participant has a user account
+    // This way we still get all participants even if they don't have a login
     knex.select(
-        'participants.*',
+        'participants.*',  // All columns from participants table
         'users.username',
         'users.password',
         'users.level'
     )
         .from('participants')
         .leftJoin('users', 'participants.participantid', 'users.participantid')
-        .orderBy('participantlastname', 'asc')
+        .orderBy('participantlastname', 'asc')  // Sort by last name
         .then(participants => {
             console.log(`Successfully retrieved ${participants.length} participants from database`);
             res.render("participants", {
@@ -770,12 +821,14 @@ app.get("/participants", async (req, res) => {
 });
 
 // Participants POST route - Add Participant (Manager only)
+// This handles when a manager adds a new participant to the system
 app.post("/participants/add", (req, res) => {
-    // Check if user is logged in as manager
+    // Only managers can add participants
     if (!req.session.isLoggedIn || req.session.level !== 'M') {
         return res.status(403).json({ error: 'Unauthorized. Manager access required.' });
     }
 
+    // Get all the form data from the request
     const {
         participantEmail,
         participantFirstName,
@@ -985,6 +1038,9 @@ app.post("/participants/delete/:id", async (req, res) => {
     }
 });
 
+// ============================================
+// MILESTONES PAGE
+// ============================================
 
 // Milestones route
 app.get("/milestones", async (req, res) => {
@@ -992,11 +1048,19 @@ app.get("/milestones", async (req, res) => {
     res.render("milestones", { user: userInfo });
 });
 
+// ============================================
+// DASHBOARD PAGE
+// ============================================
+
 // Dashboard route
 app.get("/dashboard", async (req, res) => {
     const userInfo = await getUserInfo(req);
     res.render("dashboard", { user: userInfo });
 });
+
+// ============================================
+// PROFILE PAGE
+// ============================================
 
 // Profile route
 app.get("/profile", async (req, res) => {
@@ -1096,6 +1160,10 @@ app.post("/profile/update", async (req, res) => {
         res.status(500).json({ error: 'Failed to update profile' });
     }
 });
+
+// ============================================
+// PERSONAL MILESTONES PAGE
+// ============================================
 
 // Personal Milestones route
 app.get("/personal-milestones", async (req, res) => {
@@ -1258,6 +1326,10 @@ app.get("/my-journey", async (req, res) => {
     });
 });
 
+// ============================================
+// RESERVATIONS / CHECK-IN PAGE
+// ============================================
+
 // Reservations route - GET (Manager only)
 app.get("/reservations/:id", async (req, res) => {
     // Check if user is logged in as manager
@@ -1349,6 +1421,10 @@ app.get("/reservations/:id", async (req, res) => {
         });
     }
 });
+
+// ============================================
+// RSVP PAGE
+// ============================================
 
 // RSVP route - GET
 app.get("/rsvp/:id", async (req, res) => {
@@ -1499,6 +1575,10 @@ app.post("/rsvp", async (req, res) => {
         res.status(500).send(`Error processing RSVP: ${err.message}`);
     }
 });
+
+// ============================================
+// SURVEY / EVENT FEEDBACK PAGE
+// ============================================
 
 // Survey route - GET (singular)
 app.get("/survey", async (req, res) => {
@@ -1946,6 +2026,10 @@ app.post("/surveys", (req, res) => {
     req.url = '/survey';
     return app._router.handle(req, res);
 });
+
+// ============================================
+// LOGIN / SIGNUP / LOGOUT
+// ============================================
 
 // This creates attributes in the session object to keep track of user and if they logged in
 app.post("/login", (req, res) => {

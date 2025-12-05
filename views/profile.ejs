@@ -1,3 +1,17 @@
+<!--
+    PAGE: User Profile (profile.ejs)
+    
+    DEVELOPERS:
+    - Parker Hendrix
+    - Brandon Price
+    - Isaac Johnson
+    - Zach Hada
+    
+    OVERVIEW:
+    This page lets users view and edit their personal information. They can update
+    their contact details, address, school/employer, and other profile information.
+    Only logged-in users can access this page.
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,6 +34,7 @@
 
         html, body {
             height: 100%;
+            width: 100%;
             margin: 0;
             padding: 0;
         }
@@ -27,6 +42,7 @@
         body {
             background-color: #ffffff;
             color: var(--er-text);
+            width: 100%;
         }
 
         /* Wrapper for sticky footer */
@@ -34,6 +50,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         /* DM Serif Display for all titles and headers */
@@ -61,7 +78,8 @@
         }
 
         body .container {
-            max-width: 1400px;
+            max-width: 1600px;
+            width: 100%;
         }
 
         .navbar-brand {
@@ -159,9 +177,22 @@
 
         /* Profile Container */
         .profile-container {
-            max-width: 900px;
+            width: 100% !important;
+            max-width: 1600px !important;
             margin: 0 auto;
             padding: 0 2rem 4rem;
+            box-sizing: border-box;
+        }
+        
+        /* Override any Bootstrap container constraints */
+        .page-header {
+            width: 100%;
+        }
+        
+        .page-header .container,
+        .page-header > * {
+            width: 100%;
+            max-width: 1600px;
         }
 
         .profile-section {
@@ -170,6 +201,28 @@
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100% !important;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .profile-section form {
+            width: 100% !important;
+            max-width: 100%;
+        }
+        
+        .profile-section .form-control,
+        .profile-section .form-select,
+        .profile-section input,
+        .profile-section select,
+        .profile-section textarea {
+            width: 100% !important;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .profile-section .mb-3 {
+            width: 100%;
         }
 
         .profile-section h2 {
