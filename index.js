@@ -12,10 +12,6 @@
  * We use Knex.js to talk to our PostgreSQL database.
  */
 
-//npm install dotenv - explain
-//npm install express-session - explain
-//create the .env file
-
 // Load environment variables from .env file into memory
 // This lets us use things like database passwords without putting them in the code
 require('dotenv').config();
@@ -43,15 +39,6 @@ const uploadRoot = path.join(__dirname, "images");
 // Sub-directory where uploaded profile pictures will be stored
 const uploadDir = path.join(uploadRoot, "uploads");
 
-// cb is the callback function
-// The callback is how you hand control back to Multer after 
-// your customization step
-
-// Configure Multer's disk storage engine
-// Multer calls it once per upload to ask where to store the file. Your function receives:
-// req: the incoming request.
-// file: metadata about the file (original name, mimetype, etc.).
-// cb: the callback.
 const storage = multer.diskStorage({
     // Save files into our uploads directory
     destination: (req, file, cb) => {
@@ -78,25 +65,6 @@ app.use(express.urlencoded({ extended: true }));
 // process.env.PORT is when you deploy and 3001 is for test (3000 is often in use)
 const port = process.env.PORT || 3001;
 
-/* Session middleware (Middleware is code that runs between the time the request comes
-to the server and the time the response is sent back. It allows you to intercept and
-decide if the request should continue. It also allows you to parse the body request
-from the html form, handle errors, check authentication, etc.)
-
-REQUIRED parameters for session:
-secret - The only truly required parameter
-    Used to sign session cookies
-    Prevents tampering and session hijacking with session data
-
-OPTIONAL (with defaults):
-resave - Default: true
-    true = save session on every request
-    false = only save if modified (recommended)
-
-saveUninitialized - Default: true
-    true = create session for every request
-    false = only create when data is stored (recommended)
-*/
 
 app.use(
     session(
